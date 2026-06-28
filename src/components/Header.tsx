@@ -16,6 +16,7 @@ const navLinks = [
   { href: "/shop?category=Bags+%26+Travel", label: "Travel" },
   { href: "/shop?category=Desk+%26+Office", label: "Office" },
   { href: "/about", label: "About" },
+  { href: "/contact", label: "Contact" },
 ];
 
 export default function Header() {

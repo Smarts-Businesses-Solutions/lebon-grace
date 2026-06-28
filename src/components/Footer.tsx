@@ -16,6 +16,7 @@ const policyLinks = [
   { href: "/privacy", label: "Privacy Policy" },
   { href: "/faq", label: "FAQ" },
   { href: "/about", label: "About Us" },
+  { href: "/contact", label: "Contact Us" },
 ];
 
 export default function Footer() {
