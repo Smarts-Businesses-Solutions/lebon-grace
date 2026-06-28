@@ -13,15 +13,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Items required" }, { status: 400 });
   }
 
-  // Calculate amounts
+  // Calculate amounts (all in AED)
   const total = subtotal + (shipping || 0);
-  const depositAmount = Math.round(total * 50); // 50% in fils (AED smallest unit)
-  const codAmount = total - depositAmount;
+  const depositAmount = Math.round(total / 2); // 50% deposit in AED
+  const codAmount = total - depositAmount; // remaining 50% COD in AED
 
   try {
     // Build line items for Stripe — each product at 50% of its price
+    // Stripe unit_amount is in fils (1 AED = 100 fils)
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map(
-      (item: { name: string; price: number; quantity: number; image?: string }) => ({
+      (item: { name: string; price: number; quantity: number; image?: string; slug?: string }) => ({
         price_data: {
           currency: "aed",
           product_data: {
@@ -30,9 +31,10 @@ export async function POST(request: NextRequest) {
             metadata: {
               brand: "lebon-grace",
               entity: "shop-lebon-grace",
+              slug: item.slug || "",
             },
           },
-          unit_amount: Math.round(item.price * 50), // 50% of product price in fils
+          unit_amount: Math.round(item.price * 100 / 2), // 50% in fils
         },
         quantity: item.quantity,
       })
@@ -47,7 +49,7 @@ export async function POST(request: NextRequest) {
             name: "Shipping Fee",
             metadata: { brand: "lebon-grace" },
           },
-          unit_amount: Math.round(shipping * 50), // 50% of shipping
+          unit_amount: Math.round(shipping * 100 / 2), // 50% of shipping in fils
         },
         quantity: 1,
       });
@@ -66,8 +68,8 @@ export async function POST(request: NextRequest) {
           total: String(total),
           subtotal: String(subtotal),
           shipping: String(shipping || 0),
-          deposit: String(depositAmount / 100),
-          cod_balance: String(codAmount / 100),
+          deposit: String(depositAmount),
+          cod_balance: String(codAmount),
           delivery_method: deliveryMethod || "delivery",
         },
       },
@@ -78,8 +80,8 @@ export async function POST(request: NextRequest) {
         entity: "shop-lebon-grace",
         order_type: "50_50_split",
         total: String(total),
-        deposit: String(depositAmount / 100),
-        cod_balance: String(codAmount / 100),
+        deposit: String(depositAmount),
+        cod_balance: String(codAmount),
         delivery_method: deliveryMethod || "delivery",
       },
     });

@@ -14,6 +14,8 @@ const quickLinks = [
 const policyLinks = [
   { href: "/terms", label: "Terms of Service" },
   { href: "/privacy", label: "Privacy Policy" },
+  { href: "/track", label: "Track Order" },
+  { href: "/account", label: "My Account" },
   { href: "/faq", label: "FAQ" },
   { href: "/about", label: "About Us" },
   { href: "/contact", label: "Contact Us" },

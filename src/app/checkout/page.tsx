@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useCart } from "@/lib/cart-context";
+import { useCart, saveCartEmail, clearCartRecovery } from "@/lib/cart-context";
 import { formatPrice } from "@/lib/products";
 
 const emirates = ["Dubai", "Abu Dhabi", "Sharjah", "Ajman", "Ras Al Khaimah", "Fujairah", "Umm Al Quwain"];
@@ -23,6 +23,8 @@ export default function CheckoutPage() {
     const { name, value, type } = e.target;
     setForm((prev) => ({ ...prev, [name]: type === "checkbox" ? (e.target as HTMLInputElement).checked : value }));
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
+    // Save email for cart recovery
+    if (name === "email" && value.includes("@")) saveCartEmail(value);
   };
 
   const validate = () => {
@@ -72,12 +74,14 @@ export default function CheckoutPage() {
         // Fallback: mark order as placed without Stripe
         console.error("Stripe checkout failed:", data.error);
         clearCart();
+        clearCartRecovery();
         setOrderPlaced(true);
         setSubmitting(false);
       }
     } catch {
       // Fallback if API fails
       clearCart();
+      clearCartRecovery();
       setOrderPlaced(true);
       setSubmitting(false);
     }
@@ -103,7 +107,10 @@ export default function CheckoutPage() {
         <p className="mt-4 text-warm-gray text-sm max-w-md mx-auto">
           Thank you for your order. You will receive a confirmation email shortly. You have paid 50% now and the remaining 50% will be collected on delivery.
         </p>
-        <Link href="/shop" className="mt-8 inline-flex items-center px-6 py-3 bg-sand text-white text-sm tracking-wider uppercase font-medium rounded-sm hover:bg-sand-dark transition-colors">Continue Shopping</Link>
+        <div className="mt-8 flex gap-3 justify-center">
+          <Link href="/track" className="inline-flex items-center px-6 py-3 bg-sand text-white text-sm tracking-wider uppercase font-medium rounded-sm hover:bg-sand-dark transition-colors">Track Your Order</Link>
+          <Link href="/shop" className="inline-flex items-center px-6 py-3 border border-sand text-sand text-sm tracking-wider uppercase font-medium rounded-sm hover:bg-sand/5 transition-colors">Continue Shopping</Link>
+        </div>
       </section>
     );
   }
@@ -191,7 +198,7 @@ export default function CheckoutPage() {
             <label className="flex items-start gap-3 cursor-pointer">
               <input type="checkbox" name="termsAccepted" checked={form.termsAccepted} onChange={handleChange} className="mt-0.5 accent-[#C9A96E]" />
               <span className="text-xs text-warm-gray leading-relaxed">
-                I agree to the <Link href="/terms" className="text-sand hover:text-sand-dark underline">Terms of Service</Link> and <Link href="/privacy" className="text-sand hover:text-sand-dark underline">Privacy Policy</Link>. I understand that 50% of the order total will be charged now and the remaining 50% will be collected on delivery.
+                I agree to the <Link href="/terms" className="text-sand hover:text-sand-dark underline">Terms of Service</Link> and <Link href="/privacy" className="text-sand hover:text-sand-dark underline">Privacy Policy</Link>. I understand that 50% of the order total will be charged now and the remaining 50% will be collected on delivery. All orders are final — no cancellations or refunds.
               </span>
             </label>
             {errors.terms && <p className="mt-1 text-red-500 text-xs">{errors.terms}</p>}

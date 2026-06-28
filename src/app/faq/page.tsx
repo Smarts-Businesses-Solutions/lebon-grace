@@ -17,7 +17,7 @@ const faqs = [
   },
   {
     question: "What is your return policy?",
-    answer: "We want you to be completely satisfied with your purchase. If for any reason you are not happy with your order, you may request a return within 7 days of delivery. Items must be unused and in their original packaging. Please contact our support team to initiate a return.",
+    answer: "As a small company sourcing affordable products directly from international suppliers, we do not offer returns or refunds once an order has been delivered — all sales are final. This helps us keep our prices as low as possible. We encourage you to review product details carefully before ordering. If you receive a damaged or incorrect item, please contact us within 48 hours of delivery with photos, and we will arrange a replacement or store credit.",
   },
   {
     question: "Can I track my order?",
@@ -29,7 +29,7 @@ const faqs = [
   },
   {
     question: "Can I change or cancel my order?",
-    answer: "You can modify or cancel your order within 24 hours of placing it. After that, the order may have already entered our fulfillment process. Please contact us as soon as possible if you need to make changes.",
+    answer: "All orders are final once placed. As a small company sourcing products from international suppliers, we are unable to modify or cancel orders after they have been submitted. Our fulfillment process begins immediately to ensure fast delivery. Please review your cart and details carefully before completing your purchase.",
   },
   {
     question: "Can I pick up my order instead of delivery?",

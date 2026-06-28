@@ -146,6 +146,8 @@ export default function Header() {
               { href: "/shop?category=Desk+%26+Office", label: "Office" },
               { href: "/shop?category=Garden+%26+Outdoor", label: "Garden" },
               { href: "/shop?category=Fitness+%26+Wellness", label: "Fitness" },
+              { href: "/track", label: "Track Order" },
+              { href: "/account", label: "My Account" },
               { href: "/contact", label: "Contact" },
             ].map((link) => (
               <Link

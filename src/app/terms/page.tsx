@@ -47,14 +47,17 @@ export default function TermsPage() {
         <div>
           <h2 className="font-heading text-xl font-semibold tracking-tight mb-3">5. Returns and Refunds</h2>
           <p className="text-charcoal text-sm leading-relaxed">
-            You may request a return within 7 days of receiving your order. Items must be unused, undamaged, and in their original packaging. To initiate a return, please contact our customer support team. Once we receive and inspect the returned item, a refund will be processed to your original payment method within 5-7 business days.
+            Due to the nature of our business — sourcing affordable products directly from international suppliers — <strong>we do not offer returns or refunds</strong> once an order has been delivered. All sales are final. We are a small company committed to keeping prices as low as possible, and the cost of international return shipping would make returns impractical for both parties.
+          </p>
+          <p className="text-charcoal text-sm leading-relaxed mt-3">
+            We encourage you to review product details, images, and sizing information carefully before placing your order. If you receive a damaged or incorrect item, please contact us within 48 hours of delivery with photos, and we will work with you to resolve the issue — including a replacement or store credit where applicable.
           </p>
         </div>
 
         <div>
           <h2 className="font-heading text-xl font-semibold tracking-tight mb-3">6. Order Modifications and Cancellations</h2>
           <p className="text-charcoal text-sm leading-relaxed">
-            Orders may be modified or cancelled within 24 hours of placement. After this period, orders may have already entered our fulfillment process and may not be eligible for modification. Please contact us as soon as possible if you need to make changes to your order.
+            <strong>All orders are final once placed.</strong> We do not offer modifications or cancellations. As a small company sourcing products from international suppliers, our fulfillment process begins immediately after an order is received to ensure the fastest possible delivery. Please review your order carefully before completing your purchase.
           </p>
         </div>
 

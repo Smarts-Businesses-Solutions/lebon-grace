@@ -75,7 +75,7 @@ export default function AboutPage() {
               </div>
               <h3 className="font-heading text-lg font-semibold tracking-tight">Customer First</h3>
               <p className="mt-3 text-warm-gray text-sm leading-relaxed">
-                Free pickup option, WhatsApp support, easy returns. We treat every order like it matters — because it does.
+                Free pickup option, WhatsApp support, honest pricing. We treat every order like it matters — because it does.
               </p>
             </div>
           </div>

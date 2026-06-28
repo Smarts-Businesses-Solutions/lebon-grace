@@ -37,6 +37,8 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 const CART_KEY = "lebon-grace-cart";
+const CART_EMAIL_KEY = "lebon-grace-cart-email";
+const CART_TS_KEY = "lebon-grace-cart-ts";
 
 function loadCart(): CartItem[] {
   if (typeof window === "undefined") return [];
@@ -53,9 +55,45 @@ function saveCart(items: CartItem[]): void {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(CART_KEY, JSON.stringify(items));
+    localStorage.setItem(CART_TS_KEY, String(Date.now()));
   } catch {
     // ignore storage errors
   }
+}
+
+/** Save email for abandoned cart recovery */
+export function saveCartEmail(email: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(CART_EMAIL_KEY, email);
+  } catch { /* ignore */ }
+}
+
+/** Get saved cart email */
+export function getCartEmail(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return localStorage.getItem(CART_EMAIL_KEY);
+  } catch { return null; }
+}
+
+/** Get cart age in minutes (0 if fresh or no timestamp) */
+export function getCartAge(): number {
+  if (typeof window === "undefined") return 0;
+  try {
+    const ts = localStorage.getItem(CART_TS_KEY);
+    if (!ts) return 0;
+    return Math.floor((Date.now() - Number(ts)) / 60000);
+  } catch { return 0; }
+}
+
+/** Clear cart recovery data after successful order */
+export function clearCartRecovery(): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.removeItem(CART_EMAIL_KEY);
+    localStorage.removeItem(CART_TS_KEY);
+  } catch { /* ignore */ }
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {

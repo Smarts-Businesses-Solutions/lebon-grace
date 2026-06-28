@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCart } from "@/lib/cart-context";
 import { formatPrice } from "@/lib/products";
+import CartRecoveryBanner from "@/components/CartRecoveryBanner";
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity, deliveryMethod, setDeliveryMethod, subtotal, shipping, total, depositNow, payOnDelivery } = useCart();
@@ -25,6 +26,8 @@ export default function CartPage() {
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
       <h1 className="text-3xl lg:text-4xl font-semibold tracking-tight mb-8">Shopping Cart</h1>
+
+      <CartRecoveryBanner />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
         {/* Cart Items */}
