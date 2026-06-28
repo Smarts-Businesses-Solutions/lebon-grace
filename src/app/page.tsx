@@ -137,33 +137,33 @@ export default function HomePage() {
           </div>
           <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-6">
             {categories.slice(0, 12).map((cat) => {
-              // Pick a product whose name clearly matches the category
-              const categoryKeywords: Record<string, string[]> = {
-                "Jewelry": ["ring", "bracelet", "earring", "necklace", "pendant", "bangle", "chain"],
-                "Home Decor": ["vase", "candle", "blanket", "cushion", "placemat", "frame", "mirror", "clock"],
-                "Fashion & Accessories": ["scarf", "hat", "cap", "belt", "glove", "sunglasses", "eyeglass"],
-                "Pet Supplies": ["pet", "dog", "cat", "collar", "leash", "tag"],
-                "Kitchen & Dining": ["mug", "cup", "spatula", "knife", "board", "coaster", "bowl", "spoon"],
-                "Beauty & Grooming": ["makeup", "brush", "mirror", "curler", "tweezers", "nail", "lip"],
-                "Home Storage": ["basket", "box", "shelf", "organizer", "hanger", "hook"],
-                "Bags & Travel": ["bag", "wallet", "passport", "luggage", "pouch", "packing"],
-                "Stationery & Gifts": ["bookmark", "notebook", "journal", "sticker", "gift", "paper", "pen"],
-                "Desk & Office": ["desk", "laptop", "monitor", "cable", "mouse", "keyboard", "pen holder"],
-                "Garden & Outdoor": ["garden", "plant", "flower", "outdoor", "picnic"],
-                "Phone & Tech": ["phone", "case", "airpod", "earbuds", "charger"],
+              // Use curated Unsplash images that clearly represent each category
+              const categoryImages: Record<string, string> = {
+                "Jewelry": "https://images.unsplash.com/photo-1515562141589-67f0d727b750?w=400&h=400&fit=crop",
+                "Home Decor": "https://images.unsplash.com/photo-1616486029423-aaa4789e8c9a?w=400&h=400&fit=crop",
+                "Fashion & Accessories": "https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=400&h=400&fit=crop",
+                "Pet Supplies": "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=400&fit=crop",
+                "Kitchen & Dining": "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop",
+                "Beauty & Grooming": "https://images.unsplash.com/photo-1596462502278-27bfdc403f4f?w=400&h=400&fit=crop",
+                "Home Storage": "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&h=400&fit=crop",
+                "Bags & Travel": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&h=400&fit=crop",
+                "Stationery & Gifts": "https://images.unsplash.com/photo-1513364776144-60967b0f8000?w=400&h=400&fit=crop",
+                "Desk & Office": "https://images.unsplash.com/photo-1593062096033-9a26b09da705?w=400&h=400&fit=crop",
+                "Garden & Outdoor": "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400&h=400&fit=crop",
+                "Phone & Tech": "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=400&h=400&fit=crop",
+                "Fitness & Wellness": "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=400&fit=crop",
+                "Candles & Aroma": "https://images.unsplash.com/photo-1602028915047-37269d1a73f7?w=400&h=400&fit=crop",
+                "Seasonal & Gifts": "https://images.unsplash.com/photo-1513885535751-8b9238bd3456?w=400&h=400&fit=crop",
+                "Keychains & Tags": "https://images.unsplash.com/photo-1622547748225-3fc4abd2fdc0?w=400&h=400&fit=crop",
+                "Kids & Baby": "https://images.unsplash.com/photo-1566004100631-35d015d6a491?w=400&h=400&fit=crop",
               };
-              const keywords = categoryKeywords[cat.name] || [cat.name.toLowerCase().split(" ")[0]];
-              const sampleProduct = products.find((p) =>
-                p.category === cat.name &&
-                p.imageUrl &&
-                keywords.some((kw) => p.name.toLowerCase().includes(kw))
-              ) || products.find((p) => p.category === cat.name && p.imageUrl);
+              const categoryImage = categoryImages[cat.name] || "";
               const count = products.filter(p => p.category === cat.name).length;
               return (
                 <Link key={cat.name} href={"/shop?category=" + encodeURIComponent(cat.name)} className="group flex flex-col items-center gap-3 text-center">
                   <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden bg-gray-100 border-2 border-gray-100 group-hover:border-[#16A34A] group-hover:shadow-md transition-all duration-200">
-                    {sampleProduct?.imageUrl ? (
-                      <img src={sampleProduct.imageUrl} alt={cat.name} className="w-full h-full object-cover" loading="lazy" />
+                    {categoryImage ? (
+                      <img src={categoryImage} alt={cat.name} className="w-full h-full object-cover" loading="lazy" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-gray-100 text-2xl">{cat.icon}</div>
                     )}

@@ -29,31 +29,27 @@ function StarRating({ rating, count }: { rating: number; count: number }) {
 
 function CategoryShowcase() {
   const topCategories = categories.slice(0, 8);
-  const categoryKeywords: Record<string, string[]> = {
-    "Jewelry": ["ring", "bracelet", "earring", "necklace", "pendant", "bangle", "chain"],
-    "Home Decor": ["vase", "candle", "blanket", "cushion", "placemat", "frame", "mirror", "clock"],
-    "Fashion & Accessories": ["scarf", "hat", "cap", "belt", "glove", "sunglasses", "eyeglass"],
-    "Pet Supplies": ["pet", "dog", "cat", "collar", "leash", "tag"],
-    "Kitchen & Dining": ["mug", "cup", "spatula", "knife", "board", "coaster", "bowl", "spoon"],
-    "Beauty & Grooming": ["makeup", "brush", "mirror", "curler", "tweezers", "nail", "lip"],
-    "Home Storage": ["basket", "box", "shelf", "organizer", "hanger", "hook"],
-    "Bags & Travel": ["bag", "wallet", "passport", "luggage", "pouch", "packing"],
+  const categoryImages: Record<string, string> = {
+    "Jewelry": "https://images.unsplash.com/photo-1515562141589-67f0d727b750?w=200&h=200&fit=crop",
+    "Home Decor": "https://images.unsplash.com/photo-1616486029423-aaa4789e8c9a?w=200&h=200&fit=crop",
+    "Fashion & Accessories": "https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=200&h=200&fit=crop",
+    "Pet Supplies": "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=200&h=200&fit=crop",
+    "Kitchen & Dining": "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=200&h=200&fit=crop",
+    "Beauty & Grooming": "https://images.unsplash.com/photo-1596462502278-27bfdc403f4f?w=200&h=200&fit=crop",
+    "Home Storage": "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=200&h=200&fit=crop",
+    "Bags & Travel": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=200&h=200&fit=crop",
   };
   return (
     <section className="bg-white border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-8 gap-4">
           {topCategories.map((cat) => {
-            const keywords = categoryKeywords[cat.name] || [cat.name.toLowerCase().split(" ")[0]];
-            const sampleProduct = products.find((p) =>
-              p.category === cat.name && p.imageUrl &&
-              keywords.some((kw) => p.name.toLowerCase().includes(kw))
-            ) || products.find((p) => p.category === cat.name && p.imageUrl);
+            const catImage = categoryImages[cat.name] || "";
             return (
               <Link key={cat.name} href={"/shop?category=" + encodeURIComponent(cat.name)} className="group flex flex-col items-center gap-2 text-center">
                 <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden bg-gray-100 border-2 border-transparent group-hover:border-[#16A34A] transition-colors duration-200">
-                  {sampleProduct?.imageUrl ? (
-                    <img src={sampleProduct.imageUrl} alt={cat.name} className="w-full h-full object-cover" loading="lazy" />
+                  {catImage ? (
+                    <img src={catImage} alt={cat.name} className="w-full h-full object-cover" loading="lazy" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gray-100 text-xl">{cat.icon}</div>
                   )}
