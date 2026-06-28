@@ -205,8 +205,16 @@ export default function CheckoutPage() {
             <div className="space-y-3 mb-4">
               {items.map((item) => (
                 <div key={item.product.slug} className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-sm flex items-center justify-center flex-shrink-0" style={{ backgroundColor: item.product.imagePlaceholder.bg }}>
-                    <span className="font-heading text-xs font-semibold" style={{ color: item.product.imagePlaceholder.bg === "#C9A96E" || item.product.imagePlaceholder.bg === "#D4BA85" ? "#2D2D2D" : "#FAF8F5" }}>{item.product.imagePlaceholder.initials}</span>
+                  <div className="w-12 h-12 rounded-sm overflow-hidden bg-surface flex-shrink-0">
+                    <img
+                      src={item.product.imageUrl}
+                      alt={item.product.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        target.style.display = "none";
+                      }}
+                    />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-medium text-dark truncate">{item.product.name}</p>

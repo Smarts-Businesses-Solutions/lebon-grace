@@ -36,10 +36,13 @@ export default function CartPage() {
           {items.map((item) => (
             <div key={item.product.slug} className="flex gap-4 sm:gap-6 p-4 bg-white border border-border rounded-sm">
               <Link href={"/shop/" + item.product.slug} className="flex-shrink-0">
-                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-sm flex items-center justify-center" style={{ backgroundColor: item.product.imagePlaceholder.bg }}>
-                  <span className="font-heading text-xl sm:text-2xl font-semibold opacity-80" style={{ color: item.product.imagePlaceholder.bg === "#C9A96E" || item.product.imagePlaceholder.bg === "#D4BA85" ? "#2D2D2D" : "#FAF8F5" }}>
-                    {item.product.imagePlaceholder.initials}
-                  </span>
+                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-sm overflow-hidden bg-surface">
+                  <img
+                    src={item.product.imageUrl}
+                    alt={item.product.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => { e.currentTarget.style.display = "none"; }}
+                  />
                 </div>
               </Link>
               <div className="flex-1 min-w-0">
