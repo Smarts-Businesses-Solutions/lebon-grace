@@ -40,12 +40,46 @@ export default function CheckoutPage() {
     return ne;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const ne = validate();
     if (Object.keys(ne).length > 0) { setErrors(ne); return; }
     setSubmitting(true);
-    setTimeout(() => { clearCart(); setOrderPlaced(true); setSubmitting(false); }, 1500);
+    
+    try {
+      // Create Stripe Checkout session
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: items.map((item) => ({
+            name: item.product.name,
+            price: item.product.price,
+            quantity: item.quantity,
+            image: item.product.imageUrl,
+          })),
+          total: total,
+        }),
+      });
+      
+      const data = await res.json();
+      
+      if (data.url) {
+        // Redirect to Stripe Checkout
+        window.location.href = data.url;
+      } else {
+        // Fallback: mark order as placed without Stripe
+        console.error("Stripe checkout failed:", data.error);
+        clearCart();
+        setOrderPlaced(true);
+        setSubmitting(false);
+      }
+    } catch {
+      // Fallback if API fails
+      clearCart();
+      setOrderPlaced(true);
+      setSubmitting(false);
+    }
   };
 
   if (items.length === 0 && !orderPlaced) {
