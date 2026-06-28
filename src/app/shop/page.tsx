@@ -29,12 +29,26 @@ function StarRating({ rating, count }: { rating: number; count: number }) {
 
 function CategoryShowcase() {
   const topCategories = categories.slice(0, 8);
+  const categoryKeywords: Record<string, string[]> = {
+    "Jewelry": ["ring", "bracelet", "earring", "necklace", "pendant", "bangle", "chain"],
+    "Home Decor": ["vase", "candle", "blanket", "cushion", "placemat", "frame", "mirror", "clock"],
+    "Fashion & Accessories": ["scarf", "hat", "cap", "belt", "glove", "sunglasses", "eyeglass"],
+    "Pet Supplies": ["pet", "dog", "cat", "collar", "leash", "tag"],
+    "Kitchen & Dining": ["mug", "cup", "spatula", "knife", "board", "coaster", "bowl", "spoon"],
+    "Beauty & Grooming": ["makeup", "brush", "mirror", "curler", "tweezers", "nail", "lip"],
+    "Home Storage": ["basket", "box", "shelf", "organizer", "hanger", "hook"],
+    "Bags & Travel": ["bag", "wallet", "passport", "luggage", "pouch", "packing"],
+  };
   return (
     <section className="bg-white border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-8 gap-4">
           {topCategories.map((cat) => {
-            const sampleProduct = products.find((p) => p.category === cat.name && p.imageUrl);
+            const keywords = categoryKeywords[cat.name] || [cat.name.toLowerCase().split(" ")[0]];
+            const sampleProduct = products.find((p) =>
+              p.category === cat.name && p.imageUrl &&
+              keywords.some((kw) => p.name.toLowerCase().includes(kw))
+            ) || products.find((p) => p.category === cat.name && p.imageUrl);
             return (
               <Link key={cat.name} href={"/shop?category=" + encodeURIComponent(cat.name)} className="group flex flex-col items-center gap-2 text-center">
                 <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden bg-gray-100 border-2 border-transparent group-hover:border-[#16A34A] transition-colors duration-200">

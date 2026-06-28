@@ -137,7 +137,27 @@ export default function HomePage() {
           </div>
           <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-6">
             {categories.slice(0, 12).map((cat) => {
-              const sampleProduct = products.find((p) => p.category === cat.name && p.imageUrl);
+              // Pick a product whose name clearly matches the category
+              const categoryKeywords: Record<string, string[]> = {
+                "Jewelry": ["ring", "bracelet", "earring", "necklace", "pendant", "bangle", "chain"],
+                "Home Decor": ["vase", "candle", "blanket", "cushion", "placemat", "frame", "mirror", "clock"],
+                "Fashion & Accessories": ["scarf", "hat", "cap", "belt", "glove", "sunglasses", "eyeglass"],
+                "Pet Supplies": ["pet", "dog", "cat", "collar", "leash", "tag"],
+                "Kitchen & Dining": ["mug", "cup", "spatula", "knife", "board", "coaster", "bowl", "spoon"],
+                "Beauty & Grooming": ["makeup", "brush", "mirror", "curler", "tweezers", "nail", "lip"],
+                "Home Storage": ["basket", "box", "shelf", "organizer", "hanger", "hook"],
+                "Bags & Travel": ["bag", "wallet", "passport", "luggage", "pouch", "packing"],
+                "Stationery & Gifts": ["bookmark", "notebook", "journal", "sticker", "gift", "paper", "pen"],
+                "Desk & Office": ["desk", "laptop", "monitor", "cable", "mouse", "keyboard", "pen holder"],
+                "Garden & Outdoor": ["garden", "plant", "flower", "outdoor", "picnic"],
+                "Phone & Tech": ["phone", "case", "airpod", "earbuds", "charger"],
+              };
+              const keywords = categoryKeywords[cat.name] || [cat.name.toLowerCase().split(" ")[0]];
+              const sampleProduct = products.find((p) =>
+                p.category === cat.name &&
+                p.imageUrl &&
+                keywords.some((kw) => p.name.toLowerCase().includes(kw))
+              ) || products.find((p) => p.category === cat.name && p.imageUrl);
               const count = products.filter(p => p.category === cat.name).length;
               return (
                 <Link key={cat.name} href={"/shop?category=" + encodeURIComponent(cat.name)} className="group flex flex-col items-center gap-3 text-center">
