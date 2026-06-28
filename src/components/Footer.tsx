@@ -115,8 +115,8 @@ export default function Footer() {
           <p className="text-warm-gray text-xs tracking-wide">
             &copy; 2026 Lebon Grace. All rights reserved.
           </p>
-          <p className="text-warm-gray/60 text-xs">
-            Curated with intention. Delivered with care.
+          <p className="text-warm-gray/60 text-xs text-center sm:text-right">
+            Sharjah Media City, Al Messaned, Al Bataeh, Sharjah, UAE
           </p>
         </div>
       </div>
