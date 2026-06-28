@@ -1,64 +1,67 @@
 import { NextRequest, NextResponse } from "next/server";
-import { products as defaultProducts } from "@/lib/products";
-import fs from "fs";
-import path from "path";
+import { createClient } from "@supabase/supabase-js";
 
-const DATA_FILE = path.join(process.cwd(), "data", "products.json");
-
-function loadProducts() {
-  try {
-    if (fs.existsSync(DATA_FILE)) {
-      const data = fs.readFileSync(DATA_FILE, "utf-8");
-      return JSON.parse(data);
-    }
-  } catch {}
-  // Fallback to default products
-  return defaultProducts.map((p) => ({
-    slug: p.slug,
-    name: p.name,
-    variant: p.variant,
-    price: p.price,
-    category: p.category,
-    stock: p.stock,
-    description: p.description,
-    details: p.details,
-    imagePlaceholder: p.imagePlaceholder,
-    imageUrl: p.imageUrl,
-    cjPid: p.cjPid,
-    cjPrice: p.cjPrice,
-  }));
-}
-
-function saveProducts(products: unknown[]) {
-  const dir = path.dirname(DATA_FILE);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(DATA_FILE, JSON.stringify(products, null, 2));
-}
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 export async function GET() {
-  const products = loadProducts();
+  const { data, error } = await supabase
+    .from("products")
+    .select("*")
+    .order("category", { ascending: true })
+    .order("name", { ascending: true });
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  // Transform to match frontend Product interface
+  const products = (data || []).map((p) => ({
+    slug: p.slug,
+    name: p.name,
+    price: Number(p.price),
+    category: p.category,
+    stock: p.stock,
+    imageUrl: p.image_url,
+    description: p.description,
+    cjPid: p.cj_pid,
+    cjPrice: p.cj_price,
+    variant: p.variant || "Good Value",
+  }));
+
   return NextResponse.json(products);
 }
 
 export async function PUT(request: NextRequest) {
   const body = await request.json();
-  const { slug, ...updates } = body;
+  const { slug, name, category, price, stock, imageUrl, description } = body;
 
   if (!slug) {
     return NextResponse.json({ error: "slug required" }, { status: 400 });
   }
 
-  const products = loadProducts();
-  const index = products.findIndex((p: { slug: string }) => p.slug === slug);
+  const updates: Record<string, unknown> = {};
+  if (name !== undefined) updates.name = name;
+  if (category !== undefined) updates.category = category;
+  if (price !== undefined) updates.price = price;
+  if (stock !== undefined) updates.stock = stock;
+  if (imageUrl !== undefined) updates.image_url = imageUrl;
+  if (description !== undefined) updates.description = description;
+  updates.updated_at = new Date().toISOString();
 
-  if (index === -1) {
-    return NextResponse.json({ error: "Product not found" }, { status: 404 });
+  const { data, error } = await supabase
+    .from("products")
+    .update(updates)
+    .eq("slug", slug)
+    .select();
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  products[index] = { ...products[index], ...updates };
-  saveProducts(products);
-
-  return NextResponse.json({ success: true, product: products[index] });
+  return NextResponse.json({ success: true, product: data?.[0] });
 }
 
 export async function DELETE(request: NextRequest) {
@@ -69,13 +72,14 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: "slug required" }, { status: 400 });
   }
 
-  const products = loadProducts();
-  const filtered = products.filter((p: { slug: string }) => p.slug !== slug);
+  const { error } = await supabase
+    .from("products")
+    .delete()
+    .eq("slug", slug);
 
-  if (filtered.length === products.length) {
-    return NextResponse.json({ error: "Product not found" }, { status: 404 });
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  saveProducts(filtered);
-  return NextResponse.json({ success: true, count: filtered.length });
+  return NextResponse.json({ success: true });
 }
