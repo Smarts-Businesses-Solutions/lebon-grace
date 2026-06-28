@@ -5,19 +5,15 @@ import { useState } from "react";
 import { useCart } from "@/lib/cart-context";
 import { products, formatPrice, categories as productCategories } from "@/lib/products";
 
-const bgMap: Record<string, string> = {
-  Travel: "bg-dark",
-  Workspace: "bg-charcoal",
-  Home: "bg-sand",
-  Jewelry: "bg-charcoal",
-  Drinkware: "bg-dark",
-};
-
-const categories = productCategories.map((cat) => ({
-  ...cat,
-  href: "/shop?category=" + cat.name,
-  bgClass: bgMap[cat.name] || "bg-charcoal",
-}));
+const categories = productCategories.map((cat) => {
+  // Get a real product image from this category for the card
+  const sampleProduct = products.find((p) => p.category === cat.name && p.imageUrl);
+  return {
+    ...cat,
+    href: "/shop?category=" + cat.name,
+    image: sampleProduct?.imageUrl || "",
+  };
+});
 
 const featuredProducts = products.slice(0, 4);
 
@@ -88,10 +84,19 @@ export default function HomePage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 lg:gap-8">
           {categories.map((cat) => (
             <Link key={cat.name} href={cat.href} className="group relative bg-white rounded-sm border border-border overflow-hidden hover:border-sand/40 transition-all duration-300">
-              <div className={cat.bgClass + " h-48 flex items-center justify-center"}>
-                <div className="text-offwhite/80 group-hover:scale-110 transition-transform duration-300">
-                  <span className="text-4xl">{cat.icon}</span>
-                </div>
+              <div className="aspect-square overflow-hidden bg-surface">
+                {cat.image ? (
+                  <img
+                    src={cat.image}
+                    alt={cat.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-charcoal/10">
+                    <span className="text-4xl">{cat.icon}</span>
+                  </div>
+                )}
               </div>
               <div className="p-6 lg:p-8">
                 <h3 className="font-heading text-xl font-semibold tracking-tight">{cat.name}</h3>
