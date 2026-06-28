@@ -6,17 +6,11 @@ import { useState } from "react";
 import { useCart } from "@/lib/cart-context";
 
 const navLinks = [
-  { href: "/shop", label: "Shop All" },
-  { href: "/shop?category=Jewelry", label: "Jewelry" },
-  { href: "/shop?category=Home+Decor", label: "Home Decor" },
+  { href: "/shop", label: "Shop" },
+  { href: "/shop?category=Home+Decor", label: "Home" },
   { href: "/shop?category=Fashion+%26+Accessories", label: "Fashion" },
-  { href: "/shop?category=Pet+Supplies", label: "Pets" },
-  { href: "/shop?category=Kitchen+%26+Dining", label: "Kitchen" },
-  { href: "/shop?category=Beauty+%26+Grooming", label: "Beauty" },
-  { href: "/shop?category=Bags+%26+Travel", label: "Travel" },
-  { href: "/shop?category=Desk+%26+Office", label: "Office" },
+  { href: "/shop?category=Jewelry", label: "Jewelry" },
   { href: "/about", label: "About" },
-  { href: "/contact", label: "Contact" },
 ];
 
 export default function Header() {
@@ -138,6 +132,27 @@ export default function Header() {
                 href={link.href}
                 onClick={() => setMobileOpen(false)}
                 className="block px-3 py-2.5 text-sm tracking-wide text-charcoal hover:text-sand hover:bg-sand/5 rounded-lg transition-colors"
+              >
+                {link.label}
+              </Link>
+            ))}
+            <hr className="my-2 border-border" />
+            <p className="px-3 py-1 text-xs text-gray-400 uppercase tracking-wider">Categories</p>
+            {[
+              { href: "/shop?category=Pet+Supplies", label: "Pets" },
+              { href: "/shop?category=Kitchen+%26+Dining", label: "Kitchen" },
+              { href: "/shop?category=Beauty+%26+Grooming", label: "Beauty" },
+              { href: "/shop?category=Bags+%26+Travel", label: "Travel" },
+              { href: "/shop?category=Desk+%26+Office", label: "Office" },
+              { href: "/shop?category=Garden+%26+Outdoor", label: "Garden" },
+              { href: "/shop?category=Fitness+%26+Wellness", label: "Fitness" },
+              { href: "/contact", label: "Contact" },
+            ].map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setMobileOpen(false)}
+                className="block px-3 py-2 text-sm tracking-wide text-charcoal/70 hover:text-sand hover:bg-sand/5 rounded-lg transition-colors"
               >
                 {link.label}
               </Link>
