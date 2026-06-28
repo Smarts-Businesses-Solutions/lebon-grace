@@ -28,7 +28,12 @@ export async function POST(request: NextRequest) {
     const session = event.data.object as Stripe.Checkout.Session;
     const metadata = session.metadata || {};
 
-    // Create order in Supabase
+    // Create order in Supabase using metadata from checkout session
+    const total = Number(metadata.total) || (Number(session.amount_total) / 100 * 2);
+    const deposit = Number(session.amount_total) / 100; // What Stripe actually charged
+    const codBalance = Number(metadata.cod_balance) || (total - deposit);
+    const shipping = Number(metadata.shipping) || 0;
+
     const order = {
       stripe_session_id: session.id,
       stripe_payment_intent: session.payment_intent as string || "",
@@ -37,16 +42,19 @@ export async function POST(request: NextRequest) {
       customer_phone: session.customer_details?.phone || "+971",
       delivery_address: session.customer_details?.address?.line1 || "",
       emirate: "Dubai",
-      subtotal: Number(session.amount_total) / 100 * 2 || 0, // Total = 2x deposit
-      shipping: 0,
-      total: Number(session.amount_total) / 100 * 2 || 0,
-      deposit_amount: Number(session.amount_total) / 100 || 0,
-      cod_amount: Number(session.amount_total) / 100 || 0,
+      subtotal: Number(metadata.subtotal) || total - shipping,
+      shipping: shipping,
+      total: total,
+      deposit_amount: deposit,
+      cod_amount: codBalance,
       status: "deposit_paid",
+      delivery_method: metadata.delivery_method || "delivery",
       metadata: JSON.stringify({
         brand: metadata.brand || "lebon-grace",
         entity: metadata.entity || "shop-lebon-grace",
-        cod_balance: "true",
+        order_type: metadata.order_type || "50_50_split",
+        cod_balance: String(codBalance),
+        delivery_method: metadata.delivery_method || "delivery",
       }),
     };
 

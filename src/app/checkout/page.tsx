@@ -57,7 +57,9 @@ export default function CheckoutPage() {
             quantity: item.quantity,
             image: item.product.imageUrl,
           })),
-          total: total,
+          subtotal: subtotal,
+          shipping: shipping,
+          deliveryMethod: deliveryMethod,
         }),
       });
       
