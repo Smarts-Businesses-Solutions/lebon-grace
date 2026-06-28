@@ -45,7 +45,7 @@ const faqs = [
   },
   {
     question: "How can I contact customer support?",
-    answer: "You can reach us at care@lebon-grace.com or through our social media channels. We respond to all inquiries within 24 hours during business days (Sunday through Thursday).",
+    answer: "You can reach us at care@lebon-grace.com or through our social media channels. We respond to all inquiries within 24 hours during business days (Monday through Saturday).",
   },
 ];
 
