@@ -139,22 +139,22 @@ export default function HomePage() {
             {categories.slice(0, 12).map((cat) => {
               // Use curated Unsplash images that clearly represent each category
               const categoryImages: Record<string, string> = {
-                "Jewelry": "https://images.unsplash.com/photo-1515562141589-67f0d727b750?w=400&h=400&fit=crop",
+                "Jewelry": "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400&h=400&fit=crop",
                 "Home Decor": "https://images.unsplash.com/photo-1616486029423-aaa4789e8c9a?w=400&h=400&fit=crop",
                 "Fashion & Accessories": "https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=400&h=400&fit=crop",
                 "Pet Supplies": "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=400&fit=crop",
                 "Kitchen & Dining": "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop",
-                "Beauty & Grooming": "https://images.unsplash.com/photo-1596462502278-27bfdc403f4f?w=400&h=400&fit=crop",
-                "Home Storage": "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&h=400&fit=crop",
+                "Beauty & Grooming": "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=400&h=400&fit=crop",
+                "Home Storage": "https://images.unsplash.com/photo-1631679706909-1844bbd07221?w=400&h=400&fit=crop",
                 "Bags & Travel": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&h=400&fit=crop",
-                "Stationery & Gifts": "https://images.unsplash.com/photo-1513364776144-60967b0f8000?w=400&h=400&fit=crop",
+                "Stationery & Gifts": "https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=400&h=400&fit=crop",
                 "Desk & Office": "https://images.unsplash.com/photo-1593062096033-9a26b09da705?w=400&h=400&fit=crop",
                 "Garden & Outdoor": "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400&h=400&fit=crop",
                 "Phone & Tech": "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=400&h=400&fit=crop",
                 "Fitness & Wellness": "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=400&fit=crop",
                 "Candles & Aroma": "https://images.unsplash.com/photo-1602028915047-37269d1a73f7?w=400&h=400&fit=crop",
-                "Seasonal & Gifts": "https://images.unsplash.com/photo-1513885535751-8b9238bd3456?w=400&h=400&fit=crop",
-                "Keychains & Tags": "https://images.unsplash.com/photo-1622547748225-3fc4abd2fdc0?w=400&h=400&fit=crop",
+                "Seasonal & Gifts": "https://images.unsplash.com/photo-1512909006721-3d6018887383?w=400&h=400&fit=crop",
+                "Keychains & Tags": "https://images.unsplash.com/photo-1606760227091-3dd870d97f1d?w=400&h=400&fit=crop",
                 "Kids & Baby": "https://images.unsplash.com/photo-1566004100631-35d015d6a491?w=400&h=400&fit=crop",
               };
               const categoryImage = categoryImages[cat.name] || "";
