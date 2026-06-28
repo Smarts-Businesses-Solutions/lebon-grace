@@ -154,7 +154,7 @@ export default function SearchBar({ variant = "header", onClose, autoFocus }: Se
     <div className={`relative ${isOverlay ? "w-full" : ""}`}>
       <form onSubmit={handleSubmit} className={isOverlay ? "w-full" : ""}>
         <div className={`relative ${isOverlay ? "w-full" : ""}`}>
-          <svg className={`absolute left-3 top-1/2 -translate-y-1/2 ${isOverlay ? "w-5 h-5" : "w-4 h-4"} text-gray-400`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg className={`absolute left-4 top-1/2 -translate-y-1/2 ${isOverlay ? "w-5 h-5" : "w-5 h-5"} text-gray-400`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
           </svg>
           <input
@@ -165,14 +165,14 @@ export default function SearchBar({ variant = "header", onClose, autoFocus }: Se
             onFocus={() => setFocused(true)}
             onKeyDown={handleKeyDown}
             placeholder="Search products, categories..."
-            className={`w-full ${isOverlay ? "pl-12 pr-12 py-3.5 text-base" : "pl-10 pr-4 py-2 text-sm"} bg-gray-50 border border-gray-200 rounded-full focus:border-[#C9A96E] focus:ring-2 focus:ring-[#C9A96E]/20 outline-none transition-all placeholder:text-gray-400`}
+            className={`w-full ${isOverlay ? "pl-14 pr-14 py-4 text-lg" : "pl-12 pr-12 py-3 text-base"} bg-gray-50 border border-gray-200 rounded-2xl focus:border-[#C9A96E] focus:ring-2 focus:ring-[#C9A96E]/20 outline-none transition-all placeholder:text-gray-400`}
             aria-label="Search products"
             aria-expanded={showDropdown}
             aria-haspopup="listbox"
           />
           {/* Loading / Clear button */}
           {query && (
-            <button type="button" onClick={() => { setQuery(""); inputRef.current?.focus(); }} className={`absolute ${isOverlay ? "right-4" : "right-3"} top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600`}>
+            <button type="button" onClick={() => { setQuery(""); inputRef.current?.focus(); }} className={`absolute ${isOverlay ? "right-4" : "right-4"} top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-600`}>
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>

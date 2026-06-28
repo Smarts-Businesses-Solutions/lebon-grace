@@ -31,7 +31,7 @@ export default function Header() {
             </Link>
 
             {/* Desktop Search Bar */}
-            <div className="hidden md:flex flex-1 max-w-lg mx-4">
+            <div className="hidden md:flex flex-1 max-w-2xl mx-6">
               <SearchBar />
             </div>
 
