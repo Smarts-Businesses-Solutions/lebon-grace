@@ -8,10 +8,7 @@ import { formatPrice } from "@/lib/products";
 const emirates = ["Dubai", "Abu Dhabi", "Sharjah", "Ajman", "Ras Al Khaimah", "Fujairah", "Umm Al Quwain"];
 
 export default function CheckoutPage() {
-  const { items, subtotal, clearCart } = useCart();
-  const shipping = subtotal >= 300 ? 0 : 25;
-  const total = subtotal + shipping;
-  const depositNow = Math.round(total / 2);
+  const { items, subtotal, deliveryMethod, shipping, total, depositNow, payOnDelivery, clearCart } = useCart();
 
   const [form, setForm] = useState({
     email: "", phone: "+971", firstName: "", lastName: "",
@@ -34,8 +31,10 @@ export default function CheckoutPage() {
     if (!form.phone.trim() || form.phone.length < 10) ne.phone = "Valid phone required";
     if (!form.firstName.trim()) ne.firstName = "Required";
     if (!form.lastName.trim()) ne.lastName = "Required";
-    if (!form.address.trim()) ne.address = "Required";
-    if (!form.building.trim()) ne.building = "Required";
+    if (deliveryMethod === "delivery") {
+      if (!form.address.trim()) ne.address = "Required";
+      if (!form.building.trim()) ne.building = "Required";
+    }
     if (!form.termsAccepted) ne.terms = "Accept terms";
     return ne;
   };
@@ -128,8 +127,9 @@ export default function CheckoutPage() {
             </div>
           </div>
 
+          {deliveryMethod === "delivery" && (
           <div>
-            <h2 className="font-heading text-lg font-semibold tracking-tight mb-4">Shipping Address</h2>
+            <h2 className="text-lg font-semibold tracking-tight mb-4">Delivery Address</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs text-charcoal tracking-wide mb-1.5">First Name *</label>
@@ -163,9 +163,10 @@ export default function CheckoutPage() {
               </div>
             </div>
           </div>
+          )}
 
           <div>
-            <h2 className="font-heading text-lg font-semibold tracking-tight mb-4">Payment Method</h2>
+            <h2 className="text-lg font-semibold tracking-tight mb-4">Payment Method</h2>
             <div className="space-y-3">
               <label className="flex items-center gap-3 p-4 bg-white border border-border rounded-sm cursor-pointer hover:border-sand/40 transition-colors">
                 <input type="radio" name="paymentMethod" value="card" checked={form.paymentMethod === "card"} onChange={handleChange} className="accent-[#C9A96E]" />
@@ -226,12 +227,15 @@ export default function CheckoutPage() {
             </div>
             <div className="border-t border-border pt-3 space-y-2 text-sm">
               <div className="flex justify-between"><span className="text-warm-gray">Subtotal</span><span>{formatPrice(subtotal)}</span></div>
-              <div className="flex justify-between"><span className="text-warm-gray">Shipping</span><span>{shipping === 0 ? "Free" : formatPrice(shipping)}</span></div>
+              <div className="flex justify-between"><span className="text-warm-gray">{deliveryMethod === "pickup" ? "Pickup (Free)" : "Shipping"}</span><span className={shipping === 0 ? "text-[#16A34A] font-medium" : ""}>{shipping === 0 ? "Free" : formatPrice(shipping)}</span></div>
               <div className="flex justify-between font-medium border-t border-border pt-2"><span>Total</span><span>{formatPrice(total)}</span></div>
             </div>
             <div className="mt-4 p-3 bg-offwhite rounded-sm">
               <p className="text-xs text-charcoal font-medium mb-1">Payment Split</p>
-              <p className="text-xs text-warm-gray">Now: {formatPrice(depositNow)} | Delivery: {formatPrice(total - depositNow)}</p>
+              <p className="text-xs text-warm-gray">Now (card): {formatPrice(depositNow)} | On delivery: {formatPrice(payOnDelivery)}</p>
+              {deliveryMethod === "pickup" && (
+                <p className="text-xs text-[#16A34A] mt-1">✓ Free pickup — no shipping fee</p>
+              )}
             </div>
           </div>
         </div>

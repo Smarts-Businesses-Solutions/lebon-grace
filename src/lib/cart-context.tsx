@@ -11,6 +11,8 @@ import {
 } from "react";
 import type { Product } from "./products";
 
+export type DeliveryMethod = "pickup" | "delivery";
+
 export interface CartItem {
   product: Product;
   quantity: number;
@@ -18,12 +20,18 @@ export interface CartItem {
 
 interface CartContextType {
   items: CartItem[];
+  deliveryMethod: DeliveryMethod;
+  setDeliveryMethod: (method: DeliveryMethod) => void;
   addItem: (product: Product, quantity?: number) => void;
   removeItem: (slug: string) => void;
   updateQuantity: (slug: string, quantity: number) => void;
   clearCart: () => void;
   totalItems: number;
   subtotal: number;
+  shipping: number;
+  total: number;
+  depositNow: number;
+  payOnDelivery: number;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -52,6 +60,7 @@ function saveCart(items: CartItem[]): void {
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>("delivery");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -111,17 +120,32 @@ export function CartProvider({ children }: { children: ReactNode }) {
     [items]
   );
 
+  const shipping = useMemo(() => {
+    if (deliveryMethod === "pickup") return 0;
+    return subtotal >= 300 ? 0 : 25;
+  }, [subtotal, deliveryMethod]);
+
+  const total = subtotal + shipping;
+  const depositNow = Math.round(total / 2);
+  const payOnDelivery = total - depositNow;
+
   const value = useMemo(
     () => ({
       items,
+      deliveryMethod,
+      setDeliveryMethod,
       addItem,
       removeItem,
       updateQuantity,
       clearCart,
       totalItems,
       subtotal,
+      shipping,
+      total,
+      depositNow,
+      payOnDelivery,
     }),
-    [items, addItem, removeItem, updateQuantity, clearCart, totalItems, subtotal]
+    [items, deliveryMethod, addItem, removeItem, updateQuantity, clearCart, totalItems, subtotal, shipping, total, depositNow, payOnDelivery]
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
