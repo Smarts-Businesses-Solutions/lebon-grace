@@ -13,7 +13,7 @@ const faqs = [
   },
   {
     question: "Is there free shipping?",
-    answer: "Yes, we offer free shipping on all orders over AED 300. For orders under AED 300, a flat shipping fee of AED 25 applies. There are no hidden costs or additional charges.",
+    answer: "Yes, we offer free shipping on all orders over AED 300. For orders under AED 300, a flat shipping fee of AED 25 applies. You can also choose to pick up your order for free — select 'Pick up' at checkout and collect at no additional cost.",
   },
   {
     question: "What is your return policy?",
@@ -30,6 +30,10 @@ const faqs = [
   {
     question: "Can I change or cancel my order?",
     answer: "You can modify or cancel your order within 24 hours of placing it. After that, the order may have already entered our fulfillment process. Please contact us as soon as possible if you need to make changes.",
+  },
+  {
+    question: "Can I pick up my order instead of delivery?",
+    answer: "Yes! We offer a free pickup option. Simply select 'Pick up' at checkout instead of 'Deliver to me'. You won't pay any shipping fee. We'll notify you via WhatsApp when your order is ready for collection.",
   },
   {
     question: "What payment methods do you accept?",
