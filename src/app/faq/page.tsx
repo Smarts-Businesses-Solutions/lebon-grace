@@ -45,7 +45,7 @@ const faqs = [
   },
   {
     question: "How can I contact customer support?",
-    answer: "You can reach us at hello@lebongrace.com or through our social media channels. We respond to all inquiries within 24 hours during business days (Sunday through Thursday).",
+    answer: "You can reach us at care@lebon-grace.com or through our social media channels. We respond to all inquiries within 24 hours during business days (Sunday through Thursday).",
   },
 ];
 
@@ -93,8 +93,8 @@ export default function FAQPage() {
 
         <div className="mt-12 text-center">
           <p className="text-warm-gray text-sm mb-3">Still have questions?</p>
-          <a href="mailto:hello@lebongrace.com" className="text-sand text-sm font-medium hover:text-sand-dark transition-colors">
-            Contact us at hello@lebongrace.com
+          <a href="mailto:care@lebon-grace.com" className="text-sand text-sm font-medium hover:text-sand-dark transition-colors">
+            Contact us at care@lebon-grace.com
           </a>
         </div>
       </section>

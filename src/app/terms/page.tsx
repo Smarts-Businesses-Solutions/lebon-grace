@@ -83,7 +83,7 @@ export default function TermsPage() {
           <h2 className="font-heading text-xl font-semibold tracking-tight mb-3">10. Contact</h2>
           <p className="text-charcoal text-sm leading-relaxed">
             If you have any questions about these Terms of Service, please contact us at{" "}
-            <a href="mailto:hello@lebongrace.com" className="text-sand hover:text-sand-dark underline">hello@lebongrace.com</a>.
+            <a href="mailto:care@lebon-grace.com" className="text-sand hover:text-sand-dark underline">care@lebon-grace.com</a>.
           </p>
         </div>
 

@@ -50,7 +50,7 @@ export default function Footer() {
               </a>
               {/* Email */}
               <a
-                href="mailto:hello@lebongrace.com"
+                href="mailto:care@lebon-grace.com"
                 className="text-warm-gray hover:text-sand transition-colors"
                 aria-label="Email us"
               >
