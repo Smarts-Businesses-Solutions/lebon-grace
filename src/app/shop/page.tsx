@@ -147,23 +147,23 @@ function ShopContent() {
   return (
     <>
       {/* Hero Banner */}
-      <section className="bg-gradient-to-r from-gray-900 to-gray-800 text-white">
+      <section className="bg-gradient-to-r from-gray-900 to-gray-800 text-white overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-14">
           <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
-            <div>
+            <div className="text-center lg:text-left">
               <h1 className="text-3xl lg:text-4xl font-bold tracking-tight">Shop All Products</h1>
               <p className="mt-2 text-gray-300 text-sm lg:text-base max-w-lg">
-                Browse {products.length} everyday essentials across {categories.length} categories. All under AED 50. Free shipping over AED 300.
+                Browse {products.length} everyday essentials across {categories.length} categories. All under AED 50.
               </p>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="px-3 py-1.5 bg-white/10 rounded-lg text-sm font-medium">
+            <div className="flex flex-wrap items-center justify-center gap-2 lg:gap-3">
+              <span className="px-3 py-1.5 bg-white/10 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap">
                 🚚 Free Shipping
               </span>
-              <span className="px-3 py-1.5 bg-white/10 rounded-lg text-sm font-medium">
+              <span className="px-3 py-1.5 bg-white/10 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap">
                 💳 Pay 50% Now
               </span>
-              <span className="px-3 py-1.5 bg-white/10 rounded-lg text-sm font-medium">
+              <span className="px-3 py-1.5 bg-white/10 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap">
                 📦 10-14 Days
               </span>
             </div>
@@ -175,7 +175,7 @@ function ShopContent() {
       <CategoryShowcase />
 
       {/* Main Shop Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 overflow-x-hidden">
         {/* Toolbar */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 pb-4 border-b border-gray-100">
           {/* Category Pills */}
