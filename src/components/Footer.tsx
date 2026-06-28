@@ -2,9 +2,13 @@ import Link from "next/link";
 
 const quickLinks = [
   { href: "/shop", label: "Shop All" },
-  { href: "/shop?category=Workspace", label: "Workspace" },
-  { href: "/shop?category=Travel", label: "Travel" },
-  { href: "/shop?category=Home", label: "Home" },
+  { href: "/shop?category=Home+Decor", label: "Home Decor" },
+  { href: "/shop?category=Fashion+%26+Accessories", label: "Fashion" },
+  { href: "/shop?category=Jewelry", label: "Jewelry" },
+  { href: "/shop?category=Pet+Supplies", label: "Pets" },
+  { href: "/shop?category=Kitchen+%26+Dining", label: "Kitchen" },
+  { href: "/shop?category=Beauty+%26+Grooming", label: "Beauty" },
+  { href: "/shop?category=Bags+%26+Travel", label: "Travel" },
 ];
 
 const policyLinks = [
