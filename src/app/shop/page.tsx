@@ -158,12 +158,14 @@ function ProductCard({ product, index, onAdd }: { product: EnrichedProduct; inde
 function ShopContent() {
   const searchParams = useSearchParams();
   const initialCategory = searchParams.get("category") || "All";
+  const initialSearch = searchParams.get("search") || "";
   const { addItem } = useCart();
 
   // Filter state
   const [filters, setFilters] = useState<FilterState>({
     ...DEFAULT_FILTERS,
     category: initialCategory,
+    search: initialSearch,
   });
   const [visibleCount, setVisibleCount] = useState(24);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
@@ -215,6 +217,7 @@ function ShopContent() {
 
   // Active filter chips
   const activeChips: { label: string; onRemove: () => void }[] = [];
+  if (filters.search) activeChips.push({ label: `"${filters.search}"`, onRemove: () => updateFilter("search", "") });
   if (filters.category !== "All") activeChips.push({ label: filters.category, onRemove: () => updateFilter("category", "All") });
   filters.colors.forEach((c) => activeChips.push({ label: c, onRemove: () => toggleArrayFilter("colors", c) }));
   filters.sizes.forEach((s) => activeChips.push({ label: s, onRemove: () => toggleArrayFilter("sizes", s) }));
@@ -416,8 +419,21 @@ function ShopContent() {
                 )}
               </div>
 
-              {/* Sort + Count */}
+              {/* Search + Sort + Count */}
               <div className="flex items-center gap-3 flex-shrink-0">
+                {/* Inline search (visible on md+ where header search is shown, but useful here too) */}
+                <div className="relative hidden sm:block">
+                  <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                  </svg>
+                  <input
+                    type="text"
+                    value={filters.search}
+                    onChange={(e) => updateFilter("search", e.target.value)}
+                    placeholder="Search..."
+                    className="pl-8 pr-3 py-1.5 text-xs border border-gray-200 rounded-lg bg-white text-gray-700 focus:border-[#16A34A] focus:ring-1 focus:ring-[#16A34A] outline-none w-36"
+                  />
+                </div>
                 <span className="text-gray-400 text-xs">
                   {Math.min(visibleCount, filteredProducts.length)} of {filteredProducts.length} products
                 </span>
