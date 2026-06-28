@@ -29,9 +29,7 @@ export default function Header() {
         <div className="flex items-center justify-between h-16 lg:h-20">
           {/* Logo */}
           <Link href="/" className="flex-shrink-0">
-            <span className="font-heading text-xl lg:text-2xl tracking-[0.2em] text-dark font-semibold">
-              LEBON GRACE
-            </span>
+            <img src="/logo.svg" alt="Lebon Grace" className="h-8 lg:h-10 w-auto" />
           </Link>
 
           {/* Desktop Navigation */}

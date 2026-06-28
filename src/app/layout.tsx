@@ -17,6 +17,11 @@ export const metadata: Metadata = {
   title: "Lebon Grace — Everyday Essentials, Beautifully Priced",
   description:
     "Affordable workspace, travel, home, jewelry, and drinkware accessories. Quality picks, honest prices. Pay 50% now, 50% on delivery.",
+  icons: {
+    icon: "/favicon.svg",
+    shortcut: "/favicon-16.png",
+    apple: "/apple-touch-icon.png",
+  },
   keywords: [
     "affordable accessories",
     "workspace accessories",
