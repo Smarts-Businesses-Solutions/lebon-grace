@@ -179,7 +179,7 @@ export default function CheckoutPage() {
                 <input type="radio" name="paymentMethod" value="cod" checked={form.paymentMethod === "cod"} onChange={handleChange} className="accent-[#C9A96E]" />
                 <div>
                   <p className="text-sm font-medium text-charcoal">Cash on Delivery</p>
-                  <p className="text-xs text-warm-gray mt-0.5">Pay {formatPrice(total)} in full upon delivery</p>
+                  <p className="text-xs text-warm-gray mt-0.5">Pay {formatPrice(payOnDelivery)} on delivery (remaining 50%)</p>
                 </div>
               </label>
             </div>
