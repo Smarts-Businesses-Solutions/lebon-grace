@@ -210,15 +210,16 @@ export default function ProductDetailPage() {
             </div>
           )}
 
-          {/* Local Variant Selector (grouped products) */}
-          {!cjVariants.length && variantGroup && variantGroup.colors.length > 0 && (
+          {/* Local Variant Selector (grouped products) — shows whenever there are 2+ variants */}
+          {!cjVariants.length && variantGroup && variantGroup.variants.length > 1 && (
             <div className="mt-5">
               <label className="text-sm font-medium text-gray-700 mb-2 block">
-                Color: <span className="font-normal text-gray-500">{product.color || "Default"}</span>
+                {variantGroup.colors.length > 0 ? "Color" : "Style"}: <span className="font-normal text-gray-500">{product.color || variantGroup.variants.find((v) => v.slug === slug)?.name?.split(",").pop()?.trim() || "Default"}</span>
               </label>
               <div className="flex flex-wrap gap-2">
                 {variantGroup.variants.map((v) => {
                   const vColor = extractColor(v.name);
+                  const vLabel = vColor || v.name.split(",").pop()?.trim() || v.name.split(" ").slice(-2).join(" ");
                   const isActive = v.slug === slug;
                   return (
                     <Link
@@ -227,9 +228,9 @@ export default function ProductDetailPage() {
                       className={`group relative flex flex-col items-center gap-1.5 p-1.5 rounded-xl border-2 transition-all ${isActive ? "border-[#16A34A] bg-[#16A34A]/5" : "border-gray-200 hover:border-gray-300"}`}
                     >
                       <div className="w-14 h-14 rounded-lg overflow-hidden bg-gray-50">
-                        <img src={v.imageUrl} alt={v.name} className="w-full h-full object-cover" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                        <img src={v.image} alt={v.name} className="w-full h-full object-cover" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                       </div>
-                      {vColor && <span className={`text-[10px] font-medium ${isActive ? "text-[#16A34A]" : "text-gray-500"}`}>{vColor}</span>}
+                      <span className={`text-[10px] font-medium text-center leading-tight max-w-[60px] truncate ${isActive ? "text-[#16A34A]" : "text-gray-500"}`}>{vLabel}</span>
                       {isActive && (
                         <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#16A34A] rounded-full flex items-center justify-center">
                           <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
@@ -239,6 +240,7 @@ export default function ProductDetailPage() {
                   );
                 })}
               </div>
+              <p className="text-[11px] text-gray-400 mt-2">{variantGroup.variants.length} styles available</p>
             </div>
           )}
 

@@ -5,9 +5,19 @@
 
 import { products, type Product } from "./products";
 
+export interface Variant {
+  slug: string;
+  name: string;
+  image: string;
+  price: number;
+  cjPid?: string;
+  color?: string;
+  size?: string;
+}
+
 export interface VariantGroup {
   baseName: string;
-  variants: Product[];
+  variants: Variant[];
   colors: string[];
   sizes: string[];
 }
@@ -24,6 +34,26 @@ const SIZE_KEYWORDS = ["mini", "small", "medium", "large", "xl", "xxl", "oversiz
 
 function wordRegex(word: string, flags?: string): RegExp {
   return new RegExp("\b" + word + "\b", flags);
+}
+
+function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+export function extractColor(name: string): string {
+  const lower = name.toLowerCase();
+  for (const c of COLOR_KEYWORDS) {
+    if (wordRegex(c).test(lower)) return capitalize(c);
+  }
+  return "";
+}
+
+export function extractSize(name: string): string {
+  const lower = name.toLowerCase();
+  for (const s of SIZE_KEYWORDS) {
+    if (wordRegex(s, "i").test(lower)) return capitalize(s);
+  }
+  return "";
 }
 
 function getBaseName(name: string): string {
@@ -64,29 +94,31 @@ function buildVariantGroups() {
     const colors = new Set<string>();
     const sizes = new Set<string>();
 
-    for (const p of prods) {
-      const lower = p.name.toLowerCase();
-      for (const c of COLOR_KEYWORDS) {
-        if (wordRegex(c).test(lower)) {
-          colors.add(c.charAt(0).toUpperCase() + c.slice(1));
-        }
-      }
-      for (const s of SIZE_KEYWORDS) {
-        if (wordRegex(s, "i").test(lower)) {
-          sizes.add(s.charAt(0).toUpperCase() + s.slice(1));
-        }
-      }
-    }
+    const variants: Variant[] = prods.map((p) => {
+      const color = extractColor(p.name);
+      const size = extractSize(p.name);
+      if (color) colors.add(color);
+      if (size) sizes.add(size);
+      return {
+        slug: p.slug,
+        name: p.name,
+        image: p.imageUrl,
+        price: p.price,
+        cjPid: p.cjPid,
+        color,
+        size,
+      };
+    });
 
     const group: VariantGroup = {
       baseName: base,
-      variants: prods,
+      variants,
       colors: Array.from(colors),
       sizes: Array.from(sizes),
     };
 
-    for (const p of prods) {
-      variantMap.set(p.slug, group);
+    for (const v of variants) {
+      variantMap.set(v.slug, group);
     }
   }
 }
@@ -112,24 +144,4 @@ export function getSimilarProducts(product: Product, limit = 4): Product[] {
     .sort((a, b) => b.score - a.score)
     .slice(0, limit)
     .map((x) => x.product);
-}
-
-export function extractColor(name: string): string {
-  const lower = name.toLowerCase();
-  for (const c of COLOR_KEYWORDS) {
-    if (wordRegex(c).test(lower)) {
-      return c.charAt(0).toUpperCase() + c.slice(1);
-    }
-  }
-  return "";
-}
-
-export function extractSize(name: string): string {
-  const lower = name.toLowerCase();
-  for (const s of SIZE_KEYWORDS) {
-    if (wordRegex(s, "i").test(lower)) {
-      return s.charAt(0).toUpperCase() + s.slice(1);
-    }
-  }
-  return "";
 }
