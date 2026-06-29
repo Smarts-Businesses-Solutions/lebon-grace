@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CJ Variant Extractor — Lebon Grace</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #f5f5f5; padding: 20px; }
+    .container { max-width: 800px; margin: 0 auto; }
+    h1 { font-size: 24px; margin-bottom: 8px; }
+    p { color: #666; font-size: 14px; margin-bottom: 16px; }
+    .steps { background: white; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .step { display: flex; gap: 12px; margin-bottom: 16px; }
+    .step:last-child { margin-bottom: 0; }
+    .num { width: 28px; height: 28px; background: #16A34A; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; flex-shrink: 0; }
+    .step-text { font-size: 14px; line-height: 1.5; }
+    .step-text strong { color: #333; }
+    code { background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+    textarea { width: 100%; height: 300px; font-family: monospace; font-size: 12px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-top: 12px; }
+    .btn { display: inline-block; padding: 10px 20px; background: #16A34A; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 12px; }
+    .btn:hover { background: #15803D; }
+    .btn:disabled { background: #ccc; cursor: not-allowed; }
+    .status { margin-top: 12px; padding: 12px; border-radius: 8px; font-size: 13px; display: none; }
+    .status.ok { display: block; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+    .status.err { display: block; background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+    .results { margin-top: 20px; }
+    .variant-card { display: inline-block; margin: 4px; padding: 8px; background: white; border: 1px solid #eee; border-radius: 8px; text-align: center; }
+    .variant-card img { width: 60px; height: 60px; object-fit: cover; border-radius: 4px; }
+    .variant-card .name { font-size: 11px; margin-top: 4px; max-width: 70px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔍 CJ Variant Extractor</h1>
+    <p>Extract product variants from CJ Dropshipping and import to Lebon Grace.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="num">1</div>
+        <div class="step-text">Open <strong>cjdropshipping.com</strong> and log in to your account</div>
+      </div>
+      <div class="step">
+        <div class="num">2</div>
+        <div class="step-text">Open <strong>DevTools</strong> (F12) → Console tab</div>
+      </div>
+      <div class="step">
+        <div class="num">3</div>
+        <div class="step-text">Paste the script below and press <strong>Enter</strong></div>
+      </div>
+      <div class="step">
+        <div class="num">4</div>
+        <div class="step-text">The script will scrape all your products and download a JSON file</div>
+      </div>
+      <div class="step">
+        <div class="num">5</div>
+        <div class="step-text">Upload the JSON file below to import into Lebon Grace</div>
+      </div>
+    </div>
+
+    <div class="steps">
+      <h3 style="margin-bottom: 12px;">📋 Console Script (copy this)</h3>
+      <textarea id="script" readonly>
+(async function() {
+  console.log("🔍 CJ Variant Extractor starting...");
+  
+  // Step 1: Get all product PIDs from the CJ "My Products" page
+  // Navigate to: https://cjdropshipping.com/myProducts.html
+  // Then run this script
+  
+  const products = [];
+  
+  // Extract from product cards on the page
+  const cards = document.querySelectorAll("[class*='product-card'], [class*='productCard'], .product-item, [class*='item-card']");
+  
+  if (cards.length === 0) {
+    // Try extracting from a single product page
+    const name = document.querySelector("h1")?.textContent?.trim() || "";
+    const pidMatch = window.location.href.match(/p-(\d+)/);
+    const pid = pidMatch ? pidMatch[1] : "";
+    
+    if (!pid) {
+      console.error("❌ No product ID found. Make sure you're on a CJ product page or My Products page.");
+      return;
+    }
+    
+    // Extract variants from single product page
+    const variants = [];
+    const imgs = document.querySelectorAll("img[src*='cjdropshipping'], img[src*='oss-cf']");
+    const imgSet = new Set();
+    imgs.forEach(img => { if (img.src) imgSet.add(img.src); });
+    
+    // Look for variant elements
+    document.querySelectorAll("[class*='sku'], [class*='variant'], [class*='attr'], [class*='spec'], [class*='option']").forEach(el => {
+      const img = el.querySelector("img");
+      const text = el.textContent?.trim() || "";
+      if (text || img?.src) variants.push({ name: text, image: img?.src || "" });
+    });
+    
+    products.push({
+      name: name,
+      cjPid: pid,
+      images: [...imgSet],
+      variants: variants,
+      url: window.location.href,
+    });
+    
+    console.log(`✅ Extracted: ${name} — ${variants.length} variants, ${imgSet.size} images`);
+  } else {
+    // Extract from product list page
+    cards.forEach(card => {
+      const link = card.querySelector("a[href*='product/']");
+      const name = card.querySelector("[class*='name'], [class*='title']")?.textContent?.trim() || "";
+      const pidMatch = link?.href?.match(/p-(\d+)/);
+      const img = card.querySelector("img")?.src || "";
+      
+      if (pidMatch) {
+        products.push({
+          name: name,
+          cjPid: pidMatch[1],
+          images: img ? [img] : [],
+          variants: [],
+          url: link.href,
+        });
+      }
+    });
+    console.log(`✅ Found ${products.length} products on page`);
+  }
+  
+  // Download as JSON
+  const blob = new Blob([JSON.stringify({ products }, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "cj-variants-" + Date.now() + ".json";
+  a.click();
+  URL.revokeObjectURL(url);
+  
+  console.log("📥 Downloaded! Upload this file to https://shop.lebon-grace.com/api/import");
+})();
+      </textarea>
+      <button class="btn" onclick="copyScript()">📋 Copy Script</button>
+    </div>
+
+    <div class="steps">
+      <h3 style="margin-bottom: 12px;">📤 Upload Variant Data</h3>
+      <p>Paste the JSON from CJ below or upload the downloaded file:</p>
+      <textarea id="jsonData" placeholder='{"products": [{"slug": "...", "name": "...", "variants": [...]}]}'></textarea>
+      <input type="file" id="fileInput" accept=".json" style="margin-top: 12px;" onchange="loadFile(event)" />
+      <br />
+      <button class="btn" onclick="uploadVariants()" id="uploadBtn">🚀 Import to Lebon Grace</button>
+      <div id="status" class="status"></div>
+      <div id="results" class="results"></div>
+    </div>
+  </div>
+
+  <script>
+    function copyScript() {
+      const textarea = document.getElementById("script");
+      textarea.select();
+      document.execCommand("copy");
+      alert("Script copied! Paste it in the CJ Console (F12 → Console).");
+    }
+
+    function loadFile(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          document.getElementById("jsonData").value = e.target.result;
+        };
+        reader.readAsText(file);
+      }
+    }
+
+    async function uploadVariants() {
+      const jsonText = document.getElementById("jsonData").value.trim();
+      const status = document.getElementById("status");
+      const results = document.getElementById("results");
+      const btn = document.getElementById("uploadBtn");
+
+      if (!jsonText) {
+        status.className = "status err";
+        status.textContent = "❌ Please paste JSON data or upload a file.";
+        return;
+      }
+
+      let data;
+      try {
+        data = JSON.parse(jsonText);
+      } catch (e) {
+        status.className = "status err";
+        status.textContent = "❌ Invalid JSON: " + e.message;
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Uploading...";
+      status.className = "status ok";
+      status.textContent = "⏳ Uploading variants...";
+
+      try {
+        const resp = await fetch("https://shop.lebon-grace.com/api/import", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+
+        const result = await resp.json();
+
+        if (result.success) {
+          status.className = "status ok";
+          status.innerHTML = `✅ Import complete!<br/>Products: ${result.imported}<br/>Variants: ${result.variantsAdded}`;
+          
+          if (result.errors?.length) {
+            results.innerHTML = "<h4>Errors:</h4>" + result.errors.slice(0, 5).map(e => `<p style="color:red;font-size:13px;">• ${e}</p>`).join("");
+          }
+        } else {
+          status.className = "status err";
+          status.textContent = "❌ " + (result.error || "Import failed");
+        }
+      } catch (e) {
+        status.className = "status err";
+        status.textContent = "❌ Network error: " + e.message;
+      }
+
+      btn.disabled = false;
+      btn.textContent = "🚀 Import to Lebon Grace";
+    }
+  </script>
+</body>
+</html>
