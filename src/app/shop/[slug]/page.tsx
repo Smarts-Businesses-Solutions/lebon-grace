@@ -49,23 +49,30 @@ export default function ProductDetailPage() {
   const [cjImages, setCjImages] = useState<string[]>([]);
   const [loadingVariants, setLoadingVariants] = useState(false);
 
-  // Fetch CJ variants when product has cjPid
+  // Fetch variants: first from Supabase product_variants table, then from CJ API
   useState(() => {
-    if (rawProduct?.cjPid) {
-      setLoadingVariants(true);
-      fetch(`/api/variants?pid=${rawProduct.cjPid}`)
-        .then((r) => r.json())
-        .then((data) => {
-          if (data.variants && data.variants.length > 0) {
-            setCjVariants(data.variants);
-          }
-          if (data.images && data.images.length > 0) {
-            setCjImages(data.images);
-          }
-        })
-        .catch(() => {})
-        .finally(() => setLoadingVariants(false));
-    }
+    if (!rawProduct) return;
+    setLoadingVariants(true);
+
+    // Try Supabase product_variants first
+    fetch(`/api/variants?slug=${slug}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.variants && data.variants.length > 0) {
+          setCjVariants(data.variants);
+          if (data.images) setCjImages(data.images);
+        } else if (rawProduct.cjPid) {
+          // Fallback to CJ API
+          return fetch(`/api/variants?pid=${rawProduct.cjPid}`)
+            .then((r) => r.json())
+            .then((cjData) => {
+              if (cjData.variants && cjData.variants.length > 0) setCjVariants(cjData.variants);
+              if (cjData.images && cjData.images.length > 0) setCjImages(cjData.images);
+            });
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoadingVariants(false));
   });
 
   if (!product) {
