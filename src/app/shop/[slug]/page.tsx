@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useCart } from "@/lib/cart-context";
 import { getProductBySlug, formatPrice, products } from "@/lib/products";
 import { getVariantGroup, getSimilarProducts, extractColor, extractSize } from "@/lib/variants";
@@ -49,12 +49,11 @@ export default function ProductDetailPage() {
   const [cjImages, setCjImages] = useState<string[]>([]);
   const [loadingVariants, setLoadingVariants] = useState(false);
 
-  // Fetch variants: first from Supabase product_variants table, then from CJ API
-  useState(() => {
+  // Fetch variants: first from local variant groups, then from CJ API
+  useEffect(() => {
     if (!rawProduct) return;
     setLoadingVariants(true);
 
-    // Try Supabase product_variants first
     fetch(`/api/variants?slug=${slug}`)
       .then((r) => r.json())
       .then((data) => {
@@ -62,7 +61,6 @@ export default function ProductDetailPage() {
           setCjVariants(data.variants);
           if (data.images) setCjImages(data.images);
         } else if (rawProduct.cjPid) {
-          // Fallback to CJ API
           return fetch(`/api/variants?pid=${rawProduct.cjPid}`)
             .then((r) => r.json())
             .then((cjData) => {
@@ -73,7 +71,7 @@ export default function ProductDetailPage() {
       })
       .catch(() => {})
       .finally(() => setLoadingVariants(false));
-  });
+  }, [slug, rawProduct]);
 
   if (!product) {
     return (
