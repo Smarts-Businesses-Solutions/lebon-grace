@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { useState, useMemo } from "react";
 import { useCart } from "@/lib/cart-context";
 import { getProductBySlug, formatPrice, products } from "@/lib/products";
+import { getVariantGroup, getSimilarProducts, extractColor, extractSize } from "@/lib/variants";
 
 // Extract enriched fields from product name
 function enrichProduct(p: ReturnType<typeof getProductBySlug>) {
@@ -37,11 +38,35 @@ export default function ProductDetailPage() {
   const slug = params.slug as string;
   const rawProduct = getProductBySlug(slug);
   const product = useMemo(() => enrichProduct(rawProduct), [rawProduct]);
+  const variantGroup = useMemo(() => rawProduct ? getVariantGroup(slug) : null, [rawProduct, slug]);
+  const similarProducts = useMemo(() => rawProduct ? getSimilarProducts(rawProduct, 6) : [], [rawProduct]);
   const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const [activeTab, setActiveTab] = useState<"description" | "specifications" | "shipping">("description");
   const [selectedImage, setSelectedImage] = useState(0);
+  const [cjVariants, setCjVariants] = useState<{ sku: string; name: string; image: string; price: number; color?: string; size?: string }[]>([]);
+  const [cjImages, setCjImages] = useState<string[]>([]);
+  const [loadingVariants, setLoadingVariants] = useState(false);
+
+  // Fetch CJ variants when product has cjPid
+  useState(() => {
+    if (rawProduct?.cjPid) {
+      setLoadingVariants(true);
+      fetch(`/api/variants?pid=${rawProduct.cjPid}`)
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.variants && data.variants.length > 0) {
+            setCjVariants(data.variants);
+          }
+          if (data.images && data.images.length > 0) {
+            setCjImages(data.images);
+          }
+        })
+        .catch(() => {})
+        .finally(() => setLoadingVariants(false));
+    }
+  });
 
   if (!product) {
     return (
@@ -59,8 +84,8 @@ export default function ProductDetailPage() {
     setTimeout(() => setAdded(false), 2000);
   };
 
-  // Generate variant images (main + color variations)
-  const images = [product.imageUrl];
+  // Generate variant images (main + CJ images + color variations)
+  const images = cjImages.length > 0 ? cjImages : [product.imageUrl];
 
   // Related products from same category
   const related = products.filter((p) => p.category === product.category && p.slug !== product.slug).slice(0, 6);
@@ -150,8 +175,100 @@ export default function ProductDetailPage() {
             <span className="ml-2 text-sm font-medium text-[#16A34A]">Save {formatPrice(Math.round(product.price * 0.4))}</span>
           </div>
 
-          {/* Color selector */}
-          {product.color && (
+          {/* CJ Variant Selector (real variants from CJ Dropshipping) */}
+          {cjVariants.length > 1 && (
+            <div className="mt-5">
+              <label className="text-sm font-medium text-gray-700 mb-2 block">
+                Style: <span className="font-normal text-gray-500">{cjVariants.find((v) => v.image === images[selectedImage])?.name || "Default"}</span>
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {cjVariants.map((v, i) => {
+                  const isActive = v.image === images[selectedImage];
+                  return (
+                    <button
+                      key={v.sku || i}
+                      onClick={() => {
+                        // Find this variant's image in the images array
+                        const imgIdx = images.indexOf(v.image);
+                        if (imgIdx >= 0) setSelectedImage(imgIdx);
+                      }}
+                      className={`group relative flex flex-col items-center gap-1.5 p-1.5 rounded-xl border-2 transition-all ${isActive ? "border-[#16A34A] bg-[#16A34A]/5" : "border-gray-200 hover:border-gray-300"}`}
+                    >
+                      <div className="w-14 h-14 rounded-lg overflow-hidden bg-gray-50">
+                        <img src={v.image} alt={v.name} className="w-full h-full object-cover" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                      </div>
+                      {(v.color || v.size) && <span className={`text-[10px] font-medium ${isActive ? "text-[#16A34A]" : "text-gray-500"}`}>{v.color || v.size}</span>}
+                      {isActive && (
+                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#16A34A] rounded-full flex items-center justify-center">
+                          <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Local Variant Selector (grouped products) */}
+          {!cjVariants.length && variantGroup && variantGroup.colors.length > 0 && (
+            <div className="mt-5">
+              <label className="text-sm font-medium text-gray-700 mb-2 block">
+                Color: <span className="font-normal text-gray-500">{product.color || "Default"}</span>
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {variantGroup.variants.map((v) => {
+                  const vColor = extractColor(v.name);
+                  const isActive = v.slug === slug;
+                  return (
+                    <Link
+                      key={v.slug}
+                      href={`/shop/${v.slug}`}
+                      className={`group relative flex flex-col items-center gap-1.5 p-1.5 rounded-xl border-2 transition-all ${isActive ? "border-[#16A34A] bg-[#16A34A]/5" : "border-gray-200 hover:border-gray-300"}`}
+                    >
+                      <div className="w-14 h-14 rounded-lg overflow-hidden bg-gray-50">
+                        <img src={v.imageUrl} alt={v.name} className="w-full h-full object-cover" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                      </div>
+                      {vColor && <span className={`text-[10px] font-medium ${isActive ? "text-[#16A34A]" : "text-gray-500"}`}>{vColor}</span>}
+                      {isActive && (
+                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#16A34A] rounded-full flex items-center justify-center">
+                          <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                        </div>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Variant Selector — Size */}
+          {variantGroup && variantGroup.sizes.length > 0 && (
+            <div className="mt-4">
+              <label className="text-sm font-medium text-gray-700 mb-2 block">
+                Size: <span className="font-normal text-gray-500">{product.size || "One Size"}</span>
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {variantGroup.variants.map((v) => {
+                  const vSize = extractSize(v.name);
+                  if (!vSize) return null;
+                  const isActive = v.slug === slug;
+                  return (
+                    <Link
+                      key={v.slug}
+                      href={`/shop/${v.slug}`}
+                      className={`px-4 py-2 text-sm font-medium rounded-lg border-2 transition-all ${isActive ? "border-[#16A34A] text-[#16A34A] bg-[#16A34A]/5" : "border-gray-200 text-gray-600 hover:border-gray-300"}`}
+                    >
+                      {vSize}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* No variant group — show enriched color/size */}
+          {!variantGroup && product.color && (
             <div className="mt-5">
               <label className="text-sm font-medium text-gray-700 mb-2 block">Color: <span className="font-normal text-gray-500">{product.color}</span></label>
               <div className="flex gap-2">
@@ -161,9 +278,7 @@ export default function ProductDetailPage() {
               </div>
             </div>
           )}
-
-          {/* Size selector */}
-          {product.size && (
+          {!variantGroup && product.size && (
             <div className="mt-4">
               <label className="text-sm font-medium text-gray-700 mb-2 block">Size: <span className="font-normal text-gray-500">{product.size}</span></label>
               <div className="flex gap-2">
