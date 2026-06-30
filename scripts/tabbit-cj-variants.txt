@@ -1,0 +1,76 @@
+# Tabbit.ai CJ Variant Extraction Task
+
+## Goal
+Extract product variant data (colors, sizes, images) from CJ Dropshipping for all products in the Lebon Grace catalog.
+
+## Instructions for Tabbit Operator Agent
+
+### Step 1: Navigate to CJ and Login
+- Go to https://cjdropshipping.com
+- Log in with the account credentials
+
+### Step 2: Load the product list
+The product IDs to process are stored in: `C:\Users\user\Desktop\aprojects\lebon-grace\data\cj-products.json`
+
+Open this file and read all 540 product entries. Each entry has:
+- `slug` — the Lebon Grace product slug
+- `name` — product name
+- `cjPid` — CJ product ID (e.g., "2606260228141616700")
+- `imageUrl` — current product image URL
+- `cjPrice` — CJ source price
+
+### Step 3: For each product, visit its CJ page
+Navigate to: `https://cjdropshipping.com/product/{slug}-p-{cjPid}.html`
+
+### Step 4: Extract variant data from the page
+For each CJ product page, extract:
+1. **All product images** — every image in the product gallery (not just the main one)
+2. **Variant options** — look for:
+   - Color selectors (swatches, buttons, or dropdowns)
+   - Size selectors
+   - Style/pattern selectors
+   - SKU information
+3. **For each variant, extract**:
+   - Variant name (e.g., "Red", "Large", "Floral Pattern")
+   - Variant image URL
+   - Variant SKU
+   - Variant price (if different from base price)
+
+### Step 5: Save results
+Save all extracted data to: `C:\Users\user\Desktop\aprojects\lebon-grace\data\tabbit-cj-variants.json`
+
+Format:
+```json
+{
+  "products": [
+    {
+      "slug": "product-slug",
+      "cjPid": "2606260228141616700",
+      "name": "Product Name",
+      "images": ["url1", "url2", "url3"],
+      "variants": [
+        {
+          "name": "Red",
+          "image": "variant-image-url",
+          "sku": "variant-sku",
+          "color": "Red",
+          "size": ""
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Step 6: Report results
+After processing all products, report:
+- Total products processed
+- Products with variants found
+- Products with no variants
+- Any errors or blocked pages
+
+### Important Notes
+- Rate limit: wait 2 seconds between page loads to avoid getting blocked
+- If Cloudflare challenge appears, wait for it to resolve
+- If a product page doesn't load, log it and continue with the next product
+- Prioritize getting at least the first 50 products done as a test batch
