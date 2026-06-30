@@ -29,6 +29,26 @@ export default function CartPage() {
 
       <CartRecoveryBanner />
 
+      {/* Free Shipping Progress Bar */}
+      {deliveryMethod === "delivery" && subtotal < 300 && subtotal > 0 && (
+        <div className="mb-6 p-4 bg-[#16A34A]/5 border border-[#16A34A]/10 rounded-xl">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm text-gray-600">
+              Add <strong className="text-[#16A34A]">{formatPrice(300 - subtotal)}</strong> more for <strong>FREE shipping</strong> 🚚
+            </p>
+            <span className="text-xs text-gray-400">{Math.round((subtotal / 300) * 100)}%</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="bg-[#16A34A] h-2 rounded-full transition-all" style={{ width: `${Math.min((subtotal / 300) * 100, 100)}%` }} />
+          </div>
+        </div>
+      )}
+      {deliveryMethod === "delivery" && subtotal >= 300 && (
+        <div className="mb-6 p-3 bg-[#16A34A]/10 border border-[#16A34A]/20 rounded-xl text-center">
+          <p className="text-sm font-medium text-[#16A34A]">🎉 You qualify for FREE shipping!</p>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
         {/* Cart Items */}
         <div className="lg:col-span-2 space-y-4">

@@ -58,10 +58,12 @@ export default function CheckoutPage() {
             price: item.product.price,
             quantity: item.quantity,
             image: item.product.imageUrl,
+            slug: item.product.slug,
           })),
           subtotal: subtotal,
           shipping: shipping,
           deliveryMethod: deliveryMethod,
+          emirate: form.emirate,
         }),
       });
       

@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
       customer_email: session.customer_details?.email || "",
       customer_phone: session.customer_details?.phone || "",
       delivery_address: session.customer_details?.address?.line1 || "",
-      emirate: "Dubai",
+      emirate: metadata.emirate || "Dubai",
       subtotal: Number(metadata.subtotal) || total - shipping,
       shipping: shipping,
       total: total,

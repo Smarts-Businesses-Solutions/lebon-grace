@@ -8,11 +8,12 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { items, shipping, deliveryMethod } = body as {
+  const { items, shipping, deliveryMethod, emirate } = body as {
     items: Array<{ name: string; price: number; quantity: number; image?: string; slug?: string }>;
     subtotal: number;
     shipping: number;
     deliveryMethod: string;
+    emirate?: string;
   };
 
   if (!items || items.length === 0) {
@@ -98,6 +99,7 @@ export async function POST(request: NextRequest) {
           deposit: String(depositAmount),
           cod_balance: String(codAmount),
           delivery_method: deliveryMethod || "delivery",
+          emirate: emirate || "Dubai",
         },
       },
       success_url: `${process.env.NEXT_PUBLIC_APP_URL || "https://shop.lebon-grace.com"}/checkout?success=true&session_id={CHECKOUT_SESSION_ID}`,
@@ -110,6 +112,7 @@ export async function POST(request: NextRequest) {
         deposit: String(depositAmount),
         cod_balance: String(codAmount),
         delivery_method: deliveryMethod || "delivery",
+        emirate: emirate || "Dubai",
       },
     });
 
