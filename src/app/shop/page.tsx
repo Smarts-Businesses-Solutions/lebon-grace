@@ -170,13 +170,17 @@ function ShopContent() {
   const [visibleCount, setVisibleCount] = useState(24);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
-  // Sync URL params with filter state (when navigating via nav links)
+  // Sync URL params with filter state on full page load
   useEffect(() => {
-    const cat = searchParams.get("category") || "All";
-    const q = searchParams.get("search") || "";
-    setFilters((prev) => ({ ...prev, category: cat, search: q }));
+    const cat = searchParams.get("category");
+    const q = searchParams.get("search");
+    setFilters((prev) => ({
+      ...prev,
+      category: cat || "All",
+      ...(q ? { search: q } : {}),
+    }));
     setVisibleCount(24);
-  }, [searchParams]);
+  }, [searchParams.toString()]);
 
   // Update a single filter field
   const updateFilter = useCallback(
