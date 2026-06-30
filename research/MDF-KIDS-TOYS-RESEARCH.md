@@ -187,3 +187,180 @@
 | GenSvg | SVG | Open Source |
 | Text2CAD | STL/CAD | Research |
 | OpenSCAD | STL | GPL-2.0 |
+
+## 17. DIY Kit Business Model (5 AED Per Kit)
+
+### Your Setup
+- Chinese MDF laser cutting + etching machine
+- Prusa 3D printer (for mechanical/functional parts)
+- Hybrid MDF + 3D printed approach
+
+### Key Insight: MDF First, PLA Second
+- 90% of volume = laser-cut MDF
+- 3D printer only for joints, pins, mechanical parts
+- This keeps costs under 1 AED per kit
+
+### Production Blueprint (5 AED Kit)
+
+| Component | Material | Cost |
+|-----------|----------|------|
+| MDF parts (laser cut) | 3mm MDF sheet | 0.20-0.50 AED |
+| 3D printed parts (PLA) | Small joints/pins | 0.10-0.30 AED |
+| Packaging (cellophane + topper) | Clear bag + paper | 0.10-0.20 AED |
+| Assembly instructions | QR code (free) | 0.00 AED |
+| **Total cost** | | **0.30-1.00 AED** |
+| **Selling at 5 AED** | | **78-94% margin** |
+
+### Product Ideas (5 AED Kits)
+
+**1. Hybrid Mechanical Toys**
+- Mini Catapult: MDF base + 3D printed cup + rubber band
+- Gear Spinners: MDF gears + 3D printed pegs
+- Balancing Birds: MDF bird + 3D printed weighted tip
+
+**2. Habit & Concept Trackers**
+- Daily Habit Trees: MDF stand + 7 3D printed apples
+- My First Coin Sorter: MDF box + 3D printed funnel
+- Mood & Emotion Wheels: MDF base + 3D printed sliders
+
+**3. Local Culture Props**
+- Shadow Puppet Theaters: MDF silhouettes + 3D handle clips
+- Desert Diorama Kits: MDF slot-together + 3D animals
+
+**4. Modular Robot Builders**
+- Snap-Bot Kits: MDF shapes + 3D printed ball joints
+
+**5. Paint-Your-Own Craft Blanks**
+- Animal silhouette MDF + tempera paint pots
+- Search: "animal silhouette DXF", "dinosaur outline vector"
+
+**6. Geometric Building Discs**
+- Interlocking snowflake connectors
+- Search: "interlocking discs DXF", "slotted building blocks"
+
+**7. Tangrams & Puzzles**
+- Alphabet tracing boards
+- Search: "tangram puzzle DXF", "number puzzle vector"
+
+**8. Rubber Band Gliders**
+- MDF body + wings + 3D printed nose cone
+- Search: "balsa airplane DXF", "rubber band glider"
+
+**9. Spinning Tops**
+- MDF disc + 3D printed center peg
+- Search: "optical illusion spinner vector", "gear shape DXF"
+
+### Laser Cutting Optimization
+- **Do NOT raster engrave** — use vector scoring instead
+- Vector scoring: cut at 10-15% power, high speed
+- Nest tightly to minimize waste
+- Smooth curves cut faster than sharp corners
+- Run calibration tests for kerf offset (~0.1mm)
+
+### Packaging (Ultra-Lean)
+- Clear cellophane bag + paper topper
+- Print QR code linking to assembly video/PDF
+- No instruction booklets (saves margin)
+- Pieces stay in MDF sheet (micro-tabs in LightBurn)
+
+### Sales Strategy (Pick & Mix at 10 AED)
+- Bulk bins at weekend markets
+- "10 shapes for 10 AED" minimum
+- Kids love picking their own set
+- Eliminates per-unit packaging cost
+
+---
+
+## 18. AI-Powered Design Generation
+
+### For 3D Print Designs (OpenSCAD/CadQuery)
+| Model | Best For | Output |
+|-------|----------|--------|
+| Claude | Visual design, iterative refinement | OpenSCAD scripts |
+| DeepSeek V4 Pro | Complex math, gears, joints | Python/CadQuery |
+| GLM-5 | Large-scale generation (50+ parts) | OpenSCAD scripts |
+| CADAM | Text/image to DXF/STL | DXF, STL, SCAD |
+
+### For Laser Cut Files (SVG/DXF)
+| Model | Approach |
+|-------|----------|
+| Claude | "Write raw SVG code for 2D interlocking dinosaur puzzle for 3mm MDF, 0.1mm kerf" |
+| DeepSeek | Generate optimized vector files |
+| CADAM | Text/image → DXF conversion |
+
+### Workflow
+1. Ask AI to write OpenSCAD/SVG code
+2. Render/preview the design
+3. Export as .STL (3D print) or .SVG (laser cut)
+4. Import into LightBurn/Cura
+5. Cut/print in batches
+
+---
+
+## 19. Optimal MDF Cutout Sizing (AED 1 Per Unit)
+
+### Size Sweet Spot
+- **Dimensions:** 40-60mm (1.5-2.5 inches) longest side
+- **Thickness:** 3mm MDF strictly
+- **Nesting:** 100-200 units per laser bed run
+- **Safety:** Above 40mm = no choking hazard
+
+### Shape Optimization
+- **Best:** Continuous curves (moons, clouds, hearts, fish, smooth dinosaurs)
+- **Avoid:** Sharp corners, thin protrusions, internal cuts
+- **Why:** Laser decelerates at corners — costs time and money
+- **Internal cuts:** Add 3-5 seconds per piece = catastrophic at scale
+
+### Cost at AED 1
+| Component | Cost |
+|-----------|------|
+| MDF (smooth curves, 40-60mm) | 0.15-0.30 AED |
+| Laser cutting (fast, continuous) | 0.05-0.15 AED |
+| **Total** | **0.20-0.45 AED** |
+| **Margin at AED 1** | **55-80%** |
+
+### Magnet Hack (Perceived Value)
+- 5mm x 1mm neodymium disc magnets (bulk from China)
+- Glue to back of cutouts
+- Turns plain wood into "DIY Fridge Magnets"
+- Instant perceived value increase
+- Use Prusa to print glue jig for batch processing
+
+### Pick & Mix Sales Strategy
+- Bulk bins at weekend markets
+- "10 shapes for 10 AED" minimum
+- Kids love picking their own set
+- Eliminates per-unit packaging
+- Eliminates payment friction (10 AED minimum)
+
+---
+
+## 20. Free File Sourcing Strategy
+
+### Best Categories for High-Volume, Fast-Cut Files
+1. **Paint-Your-Own Blanks** — "animal silhouette DXF", "dinosaur outline vector"
+2. **Geometric Building Discs** — "interlocking discs DXF", "slotted building blocks"
+3. **Tangrams & Puzzles** — "tangram puzzle DXF", "alphabet tracing board"
+4. **Rubber Band Gliders** — "balsa airplane DXF", "rubber band glider"
+5. **Spinning Tops** — "optical illusion spinner vector", "gear shape DXF"
+
+### File Preparation (Before Laser)
+1. **Remove duplicate lines** — overlapping vectors cut twice
+2. **Reduce nodes** — simplify curves for faster cutting
+3. **Calibrate kerf** — 0.1mm offset for friction fit
+4. **Nest tightly** — maximize pieces per sheet
+5. **Vector scoring only** — no raster engraving (too slow)
+
+---
+
+## 21. Competitive Advantage Summary
+
+| Factor | You | Competitors |
+|--------|-----|-------------|
+| Equipment | Own (AED 0) | Outsourced (AED 3-8K) |
+| Per-unit cost | AED 0.30-1.00 | AED 1.50-3.00 |
+| Cutting speed | In-house | 10-14 day lead time |
+| Customization | On-demand | Bulk only |
+| Design source | AI-generated + free files | Licensed/purchased |
+| Local market | Direct access | Import required |
+| Margin at 5 AED | 78-94% | 40-60% |
