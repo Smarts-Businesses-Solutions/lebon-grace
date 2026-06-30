@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
+import { products } from "@/lib/products";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   typescript: true,
@@ -7,11 +8,37 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { items, subtotal, shipping, deliveryMethod } = body;
+  const { items, shipping, deliveryMethod } = body as {
+    items: Array<{ name: string; price: number; quantity: number; image?: string; slug?: string }>;
+    subtotal: number;
+    shipping: number;
+    deliveryMethod: string;
+  };
 
   if (!items || items.length === 0) {
     return NextResponse.json({ error: "Items required" }, { status: 400 });
   }
+
+  // ─── SERVER-SIDE PRICE VALIDATION ───
+  // Look up each product by slug and use the authoritative price from our catalog
+  // Client-sent prices are ignored to prevent price tampering
+  const validatedItems = items.map((item) => {
+    if (!item.slug) return item;
+    const catalogProduct = products.find((p) => p.slug === item.slug);
+    if (!catalogProduct) {
+      throw new Error(`Unknown product: ${item.slug}`);
+    }
+    return {
+      ...item,
+      name: catalogProduct.name,
+      price: catalogProduct.price,
+      image: catalogProduct.imageUrl,
+      slug: item.slug,
+    };
+  });
+
+  // Recalculate subtotal from validated prices (ignore client subtotal)
+  const subtotal = validatedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   // Calculate amounts (all in AED)
   const total = subtotal + (shipping || 0);
@@ -21,7 +48,7 @@ export async function POST(request: NextRequest) {
   try {
     // Build line items for Stripe — each product at 50% of its price
     // Stripe unit_amount is in fils (1 AED = 100 fils)
-    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map(
+    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = validatedItems.map(
       (item: { name: string; price: number; quantity: number; image?: string; slug?: string }) => ({
         price_data: {
           currency: "aed",

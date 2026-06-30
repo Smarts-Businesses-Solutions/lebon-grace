@@ -33,7 +33,7 @@ const COLOR_KEYWORDS = [
 const SIZE_KEYWORDS = ["mini", "small", "medium", "large", "xl", "xxl", "oversized"];
 
 function wordRegex(word: string, flags?: string): RegExp {
-  return new RegExp("\b" + word + "\b", flags);
+  return new RegExp("\\b" + word + "\\b", flags);
 }
 
 function capitalize(s: string): string {

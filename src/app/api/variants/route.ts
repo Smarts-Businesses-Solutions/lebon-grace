@@ -16,7 +16,7 @@ const COLOR_KEYWORDS = [
 function extractLabel(name: string): string {
   const lower = name.toLowerCase();
   for (const c of COLOR_KEYWORDS) {
-    if (new RegExp("\b" + c + "\b").test(lower)) return c.charAt(0).toUpperCase() + c.slice(1);
+    if (new RegExp("\\b" + c + "\\b").test(lower)) return c.charAt(0).toUpperCase() + c.slice(1);
   }
   const parts = name.split(",");
   if (parts.length > 1) return parts[parts.length - 1].trim().slice(0, 20);
@@ -24,11 +24,15 @@ function extractLabel(name: string): string {
 }
 
 async function fetchCJVariants(pid: string) {
-  // Try both token formats
-  const tokens = [
-    "75f5011d9eda4af2abd482ab29b3f826",
-    "CJ4810846@api@75f5011d9eda4af2abd482ab29b3f826",
-  ];
+  const apiKey = process.env.CJDS_API_KEY;
+  if (!apiKey) return null;
+
+  // Try the key as-is, then try hash-only if it contains @
+  const tokens = [apiKey];
+  const parts = apiKey.split("@");
+  if (parts.length >= 2) {
+    tokens.push(parts[parts.length - 1]);
+  }
 
   for (const token of tokens) {
     try {
