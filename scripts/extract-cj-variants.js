@@ -139,17 +139,33 @@ async function main() {
   const alreadyExtracted = Object.keys(existing).length;
   console.log(`Already extracted: ${alreadyExtracted}`);
 
-  // Launch browser
+  // Launch browser — try Chrome user profile first (has CJ cookies)
   console.log("Launching browser...");
-  const browser = await chromium.launch({
-    headless: false, // Use headed mode so CJ sees a real browser
-    args: ["--disable-blink-features=AutomationControlled"],
-  });
+  const userDataDir = process.env.LOCALAPPDATA + "\\Google\\Chrome\\User Data";
+  let browser;
+  let context;
 
-  const context = await browser.newContext({
-    userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-    viewport: { width: 1440, height: 900 },
-  });
+  try {
+    // Try Chrome user profile (bypasses Cloudflare, needs CJ login)
+    browser = await chromium.launchPersistentContext(userDataDir, {
+      headless: false,
+      channel: "chrome",
+      args: ["--disable-blink-features=AutomationControlled"],
+    });
+    context = browser;
+    console.log("Using Chrome profile (with CJ login)");
+  } catch {
+    // Fallback to fresh browser
+    browser = await chromium.launch({
+      headless: false,
+      args: ["--disable-blink-features=AutomationControlled"],
+    });
+    context = await browser.newContext({
+      userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      viewport: { width: 1440, height: 900 },
+    });
+    console.log("Using fresh browser (may need CJ login)");
+  }
 
   const page = await context.newPage();
 
