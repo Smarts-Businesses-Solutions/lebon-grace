@@ -365,10 +365,7 @@ function ShopContent() {
         </div>
       </section>
 
-      {/* Category Showcase */}
-      <CategoryShowcase />
-
-      {/* Main Shop Section */}
+      {/* Main Shop Section — categories are in the sidebar filter */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 overflow-x-hidden">
         <div className="flex gap-8">
           {/* ─── Desktop Sidebar ─── */}
