@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useCart } from "@/lib/cart-context";
 import { formatPrice, categories } from "@/lib/products";
@@ -169,6 +169,14 @@ function ShopContent() {
   });
   const [visibleCount, setVisibleCount] = useState(24);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+
+  // Sync URL params with filter state (when navigating via nav links)
+  useEffect(() => {
+    const cat = searchParams.get("category") || "All";
+    const q = searchParams.get("search") || "";
+    setFilters((prev) => ({ ...prev, category: cat, search: q }));
+    setVisibleCount(24);
+  }, [searchParams]);
 
   // Update a single filter field
   const updateFilter = useCallback(
