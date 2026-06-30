@@ -1,55 +1,54 @@
 /**
- * Import CJ variants from scraped data into the Lebon Grace API.
+ * Import extracted CJ variants into Lebon Grace.
  *
  * USAGE:
- *   1. Run scrape-cj-variants.js first to get data/cj-variants.json
- *   2. Then run: node scripts/import-cj-variants.js
+ *   node scripts/import-cj-variants.js
  *
- * This uploads the variant data to the Lebon Grace API which stores it
- * in Supabase product_variants table.
+ * Prerequisites:
+ *   - data/cj-variants-extracted.json must exist (from extract-cj-variants.js)
+ *   - Lebon Grace API must be running
  */
 
 const fs = require("fs");
 const path = require("path");
 
+const INPUT_FILE = path.join(__dirname, "..", "data", "cj-variants-extracted.json");
 const API_URL = "https://shop.lebon-grace.com/api/import";
-const DATA_PATH = path.join(__dirname, "..", "data", "cj-variants.json");
 
-async function importVariants() {
-  if (!fs.existsSync(DATA_PATH)) {
-    console.error("❌ No data/cj-variants.json found. Run scrape-cj-variants.js first.");
+async function main() {
+  if (!fs.existsSync(INPUT_FILE)) {
+    console.error("❌ No data/cj-variants-extracted.json found. Run extract-cj-variants.js first.");
     process.exit(1);
   }
 
-  const data = JSON.parse(fs.readFileSync(DATA_PATH, "utf-8"));
+  const data = JSON.parse(fs.readFileSync(INPUT_FILE, "utf-8"));
   const entries = Object.values(data);
 
-  console.log(`Found ${entries.length} products with variant data`);
+  console.log(`Found ${entries.length} extracted products`);
 
-  // Convert to our import format
+  // Convert to import format
   const products = entries
-    .filter((e) => e.variants && e.variants.length > 0)
+    .filter((e) => e.images && e.images.length > 0)
     .map((entry) => ({
       slug: entry.slug,
       name: entry.name,
       price: entry.price || 25,
       category: "General",
       cjPid: entry.cjPid,
-      imageUrl: entry.images?.[0] || "",
-      description: entry.description || "",
+      imageUrl: entry.images[0] || "",
+      description: "",
       stock: 50,
       variants: entry.variants.map((v, i) => ({
         sku: v.sku || `${entry.cjPid}-${i}`,
         name: v.name || `Variant ${i + 1}`,
-        image: v.image || entry.images?.[0] || "",
-        color: v.value || v.name || "",
-        size: "",
+        image: v.image || entry.images[0] || "",
+        color: v.color || "",
+        size: v.size || "",
       })),
     }));
 
-  console.log(`Importing ${products.length} products with variants...`);
+  console.log(`Importing ${products.length} products to Lebon Grace...`);
 
-  // Send to API
   const resp = await fetch(API_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -57,13 +56,18 @@ async function importVariants() {
   });
 
   const result = await resp.json();
-  console.log(`\n✅ Import complete!`);
-  console.log(`   Products imported: ${result.imported}`);
-  console.log(`   Variants added: ${result.variantsAdded}`);
-  if (result.errors?.length) {
-    console.log(`   Errors: ${result.errors.length}`);
-    result.errors.slice(0, 5).forEach((e) => console.log(`     - ${e}`));
+
+  if (result.success) {
+    console.log(`\n✅ Import complete!`);
+    console.log(`   Products: ${result.imported}`);
+    console.log(`   Variants: ${result.variantsAdded}`);
+    if (result.errors?.length) {
+      console.log(`   Errors: ${result.errors.length}`);
+      result.errors.slice(0, 5).forEach((e) => console.log(`     - ${e}`));
+    }
+  } else {
+    console.error("❌ Import failed:", result.error);
   }
 }
 
-importVariants().catch(console.error);
+main().catch(console.error);
