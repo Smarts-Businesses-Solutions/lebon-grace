@@ -49,6 +49,7 @@ export default function ProductDetailPage() {
   const [cjImages, setCjImages] = useState<string[]>([]);
   const [loadingVariants, setLoadingVariants] = useState(false);
   const [selectedVariantSku, setSelectedVariantSku] = useState<string | null>(null);
+  const [recentlyViewed, setRecentlyViewed] = useState<typeof products>([]);
 
   const selectedCjVariant = cjVariants.find((v) => v.sku === selectedVariantSku) || null;
 
@@ -60,6 +61,7 @@ export default function ProductDetailPage() {
       const filtered = viewed.filter((s) => s !== slug);
       filtered.unshift(slug);
       localStorage.setItem(key, JSON.stringify(filtered.slice(0, 8)));
+      setRecentlyViewed(filtered.filter(s => s !== slug).slice(0, 6).map(s => products.find(p => p.slug === s)).filter(Boolean) as typeof products);
     } catch {}
   }, [slug]);
 
@@ -526,6 +528,32 @@ export default function ProductDetailPage() {
           </div>
         </div>
       )}
+
+      {/* Recently Viewed */}
+      {recentlyViewed.length > 0 && (
+        <div className="mt-12 border-t border-gray-100 pt-10">
+          <h2 className="text-lg font-bold tracking-tight mb-6">Recently Viewed</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            {recentlyViewed.map((p) => (
+              <Link key={p.slug} href={"/shop/" + p.slug} className="group bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-200">
+                <div className="aspect-square overflow-hidden bg-gray-50"><img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" loading="lazy" /></div>
+                <div className="p-3"><h3 className="text-xs font-medium text-gray-800 line-clamp-2">{p.name}</h3><p className="text-sm font-bold text-gray-900 mt-1">{formatPrice(p.price)}</p></div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Sticky Mobile Add-to-Cart Bar */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 px-4 py-3 flex items-center gap-3 shadow-lg">
+        <div className="flex-1 min-w-0">
+          <p className="text-xs text-gray-400 truncate">{product.name}</p>
+          <p className="text-sm font-bold text-gray-900">{formatPrice(product.price)}</p>
+        </div>
+        <button onClick={handleAddToCart} disabled={product.stock === 0} className="px-6 py-2.5 bg-[#16A34A] text-white text-sm font-semibold rounded-lg hover:bg-[#15803D] transition-colors disabled:opacity-50">
+          {added ? "✓ Added" : "Add to Cart"}
+        </button>
+      </div>
     </section>
   );
 }
