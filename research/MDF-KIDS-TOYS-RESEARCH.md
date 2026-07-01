@@ -364,3 +364,167 @@
 | Design source | AI-generated + free files | Licensed/purchased |
 | Local market | Direct access | Import required |
 | Margin at 5 AED | 78-94% | 40-60% |
+
+## 22. IVEI Competitor Analysis (Amazon.ae)
+
+### IVEI Product Line — Full Data
+| Product | AED | Pieces | Per Piece | Rating | Reviews |
+|---------|-----|--------|-----------|--------|---------|
+| Flower Cutouts | 12.99 | 15 | 0.87 | 1.0 | 1 |
+| Square Coasters + Holder | 11.83 | 5 | 2.37 | 4.1 | 49 |
+| Bunting/Toran Scallop | 10.99 | 6 | 1.83 | 4.2 | 9 |
+| Vehicle Shapes | 11.07 | 24 | 0.46 | 5.0 | 0 |
+| Christmas Garland | 7.42 | 1 | 7.42 | N/A | 0 |
+| Thin Coasters (20pc) | 13.65 | 20 | 0.68 | 4.4 | 1,564 |
+| Animal Magnets | 13.65 | 10 | 1.37 | 3.8 | 11 |
+| Christmas Ornaments | 14.99 | 20 | 0.75 | 4.5 | 15 |
+| Shaped Pendants | 16.38 | 25 | 0.66 | 4.1 | 29 |
+| Photo Magnets | 15.47 | 2 | 7.74 | 3.8 | 5 |
+| Number Cutouts | 16.99 | 20 | 0.85 | 4.6 | 6 |
+
+**Key findings:**
+- Best value: Vehicle Shapes at AED 0.46/piece
+- Most reviewed: Thin Coasters with 1,564 ratings
+- Highest rated: Number Cutouts (4.6 stars)
+- Brand: IVEI (I Value Every Idea), manufactured in India
+- IVEI sells at AED 0.80/unit on Amazon UAE
+
+---
+
+## 23. Raw Material & Value-Add Costs
+
+### MDF Sheets (UAE)
+| Size | Qty | Price (AED) | Per Sheet |
+|------|-----|-------------|-----------|
+| 40x40cm | 4 | 15.00 | 3.75 |
+| A4 (21x30cm) | 15 | 45.00 | 3.00 |
+| 30x30cm | 4 | 25.00 | 6.25 |
+| A3 (42x30cm) | 10 | 55.00 | 5.50 |
+| 60x60cm | 4 | 30.00 | 7.50 |
+| 100x100cm | 1 | 76-90 | 76-90 |
+
+### Primer
+| Product | Price (AED) |
+|---------|-------------|
+| Jotun PVA Primer (4L) | 59-62 |
+| CanvasGT Wood Primer (1L) | 35.00 |
+| Rustins MDF Primer (250ml) | 96.67 |
+
+### Paint
+| Product | Price (AED) |
+|---------|-------------|
+| SKY-TOUCH 24 colors | 32.90 |
+| Faber-Castell 24 colors | 33.71 |
+| Asmaco Clear Lacquer | 10.00 |
+
+### Magnets (Neodymium)
+| Size | Qty | Price (AED) | Per Unit |
+|------|-----|-------------|----------|
+| 3x1mm N52 | 600 | 87.56 | 0.15 |
+| 1/8x1/32" N52 | 500 | 75.63 | 0.15 |
+| 5x1mm N42 | 250 | 93.15 | 0.37 |
+
+### Hangers & Hardware
+| Product | Qty | Price (AED) | Per Unit |
+|---------|-----|-------------|----------|
+| Swpeet Sawtooth Kit | 600 | 34.99 | 0.06 |
+| SYOSI D-Ring | 100 | 20.08 | 0.20 |
+| eZAKKA Sawtooth | 100 | 25.00 | 0.25 |
+
+### Adhesives
+| Product | Price (AED) |
+|---------|-------------|
+| Asmaco Super Glue (3g) | 1.00 |
+| Uhu Wood Glue (75g) | 8.91 |
+| Gorilla Wood Glue (8oz) | 29.00 |
+
+### Packaging
+| Size | Qty | Price (AED) | Per Unit |
+|------|-----|-------------|----------|
+| 10x18cm self-seal | 200 | 25.00 | 0.13 |
+| 15x26cm self-seal | 200 | 32.00 | 0.16 |
+| 5x7cm | 50 | 4.97 | 0.10 |
+
+### Brushes
+| Product | Qty | Price (AED) | Per Unit |
+|---------|-----|-------------|----------|
+| Anezus Bulk Fine | 100 | 29.00 | 0.29 |
+| BOSOBO Nylon | 20 | 9.90 | 0.50 |
+
+### Sealant/Varnish
+| Product | Price (AED) |
+|---------|-------------|
+| Asmaco Clear Lacquer (400ml) | 10.14 |
+| Rust-Oleum Clear (340g) | 38.23 |
+
+---
+
+## 24. Complete Unit Economics (AED 1 Target)
+
+### At AED 1 per piece (small cutout 40-60mm)
+| Component | Cost (AED) |
+|-----------|------------|
+| MDF material | 0.15-0.30 |
+| Laser cutting | 0.05-0.15 |
+| **Total** | **0.20-0.45** |
+| **Margin at AED 1** | **55-80%** |
+
+### At AED 1 per piece (with magnet)
+| Component | Cost (AED) |
+|-----------|------------|
+| MDF material | 0.15-0.30 |
+| Laser cutting | 0.05-0.15 |
+| Magnet (3x1mm) | 0.15 |
+| Superglue | 0.02 |
+| **Total** | **0.37-0.62** |
+| **Margin at AED 1** | **38-63%** |
+
+### At AED 1 per piece (painted + magnet)
+| Component | Cost (AED) |
+|-----------|------------|
+| MDF material | 0.15-0.30 |
+| Laser cutting | 0.05-0.15 |
+| Primer | 0.10 |
+| Paint (2 coats) | 0.15 |
+| Sealant | 0.05 |
+| Magnet | 0.15 |
+| Superglue | 0.02 |
+| Packaging | 0.13 |
+| **Total** | **0.80-1.10** |
+| **Margin at AED 1** | **-10% to 20%** |
+
+**Recommendation:** At AED 1, sell raw/unpainted cutouts with magnets. Painted versions should be AED 2-3.
+
+---
+
+## 25. Free & AI Design Sources
+
+### Free 3D Print Files
+| Source | Files | License |
+|--------|-------|---------|
+| Printables.com | Thousands | Per-model (many free) |
+| MakerWorld.com | Thousands | Per-model (many free) |
+| Thingiverse | Millions | CC licenses |
+| Cults3D | Thousands | Per-model |
+| Pinshape | Many | Per-model |
+| CrealityCloud | Many | Per-model |
+| Fab365 | Few free | Personal only |
+
+### Free Laser Cut Files
+| Source | Files | License |
+|--------|-------|---------|
+| 3axis.co | 56,018 | Free |
+| free-dxf.com | 10,000+ | Free |
+| dxfdownloads.com | 28,000+ | Freemium |
+| Cults3D (CNC & Laser section) | Growing | Per-model |
+
+### AI Design Tools
+| Tool | Output | License |
+|------|--------|---------|
+| CADAM | DXF, STL, SCAD | GPL-3.0 |
+| GenSvg | SVG | Open Source |
+| OpenSCAD | STL | GPL-2.0 |
+| Claude/DeepSeek | OpenSCAD/SVG code | Commercial |
+
+### Key Insight
+**Cults3D is the only site with a dedicated CNC & Laser category.** Best source for MDF cutout designs. 3axis.co has the largest free library (56K files).
