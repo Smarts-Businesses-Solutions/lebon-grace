@@ -528,3 +528,112 @@
 
 ### Key Insight
 **Cults3D is the only site with a dedicated CNC & Laser category.** Best source for MDF cutout designs. 3axis.co has the largest free library (56K files).
+
+## 26. Global Market Strategy (UAE + Worldwide)
+
+### Target Markets
+
+| Market | Population | E-commerce | Shipping Cost | Priority |
+|--------|-----------|------------|---------------|----------|
+| **UAE** | 10M | $8B+ | AED 0 (local) | 🔴 Primary |
+| **Saudi Arabia** | 36M | $12B+ | AED 15-30 | 🔴 Primary |
+| **GCC (Kuwait, Bahrain, Qatar, Oman)** | 15M | $3B+ | AED 15-25 | 🟡 Secondary |
+| **USA** | 330M | $1.1T | $5-15/kg air | 🟡 Secondary |
+| **UK** | 68M | $120B | £5-12/kg | 🟡 Secondary |
+| **EU (Germany, France, Netherlands)** | 450M | €700B | €5-15/kg | 🟢 Expansion |
+| **Australia** | 26M | A$50B | A$8-15/kg | 🟢 Expansion |
+| **India** | 1.4B | $80B+ | $3-8/kg | 🟢 Expansion |
+| **Southeast Asia** | 700M | $100B+ | $5-10/kg | 🟢 Expansion |
+
+### Platform Strategy by Market
+
+| Market | Primary Platform | Secondary | Notes |
+|--------|-----------------|-----------|-------|
+| **UAE** | Amazon.ae | Noon.com, Instagram | COD available, fast delivery |
+| **Saudi Arabia** | Amazon.sa | Noon.com | Largest GCC market |
+| **USA** | Amazon.com | Etsy, Shopify | CPSIA compliance needed |
+| **UK** | Amazon.co.uk | Etsy | Strong maker community |
+| **EU** | Amazon.de | Etsy | EN71 compliance needed |
+| **Australia** | Amazon.com.au | Etsy | Growing market |
+| **India** | Amazon.in | Flipkart, Meesho | Price-sensitive |
+| **Global Digital** | Etsy | Gumroad, own site | No shipping needed |
+
+### Shipping Strategy
+
+**Physical Products:**
+- UAE/GCC: Local delivery (1-3 days)
+- International: Sea freight for bulk (2-4 weeks), air for urgent (3-7 days)
+- Use Amazon FBA for US/UK/EU (Fulfilled by Amazon handles storage + shipping)
+
+**Digital Products (DXF/SVG files):**
+- Zero shipping cost worldwide
+- Instant delivery via email/download
+- Sell on Etsy, Gumroad, own website
+- **Margin: 95-100%**
+
+### Pricing by Market
+
+| Product | UAE (AED) | USA (USD) | UK (GBP) | EU (EUR) |
+|---------|-----------|-----------|----------|----------|
+| Single cutout | 1-2 | $1-2 | £1-2 | €1-2 |
+| 10-pack | 8-12 | $8-12 | £8-12 | €8-12 |
+| DIY kit (5 AED) | 5 | $1.50 | £1.50 | €1.50 |
+| Digital file | 10-20 | $3-5 | £3-5 | €3-5 |
+
+### Compliance by Market
+
+| Market | Standard | Required | Cost |
+|--------|----------|----------|------|
+| UAE/GCC | ESMA/GCC | Yes for toys | $500-3,000 |
+| EU | EN 71 | Yes for toys | $500-5,000 |
+| USA | CPSIA | Yes for kids products | $1,000-5,000 |
+| UK | UKCA | Yes for toys | $500-3,000 |
+| Australia | AS/NZS 8124 | Yes for toys | $500-3,000 |
+| India | IS 9873 | Yes for toys | $300-1,000 |
+
+### Digital-First Global Strategy
+
+**Phase 1 (Month 1-3): Digital worldwide**
+- Sell DXF/SVG files on Etsy (global reach)
+- No shipping, no customs, no compliance needed
+- Price: $3-5 per file, $15-25 for bundles
+- Margin: 95-100%
+- Revenue: $500-2,000/month
+
+**Phase 2 (Month 4-6): Physical UAE**
+- Sell MDF cutouts locally on Amazon.ae
+- No international shipping complexity
+- COD available
+- Revenue: $1,000-3,000/month
+
+**Phase 3 (Month 7-12): Physical GCC**
+- Expand to Amazon.sa, Noon.com
+- Low shipping cost (AED 15-30)
+- Revenue: $2,000-5,000/month
+
+**Phase 4 (Year 2): Physical International**
+- Amazon US/UK/EU via FBA
+- Ship bulk to Amazon warehouses
+- Amazon handles last-mile delivery
+- Revenue: $5,000-15,000/month
+
+### Amazon FBA Strategy (International)
+
+| Step | Action | Cost |
+|------|--------|------|
+| 1 | Create Amazon seller account (US/UK/EU) | $0-40/mo |
+| 2 | Ship bulk inventory to Amazon warehouse | $2-5/unit |
+| 3 | Amazon stores, packs, ships | $3-8/unit (FBA fee) |
+| 4 | Customer orders → Amazon delivers | Free for customer (Prime) |
+| **Your cost per unit** | **$5-13** | |
+| **Sell at $15-30** | **$2-17 margin** | |
+
+### Revenue Projections (Global)
+
+| Metric | Month 6 | Year 1 | Year 2 | Year 3 |
+|--------|---------|--------|--------|--------|
+| Digital (global) | $500 | $2,000 | $5,000 | $10,000 |
+| Physical (UAE) | $1,000 | $3,000 | $6,000 | $10,000 |
+| Physical (GCC) | $0 | $1,000 | $3,000 | $6,000 |
+| Physical (International) | $0 | $0 | $5,000 | $20,000 |
+| **Total** | **$1,500** | **$6,000** | **$19,000** | **$46,000** |

@@ -1221,3 +1221,31 @@ Since you have the laser cutter, sell the DXF/SVG files too:
 | National Day | UAE flag items | AED 5-20 |
 | Weddings | Favor boxes, signs | AED 5-25 |
 | Corporate | Logo signs, branded items | AED 20-100 |
+
+## 27. Global Strategy for MD Cutouts
+
+### Target Markets (Same as Kids Toys)
+- Primary: UAE, Saudi Arabia, GCC
+- Secondary: USA, UK, EU, Australia
+- Digital: Worldwide (zero shipping)
+
+### Digital Files = Global Revenue
+- Sell DXF/SVG files on Etsy, Gumroad, own site
+- No shipping, no customs, no compliance
+- Price: $3-5 per file
+- Margin: 95-100%
+- Reach: 190+ countries instantly
+
+### Physical Products = Regional Focus
+- UAE/GCC first (low shipping, COD available)
+- International via Amazon FBA (bulk shipping to warehouses)
+- Custom/signage items: direct shipping worldwide
+
+### Lebon Grace Dual Revenue Model
+| Stream | Market | Margin | Scale |
+|--------|--------|--------|-------|
+| Digital files | Global | 95-100% | Unlimited |
+| Physical cutouts (UAE) | UAE/GCC | 55-80% | Limited by production |
+| Physical cutouts (FBA) | US/UK/EU | 30-50% | Limited by capital |
+| DIY kits (5 AED) | UAE | 78-94% | Limited by production |
+| Custom/signage | Global | 60-75% | Per-order |
