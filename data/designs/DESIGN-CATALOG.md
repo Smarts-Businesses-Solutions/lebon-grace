@@ -123,3 +123,206 @@ Educational toys, AED 2-8
 | Puzzle (10pc) | 5.00 | 0.50 | 0.12-0.25 | 80-92% |
 | Wall art (small) | 10.00 | 10.00 | 3-5 | 50-70% |
 | Christmas set (5pc) | 8.00 | 1.60 | 0.50-1.00 | 50-80% |
+
+---
+
+## Category 7: Butterfly (62 files)
+### free-dxf.com (22)
+| Name | URL |
+|------|-----|
+| Decorative butterfly | https://free-dxf.com/design-decorative-butterfly/free-download-dxf-cdr-ai-svg/sLhee |
+| Butterfly cliparts | https://free-dxf.com/design-butterfly-cliparts/free-download-dxf-cdr-ai-svg/DXKS4 |
+| Butterfly wall decor | https://free-dxf.com/design-butterfly-wall-decor/free-download-dxf-cdr-ai-svg/VJjGe |
+| Butterfly wall art | https://free-dxf.com/design-butterfly-wall-art-decor/free-download-dxf-cdr-ai-svg/gnHkf |
+| Butterfly wing clipart | https://free-dxf.com/design-butterfly-wing-clipart/free-download-dxf-cdr-ai-svg/Z99ER |
+| Butterfly canvas wall | https://free-dxf.com/design-butterfly-canvas-wall-decor/free-download-dxf-cdr-ai-svg/SuH6P |
+| Butterfly heart wall | https://free-dxf.com/design-butterfly-heart-wall-decor-valentines/free-download-dxf-cdr-ai-svg/MNXhm |
+| Butterfly floral circle | https://free-dxf.com/design-butterfly-floral-circle-wall-decor/free-download-dxf-cdr-ai-svg/C5LaW |
+| Butterfly flower mandala | https://free-dxf.com/design-butterfly-flower-mandala-arts/free-download-dxf-cdr-ai-svg/aL8Rg |
+| Butterfly on flowers | https://free-dxf.com/design-butterfly-on-flowers-clipart/free-download-dxf-cdr-ai-svg/xLy7r |
+
+### dxfdownloads (12)
+| Name | Format | URL |
+|------|--------|-----|
+| Butterfly pack laser | DXF | https://www.dxfdownloads.com/free-butterfly-pack-for-laser-engraving-machines/ |
+| Butterfly shelf CNC | DXF | https://www.dxfdownloads.com/free-butterfly-shelf-cnc-file-to-cut/ |
+| Multi-layer butterfly shelf | DXF | https://www.dxfdownloads.com/free-multi-layer-shelf-butterfly-and-unicorn/ |
+| Clock butterfly CDR | CDR | https://www.dxfdownloads.com/free-clock-butterfly-cdr-cut-file/ |
+| Miniature butterfly | DXF | https://www.dxfdownloads.com/free-vector-laser-cut-miniature-butterfly/ |
+| Butterfly 2D vector pack | DXF | https://www.dxfdownloads.com/free-butterfly-2d-vector-pack/ |
+| Butterfly ornament DXF | DXF | https://www.dxfdownloads.com/free-2d-pack-butterfly-ornaments-decor-dxf/ |
+| Butterfly wall clock | DXF | https://www.dxfdownloads.com/free-wall-clock-butterfly-dxf/ |
+| Butterfly contour silhouette | DXF | https://www.dxfdownloads.com/free-vector-collection-butterfly-contour-silhouette/ |
+| Butterfly 2D CDR+DXF | CDR+DXF | https://www.dxfdownloads.com/free-butterfly-vector-2d-cdr-dxf/ |
+
+## Category 8: Flower/Floral (97 files)
+### free-dxf.com (35)
+| Name | URL |
+|------|-----|
+| Flowers clipart | https://free-dxf.com/design-flowers-clipart/free-download-dxf-cdr-ai-svg/MdKVE |
+| Flower rose | https://free-dxf.com/design-flower-rose/free-download-dxf-cdr-ai-svg/ZOpIO |
+| Tulip flower clipart | https://free-dxf.com/design-tulip-flower-clipart/free-download-dxf-cdr-ai-svg/7vOYh |
+| Beautiful rose | https://free-dxf.com/design-beautiful-rose/free-download-dxf-cdr-ai-svg/Oi60m |
+| Rose flower art | https://free-dxf.com/design-rose-flower-art/free-download-dxf-cdr-ai-svg/doK3f |
+| Sunflower floral pot | https://free-dxf.com/design-sunflower-floral-pot/free-download-dxf-cdr-ai-svg/ProNr |
+| Orchid flower wall decor | https://free-dxf.com/design-orchid-flower-wall-decor/free-download-dxf-cdr-ai-svg/WqeTU |
+| Floral mandala pattern | https://free-dxf.com/design-floral-mandala-pattern-decor/free-download-dxf-cdr-ai-svg/Dt2D0 |
+
+### dxfdownloads (17)
+| Name | Format | URL |
+|------|--------|-----|
+| Panel flowers wall decor | DXF | https://www.dxfdownloads.com/free-panel-flowers-wall-decor/ |
+| Vase with Flowers | DXF | https://www.dxfdownloads.com/free-vase-with-flowers/ |
+| Swan flower stand | DXF | https://www.dxfdownloads.com/free-design-mdf-cut-cnc-swan-shaped-flower-stand/ |
+| Flower house | DXF | https://www.dxfdownloads.com/free-cnc-cut-design-decorative-flower-house/ |
+| Flower mandala | DXF | https://www.dxfdownloads.com/flower-free-dxf-vector-mandala/ |
+| Flower bouquet silhouette | DXF | https://www.dxfdownloads.com/free-silhouette-flower-bouquet-dxf/ |
+
+## Category 9: Heart (57 files)
+### free-dxf.com (25)
+| Name | URL |
+|------|-----|
+| Heart art | https://free-dxf.com/design-heart-art/free-download-dxf-cdr-ai-svg/CFwkX |
+| Heart ornament | https://free-dxf.com/design-heart-ornament/free-download-dxf-cdr-ai-svg/9MFaG |
+| Heart valentines art | https://free-dxf.com/design-heart-valentines-day-art/free-download-dxf-cdr-ai-svg/4fNQR |
+| Heart with rose | https://free-dxf.com/design-heart-with-rose/free-download-dxf-cdr-ai-svg/7TnKK |
+| Geometric hearts | https://free-dxf.com/design-geometric-hearts-valentines-day/free-download-dxf-cdr-ai-svg/8y1AL |
+
+### dxfdownloads (17)
+| Name | Format | URL |
+|------|--------|-----|
+| Heart valentines box | DXF | https://www.dxfdownloads.com/free-heart-valentines-day-box/ |
+| Heart jewelry box | DXF | https://www.dxfdownloads.com/free-heart-jewelry-box/ |
+| Heart wall 3D twirl | DXF | https://www.dxfdownloads.com/free-vector-wall-heart-3d-twirl/ |
+| Hearts SVG silhouette | SVG | https://www.dxfdownloads.com/hearts-free-svg-cricut-silhouette/ |
+| Heart emoji 3D laser | DXF | https://www.dxfdownloads.com/heart-emoji-3d-illusion-dxf-to-laser-engraving/ |
+
+## Category 10: Star (41 files)
+### free-dxf.com (19)
+| Name | URL |
+|------|-----|
+| Star doodle clipart | https://free-dxf.com/design-star-doodle-clipart/free-download-dxf-cdr-ai-svg/pEZkj |
+| Star christmas ornament | https://free-dxf.com/design-star-christmas-ornament/free-download-dxf-cdr-ai-svg/6EUns |
+| Star christmas tree decor | https://free-dxf.com/design-christmas-tree-stars-decoration-ornament/free-download-dxf-cdr-ai-svg/MzHhx |
+| Star vinyl wall clock | https://free-dxf.com/design-twelve-star-vinyl-wall-clock/free-download-dxf-cdr-ai-svg/ntAVN |
+
+### dxfdownloads (11)
+| Name | Format | URL |
+|------|--------|-----|
+| Multi-layer star wall art | DXF | https://www.dxfdownloads.com/free-multi-layer-star-wall-art-file-to-cut/ |
+| Arabic stars silhouette | CDR | https://www.dxfdownloads.com/arabic-stars-free-download-cdr-silhouette/ |
+| Star box laser cut | DXF | https://www.dxfdownloads.com/free-star-box-laser-cut/ |
+| Christmas star DXF | DXF | https://www.dxfdownloads.com/free-laser-cut-star-shape-gift-box-dxf-file/ |
+
+## Category 11: Bird (48 files)
+### free-dxf.com (25)
+| Name | URL |
+|------|-----|
+| Swallow birds | https://free-dxf.com/design-swallow-birds/free-download-dxf-cdr-ai-svg/kOpjS |
+| Flying dove | https://free-dxf.com/design-flying-dove-birds/free-download-dxf-cdr-ai-svg/nENFX |
+| Eagle clipart | https://free-dxf.com/design-eagle-clipart/free-download-dxf-cdr-ai-svg/3DDNL |
+| Flamingo clipart | https://free-dxf.com/design-flamingo-clipart/free-download-dxf-cdr-ai-svg/TX0Pn |
+| Phoenix bird logo | https://free-dxf.com/design-phoenix-bird-logo/free-download-dxf-cdr-ai-svg/FftY3 |
+| Swan silhouette | https://free-dxf.com/design-swan-silhoutte-clipart/free-download-dxf-cdr-ai-svg/lQCeN |
+
+### dxfdownloads (8)
+| Name | Format | URL |
+|------|--------|-----|
+| Layered hummingbird | DXF | https://www.dxfdownloads.com/free-layered-hummingbird/ |
+| Bird feeder 4mm | DXF | https://www.dxfdownloads.com/free-miniature-bird-feeder-4mm/ |
+| Phoenix silhouette | DXF | https://www.dxfdownloads.com/phoenix-bird-free-dxf-silhouette-cut/ |
+| Birds baby room | DXF | https://www.dxfdownloads.com/birds-baby-room-free-cut-file/ |
+
+## Category 12: Vehicle/Car (63 files)
+### free-dxf.com (23)
+| Name | URL |
+|------|-----|
+| Cartoon car | https://free-dxf.com/design-cartoon-car/free-download-dxf-cdr-ai-svg/DywTq |
+| Cartoon truck | https://free-dxf.com/design-cartoon-truck/free-download-dxf-cdr-ai-svg/8F9Pv |
+| Retro car cliparts | https://free-dxf.com/design-retro-car-cliparts/free-download-dxf-cdr-ai-svg/fP3Lz |
+| Monster truck clipart | https://free-dxf.com/design-monster-truck-clipart/free-download-dxf-cdr-ai-svg/yffUg |
+| Ice cream truck | https://fr
+
+## Category 13: Airplane (17 files)
+### free-dxf.com (11)
+| Name | URL |
+|------|-----|
+| Airplane | https://free-dxf.com/design-airplane/free-download-dxf-cdr-ai-svg/oICMW |
+| Airplane clipart | https://free-dxf.com/design-airplane-clipart/free-download-dxf-cdr-ai-svg/8ZIgk |
+| Jet airplane clipart | https://free-dxf.com/design-jet-airplane-clipart/free-download-dxf-cdr-ai-svg/biciN |
+| Airplane wall clock | https://free-dxf.com/design-airplane-vinyl-wall-clock/free-download-dxf-cdr-ai-svg/zoUZY |
+
+### dxfdownloads (6)
+| Name | Format | URL |
+|------|--------|-----|
+| Airplane beverage can holder | DXF | https://www.dxfdownloads.com/free-laser-cut-airplane-shaped-beverage-can-holders/ |
+| Biplan airplane toy | CDR+DXF | https://www.dxfdownloads.com/free-laser-cut-biplan-airplane-toy-cdr-dxf/ |
+
+## Category 14: House/Home (40 files)
+### free-dxf.com (14)
+| Name | URL |
+|------|-----|
+| House with heart | https://free-dxf.com/design-house-with-heart-clipart/free-download-dxf-cdr-ai-svg/mKB9w |
+| Christmas house | https://free-dxf.com/design-christmas-house-clipart/free-download-dxf-cdr-ai-svg/la7Bq |
+| Lighthouse tower | https://free-dxf.com/design-lighthouse-tower-clipart/free-download-dxf-cdr-ai-svg/UCdn9 |
+
+### dxfdownloads (10)
+| Name | Format | URL |
+|------|--------|-----|
+| Dollhouse carrying handle | DXF | https://www.dxfdownloads.com/free-cnc-file-dollhouse-with-carrying-handle/ |
+| Amsterdam houses | DXF | https://www.dxfdownloads.com/large-amsterdam-houses-design-organizer-free/ |
+
+## Category 15: Tree (53 files)
+### free-dxf.com (19)
+| Name | URL |
+|------|-----|
+| Pine tree silhouette | https://free-dxf.com/design-pine-tree-vector-silhouette/free-download-dxf-cdr-ai-svg/QYePZ |
+| Palm trees | https://free-dxf.com/design-palm-trees-silhouette/free-download-dxf-cdr-ai-svg/TYbyT |
+| Christmas tree | https://free-dxf.com/design-christmas-tree/free-download-dxf-cdr-ai-svg/qlTvA |
+
+### dxfdownloads (13)
+| Name | Format | URL |
+|------|--------|-----|
+| Tree bonsai | DXF | https://www.dxfdownloads.com/free-tree-bonsay-wood-laser-cut/ |
+
+## Category 16: Keychain (17 files)
+| Name | Format | URL |
+|------|--------|-----|
+| Labubu keychains | DXF | https://www.dxfdownloads.com/free-vector-labubu-keychains/ |
+| Anti-stress keychain | DXF | https://www.dxfdownloads.com/free-anti-stress-keychain-engine/ |
+| Cat keychain | DXF | https://www.dxfdownloads.com/free-cnc-file-cat-keychain/ |
+| Owl keychain | DXF | https://www.dxfdownloads.com/free-owl-keychain/ |
+
+## Category 17: Moon/Sun/Celestial (51 files)
+| Name | URL |
+|------|-----|
+| Moon wall decor | https://free-dxf.com/design-moon-wall-decor/free-download-dxf-cdr-ai-svg/Wxg7V |
+| Cat on the moon | https://free-dxf.com/design-cat-on-the-moon/free-download-dxf-cdr-ai-svg/Gg6ph |
+| Fairy on the moon | https://free-dxf.com/design-fairy-on-the-moon-wall-decor/free-download-dxf-cdr-ai-svg/8VW1x |
+| Wolf howl moon | https://free-dxf.com/design-wolf-howl-moon-wall-sign/free-download-dxf-cdr-ai-svg/yhw6a |
+| Sun pattern wall | https://free-dxf.com/design-sun-pattern-wall-design/free-download-dxf-cdr-ai-svg/ytpVf |
+
+---
+
+## FINAL TOTALS
+
+| Category | Files |
+|----------|-------|
+| Animal Cutouts | 20 |
+| Kids Toy Puzzles | 28 |
+| Geometric Shapes | 19 |
+| Christmas/Holiday | 26 |
+| Wall Art | 10 |
+| Kids Room | 7 |
+| Butterfly | 62 |
+| Flower/Floral | 97 |
+| Heart | 57 |
+| Star | 41 |
+| Bird | 48 |
+| Vehicle/Car | 63 |
+| Airplane | 17 |
+| House/Home | 40 |
+| Tree | 53 |
+| Keychain | 17 |
+| Moon/Sun | 51 |
+| **TOTAL** | **755** |
