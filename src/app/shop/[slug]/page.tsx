@@ -38,12 +38,13 @@ export default function ProductDetailPage() {
   const slug = params.slug as string;
   const rawProduct = getProductBySlug(slug);
   const product = useMemo(() => enrichProduct(rawProduct), [rawProduct]);
+  const isMDF = rawProduct?.cjPid?.startsWith("MDF") ?? false;
   const variantGroup = useMemo(() => rawProduct ? getVariantGroup(slug) : null, [rawProduct, slug]);
   const similarProducts = useMemo(() => rawProduct ? getSimilarProducts(rawProduct, 6) : [], [rawProduct]);
   const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
-  const [activeTab, setActiveTab] = useState<"description" | "specifications" | "shipping">("description");
+  const [activeTab, setActiveTab] = useState<"description" | "specifications" | "shipping" | "how-its-made" | "customization" | "care-guide">("description");
   const [selectedImage, setSelectedImage] = useState(0);
   const [cjVariants, setCjVariants] = useState<{ sku: string; name: string; image: string; price: number; color?: string; size?: string }[]>([]);
   const [cjImages, setCjImages] = useState<string[]>([]);
@@ -332,6 +333,45 @@ export default function ProductDetailPage() {
             <Link href="/checkout" onClick={() => addItem(rawProduct!, quantity)} className="w-full py-3 text-sm font-medium text-center border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors">
               Buy Now
             </Link>
+
+            {/* MDF-specific action buttons */}
+            {isMDF && (
+              <div className="mt-3 space-y-2">
+                <p className="text-[11px] text-gray-400 uppercase tracking-wider font-medium">Locally Made — Dubai, UAE</p>
+                <Link
+                  href={"/contact?subject=Custom+MDF+Design&product=" + encodeURIComponent(slug)}
+                  className="flex items-center gap-3 w-full px-4 py-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:border-[#16A34A] hover:text-[#16A34A] transition-colors"
+                >
+                  <span className="text-lg">🎨</span>
+                  <div className="text-left">
+                    <p className="font-medium">Request Custom Design</p>
+                    <p className="text-[11px] text-gray-400 font-normal">We laser-cut any shape you want</p>
+                  </div>
+                </Link>
+                <a
+                  href={"https://wa.me/971580000030?text=" + encodeURIComponent("Hi! I'm interested in custom MDF products like " + product.name + ". Can you help?")}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 w-full px-4 py-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:border-[#25D366] hover:text-[#25D366] transition-colors"
+                >
+                  <span className="text-lg">💬</span>
+                  <div className="text-left">
+                    <p className="font-medium">WhatsApp Us</p>
+                    <p className="text-[11px] text-gray-400 font-normal">Chat directly with our team</p>
+                  </div>
+                </a>
+                <Link
+                  href={"/contact?subject=Bulk+MDF+Order&product=" + encodeURIComponent(slug)}
+                  className="flex items-center gap-3 w-full px-4 py-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:border-[#16A34A] hover:text-[#16A34A] transition-colors"
+                >
+                  <span className="text-lg">📦</span>
+                  <div className="text-left">
+                    <p className="font-medium">Bulk Order Inquiry</p>
+                    <p className="text-[11px] text-gray-400 font-normal">Volume discounts for 50+ pieces</p>
+                  </div>
+                </Link>
+              </div>
+            )}
           </div>
 
           {/* 50/50 Payment */}
@@ -417,10 +457,13 @@ export default function ProductDetailPage() {
 
       {/* ─── Tabs: Description / Reviews ─── */}
       <div className="mt-12 border-t border-gray-100 pt-8">
-        <div className="flex gap-0 border-b border-gray-100 mb-6">
+        <div className="flex gap-0 border-b border-gray-100 mb-6 overflow-x-auto">
           <TabButton active={activeTab === "description"} onClick={() => setActiveTab("description")}>Description</TabButton>
           <TabButton active={activeTab === "specifications"} onClick={() => setActiveTab("specifications")}>Specifications</TabButton>
           <TabButton active={activeTab === "shipping"} onClick={() => setActiveTab("shipping")}>Shipping & Returns</TabButton>
+          {isMDF && <TabButton active={activeTab === "how-its-made"} onClick={() => setActiveTab("how-its-made")}>How It&apos;s Made</TabButton>}
+          {isMDF && <TabButton active={activeTab === "customization"} onClick={() => setActiveTab("customization")}>Customization</TabButton>}
+          {isMDF && <TabButton active={activeTab === "care-guide"} onClick={() => setActiveTab("care-guide")}>Care Guide</TabButton>}
         </div>
 
         {activeTab === "description" && (
@@ -507,6 +550,135 @@ export default function ProductDetailPage() {
             </div>
           </div>
         )}
+
+        {/* ─── MDF Tab: How It's Made ─── */}
+        {isMDF && activeTab === "how-its-made" && (
+          <div className="max-w-3xl space-y-8">
+            <div>
+              <h4 className="text-base font-semibold text-gray-800 mb-3">From Design to Your Door — Made in Dubai</h4>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                Every MDF product is designed and laser-cut right here in our Dubai workshop. We use precision laser technology to transform raw MDF sheets into the beautiful shapes and structures you see in our catalog.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {[
+                { step: "1", icon: "✏️", title: "Design", desc: "Each shape is carefully designed in CAD software with precise measurements and clean lines." },
+                { step: "2", icon: "🔥", title: "Laser Cut", desc: "Our CO2 laser cutter traces the design on 3mm MDF sheet with pinpoint accuracy — 0.1mm tolerance." },
+                { step: "3", icon: "🪵", title: "Sand & Prep", desc: "Every piece is hand-sanded to remove any rough edges and ensure a smooth, splinter-free finish." },
+                { step: "4", icon: "🎨", title: "Paint & Finish", desc: "Select items are painted or sealed. Raw MDF pieces are ready for you to customize at home." },
+                { step: "5", icon: "✅", title: "Quality Check", desc: "Each piece is inspected for precision, smoothness, and consistency before packaging." },
+                { step: "6", icon: "📦", title: "Pack & Ship", desc: "Carefully wrapped and shipped from Dubai. Pickup available for local customers." },
+              ].map((item) => (
+                <div key={item.step} className="flex gap-3 p-4 bg-gray-50 rounded-xl">
+                  <div className="w-10 h-10 rounded-full bg-[#16A34A]/10 flex items-center justify-center flex-shrink-0">
+                    <span className="text-sm font-bold text-[#16A34A]">{item.step}</span>
+                  </div>
+                  <div>
+                    <h5 className="text-sm font-semibold text-gray-800">{item.icon} {item.title}</h5>
+                    <p className="text-xs text-gray-500 mt-1 leading-relaxed">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="p-4 bg-[#16A34A]/5 rounded-xl border border-[#16A34A]/10">
+              <h5 className="text-sm font-semibold text-[#16A34A] mb-1">🌿 Our Material</h5>
+              <p className="text-xs text-gray-600 leading-relaxed">
+                We use premium 3mm MDF (Medium-Density Fiberboard) — a sustainably manufactured wood product made from recycled wood fibers. MDF is chosen for its consistent density, smooth surface, and excellent laser-cutting properties.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* ─── MDF Tab: Customization ─── */}
+        {isMDF && activeTab === "customization" && (
+          <div className="max-w-3xl space-y-8">
+            <div>
+              <h4 className="text-base font-semibold text-gray-800 mb-3">Make It Yours — Custom MDF Options</h4>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                Every piece we sell can be customized, or we can create entirely new designs from scratch. Our laser cutter can handle virtually any 2D shape you can imagine.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {[
+                { icon: "📐", title: "Custom Size", desc: "Need a specific dimension? We can cut any shape to your exact size requirements — from 3cm to 60cm." },
+                { icon: "🎨", title: "Paint & Color", desc: "Choose from our range of acrylic paints or request a specific RAL/Pantone color. We can also do gradient finishes." },
+                { icon: "✍️", title: "Engraving & Text", desc: "Add names, dates, logos, or any text via laser engraving. Perfect for personalized gifts and business branding." },
+                { icon: "🧩", title: "Custom Shapes", desc: "Send us a design (DXF, SVG, or even a sketch) and we'll laser cut it. Logos, silhouettes, patterns — you name it." },
+                { icon: "🏠", title: "Wall Art Sets", desc: "Multi-piece wall art arrangements designed to fit your specific wall dimensions and color scheme." },
+                { icon: "🎁", title: "Gift Sets & Bundles", desc: "Curated sets of MDF cutouts, puzzles, or decor pieces — gift-wrapped and ready to give." },
+              ].map((item, i) => (
+                <div key={i} className="p-4 bg-gray-50 rounded-xl">
+                  <h5 className="text-sm font-semibold text-gray-800">{item.icon} {item.title}</h5>
+                  <p className="text-xs text-gray-500 mt-1 leading-relaxed">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="p-4 bg-gray-50 rounded-xl">
+              <h5 className="text-sm font-semibold text-gray-800 mb-2">📋 How to Request</h5>
+              <div className="space-y-2">
+                <div className="flex items-start gap-2">
+                  <span className="text-sm font-bold text-[#16A34A]">1.</span>
+                  <p className="text-xs text-gray-600">Click <strong>"Request Custom Design"</strong> above or <strong>WhatsApp us</strong> with your idea.</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-sm font-bold text-[#16A34A]">2.</span>
+                  <p className="text-xs text-gray-600">We&apos;ll send you a quote and mockup within 24 hours.</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-sm font-bold text-[#16A34A]">3.</span>
+                  <p className="text-xs text-gray-600">Once approved, your custom piece is cut, finished, and shipped in <strong>3-5 business days</strong>.</p>
+                </div>
+              </div>
+              <div className="mt-3 p-3 bg-white rounded-lg border border-gray-100">
+                <p className="text-xs text-gray-500">
+                  <strong>Bulk pricing:</strong> Custom orders of 50+ pieces receive volume discounts. Contact us for a tailored quote.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ─── MDF Tab: Care Guide ─── */}
+        {isMDF && activeTab === "care-guide" && (
+          <div className="max-w-3xl space-y-8">
+            <div>
+              <h4 className="text-base font-semibold text-gray-800 mb-3">Keep It Beautiful — MDF Care Guide</h4>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                MDF is a durable and versatile material, but it does require a little care to keep it looking its best — especially in the UAE climate.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              {[
+                { icon: "☀️", title: "Avoid Direct Sunlight", desc: "Prolonged UV exposure can cause MDF to dry out and crack. Display away from direct sun or use UV-filtering window treatments." },
+                { icon: "💧", title: "Keep It Dry", desc: "MDF absorbs moisture. Keep pieces away from water, humid bathrooms, and outdoor use unless sealed. Wipe spills immediately." },
+                { icon: "🎨", title: "Painting & Sealing", desc: "For unpainted MDF: apply 2 coats of acrylic primer, then 2 coats of acrylic paint. Seal with clear matte or gloss varnish for durability." },
+                { icon: "🧹", title: "Cleaning", desc: "Dust with a soft dry cloth or microfiber duster. For deeper cleaning, use a slightly damp cloth — never soaking wet. Avoid chemical cleaners." },
+                { icon: "🔧", title: "Touch-Ups", desc: "Small scratches can be filled with wood filler and repainted. Keep leftover paint for touch-ups. We can also send matching paint on request." },
+                { icon: "🏠", title: "Best Placement", desc: "MDF performs best in climate-controlled indoor spaces. Bedrooms, living rooms, offices, and covered patios are ideal locations." },
+              ].map((item, i) => (
+                <div key={i} className="flex gap-3 p-4 bg-gray-50 rounded-xl">
+                  <span className="text-xl flex-shrink-0">{item.icon}</span>
+                  <div>
+                    <h5 className="text-sm font-semibold text-gray-800">{item.title}</h5>
+                    <p className="text-xs text-gray-500 mt-1 leading-relaxed">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="p-4 bg-amber-50 rounded-xl border border-amber-200">
+              <h5 className="text-sm font-semibold text-amber-700 mb-1">⚠️ Important for UAE Climate</h5>
+              <p className="text-xs text-amber-600 leading-relaxed">
+                The UAE&apos;s high humidity (especially in summer) and air conditioning can affect MDF. We recommend displaying MDF products away from AC vents and using a room humidifier if your indoor humidity drops below 30%. For outdoor use in covered areas, apply a weatherproof sealant.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ─── Related Products ─── */}
@@ -550,6 +722,17 @@ export default function ProductDetailPage() {
           <p className="text-xs text-gray-400 truncate">{product.name}</p>
           <p className="text-sm font-bold text-gray-900">{formatPrice(product.price)}</p>
         </div>
+        {isMDF && (
+          <a
+            href={"https://wa.me/971580000030?text=" + encodeURIComponent("Hi! I'm interested in " + product.name + ". Can you help?")}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-2.5 bg-[#25D366] text-white rounded-lg hover:bg-[#1da855] transition-colors flex-shrink-0"
+            aria-label="WhatsApp"
+          >
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          </a>
+        )}
         <button onClick={handleAddToCart} disabled={product.stock === 0} className="px-6 py-2.5 bg-[#16A34A] text-white text-sm font-semibold rounded-lg hover:bg-[#15803D] transition-colors disabled:opacity-50">
           {added ? "✓ Added" : "Add to Cart"}
         </button>

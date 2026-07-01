@@ -82,6 +82,8 @@ function buildVariantGroups() {
   const groups = new Map<string, Product[]>();
 
   for (const product of products) {
+    // Skip MDF products — each is a unique shape, not a variant of another
+    if (product.cjPid?.startsWith("MDF")) continue;
     const base = getBaseName(product.name);
     if (base.length < 5) continue;
     if (!groups.has(base)) groups.set(base, []);

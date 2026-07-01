@@ -87,8 +87,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ source: "local", variants, images });
     }
 
-    // Similar products fallback
+    // Skip MDF products — each is a unique shape, not a variant
     const product = products.find((p) => p.slug === slug);
+    if (product?.cjPid?.startsWith("MDF")) {
+      return NextResponse.json({ source: "mdf-standalone", variants: [], images: [] });
+    }
     if (product) {
       const similar = products
         .filter((p) => p.category === product.category && p.slug !== slug)
