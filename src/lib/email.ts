@@ -2,6 +2,28 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+/**
+ * Sender for all outbound mail.
+ *
+ * Was hardcoded to `onboarding@resend.dev` — Resend's SHARED SANDBOX domain,
+ * which only ever delivers to the Resend account owner. Every order email this
+ * app has "sent" went nowhere. That is separate from the account being in test
+ * mode: the sandbox domain would keep failing even after test mode is lifted.
+ *
+ * MAIL_FROM_ADDRESS is read first and is deliberately provider-neutral, so the
+ * planned move from Resend to Postal/SES needs no code change. RESEND_FROM_ADDRESS
+ * is the name two other apps in this estate already use and is honoured as a
+ * fallback. The literal default is a real address on lebon-grace.com, which is a
+ * verified SES identity with DKIM — so it works on either provider.
+ */
+export function fromAddress(): string {
+  return (
+    process.env.MAIL_FROM_ADDRESS ||
+    process.env.RESEND_FROM_ADDRESS ||
+    "Lebon Grace <orders@lebon-grace.com>"
+  );
+}
+
 interface EmailOrder {
   id: string;
   customer_name: string;
@@ -151,7 +173,7 @@ export async function sendOrderEmail(order: EmailOrder, action: string): Promise
   
   try {
     const result = await resend.emails.send({
-      from: "Lebon Grace <onboarding@resend.dev>",
+      from: fromAddress(),
       to: [order.customer_email],
       subject: getEmailSubject(order, action),
       html: buildEmailHTML(order, action),

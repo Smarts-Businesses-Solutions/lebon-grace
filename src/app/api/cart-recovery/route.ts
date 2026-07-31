@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
+import { fromAddress } from "@/lib/email";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -59,7 +60,7 @@ export async function POST(request: NextRequest) {
 
   try {
     await resend.emails.send({
-      from: "Lebon Grace <onboarding@resend.dev>",
+      from: fromAddress(),
       to: [email],
       subject: "You left items in your cart! 🛒 — Lebon Grace",
       html,
