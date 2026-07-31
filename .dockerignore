@@ -1,0 +1,28 @@
+# Keep the build context small — a stray sub-project or nested node_modules
+# turns a 30MB context into hundreds of MB and slows every build.
+# A bare `node_modules` matches only the ROOT; the ** form is required.
+**/node_modules
+**/.next
+**/out
+**/dist
+
+.git
+.claude
+.vercel
+docs
+coverage
+
+# Test tooling is excluded from the production image for two reasons: it is not
+# needed at runtime, and playwright.config.ts imports the shared kit at
+# ../ops/qa/ which is OUTSIDE the build context — leaving it in makes the
+# production type-check fail with "Cannot find module '../ops/qa/...'".
+tests
+playwright.config.*
+playwright-report
+test-results
+*.tsbuildinfo
+
+.env*
+!.env.example
+npm-debug.log*
+*.md
