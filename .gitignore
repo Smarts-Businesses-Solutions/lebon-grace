@@ -36,8 +36,16 @@ yarn-error.log*
 # vercel
 .vercel
 
+# local JSON store (Hostinger build) — holds live orders/variants; do NOT commit
+.data/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
 
 .vercel
+
+# catalog tooling artifacts
+.cj_token.json
+.cj-enrich-checkpoint.json
+src/lib/products.legacy-static.ts.bak
