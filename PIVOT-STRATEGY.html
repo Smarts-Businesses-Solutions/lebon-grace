@@ -1,0 +1,368 @@
+<title>Lebon Grace: Pivot to Locally Made Wooden Toys</title>
+<style>
+  /* Design language: workshop spec sheet. The subject is laser-cut MDF, where
+     precision manufacturing meets children's play, so the page borrows from
+     cut-file drawings: hairline rules, monospace annotation, generous margins.
+     Wood tan is the only saturated colour and it is spent on rules and marks.
+     Customer-facing copy is set in a serif to separate it from internal voice. */
+  :root {
+    --paper:      #F6F5F2;
+    --panel:      #FFFFFF;
+    --ink:        #23211D;
+    --muted:      #6E6862;
+    --hairline:   #DCD8D0;
+    --wood:       #A8703A;
+    --wood-soft:  #F0E4D6;
+    --workshop:   #3D4A3C;
+    --alert:      #8C3A2B;
+
+    --sans: ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --serif: Georgia, "Iowan Old Style", "Times New Roman", serif;
+    --mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", Menlo, Consolas, monospace;
+
+    --measure: 68ch;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper:    #191714;  --panel: #211E1A;  --ink: #EDE8E0;
+      --muted:    #9A9289;  --hairline: #35302A;
+      --wood:     #D09A5E;  --wood-soft: #2C241B;
+      --workshop: #8FA286;  --alert: #D8836F;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper:    #191714;  --panel: #211E1A;  --ink: #EDE8E0;
+    --muted:    #9A9289;  --hairline: #35302A;
+    --wood:     #D09A5E;  --wood-soft: #2C241B;
+    --workshop: #8FA286;  --alert: #D8836F;
+  }
+  :root[data-theme="light"] {
+    --paper:    #F6F5F2;  --panel: #FFFFFF;  --ink: #23211D;
+    --muted:    #6E6862;  --hairline: #DCD8D0;
+    --wood:     #A8703A;  --wood-soft: #F0E4D6;
+    --workshop: #3D4A3C;  --alert: #8C3A2B;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--sans); font-size: 16px; line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 78ch; margin: 0 auto; padding: 0 28px 120px; }
+
+  /* ---- masthead: a title block, not a hero ---- */
+  .masthead { padding: 72px 0 28px; border-bottom: 2px solid var(--ink); }
+  .stamp {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--wood); margin: 0 0 18px;
+  }
+  h1 {
+    font-size: clamp(30px, 5vw, 46px); line-height: 1.08; margin: 0 0 16px;
+    letter-spacing: -.022em; font-weight: 700; text-wrap: balance;
+  }
+  .standfirst { font-size: 18px; color: var(--muted); margin: 0; max-width: var(--measure); }
+  .meta {
+    display: flex; flex-wrap: wrap; gap: 8px 28px; margin: 26px 0 0;
+    font-family: var(--mono); font-size: 12px; color: var(--muted);
+  }
+  .meta b { color: var(--ink); font-weight: 600; }
+
+  /* ---- sections ---- */
+  section { padding-top: 56px; }
+  h2 {
+    font-size: 13px; font-family: var(--mono); text-transform: uppercase;
+    letter-spacing: .14em; color: var(--wood); font-weight: 600;
+    margin: 0 0 20px; padding-bottom: 10px; border-bottom: 1px solid var(--hairline);
+  }
+  h3 {
+    font-size: 21px; letter-spacing: -.01em; margin: 34px 0 10px;
+    font-weight: 650; text-wrap: balance;
+  }
+  h4 { font-size: 15px; margin: 24px 0 6px; font-weight: 650; }
+  p { margin: 0 0 16px; max-width: var(--measure); }
+  ul, ol { max-width: var(--measure); padding-left: 20px; margin: 0 0 16px; }
+  li { margin-bottom: 7px; }
+  strong { font-weight: 650; }
+  a { color: var(--wood); }
+
+  /* ---- tables read as spec sheets ---- */
+  .scroll { overflow-x: auto; margin: 0 0 22px; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th {
+    text-align: left; font-family: var(--mono); font-size: 11px;
+    text-transform: uppercase; letter-spacing: .1em; color: var(--muted);
+    font-weight: 600; padding: 0 14px 8px 0; border-bottom: 1px solid var(--ink);
+    white-space: nowrap;
+  }
+  td {
+    padding: 11px 14px 11px 0; border-bottom: 1px solid var(--hairline);
+    vertical-align: top;
+  }
+  td:last-child, th:last-child { padding-right: 0; }
+  .num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  /* ---- the callout carries the one real warning ---- */
+  .note {
+    border-left: 2px solid var(--wood); background: var(--wood-soft);
+    padding: 16px 20px; margin: 0 0 22px; border-radius: 0 3px 3px 0;
+  }
+  .note.warn { border-left-color: var(--alert); }
+  .note p:last-child { margin-bottom: 0; }
+  .note .lbl {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--wood); display: block; margin-bottom: 6px;
+  }
+  .note.warn .lbl { color: var(--alert); }
+
+  /* ---- customer-facing copy gets the serif, to mark the change of voice ---- */
+  .copy {
+    font-family: var(--serif); background: var(--panel);
+    border: 1px solid var(--hairline); border-radius: 3px;
+    padding: 22px 24px; margin: 0 0 20px;
+  }
+  .copy .was {
+    font-family: var(--mono); font-size: 11px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: .1em; display: block; margin-bottom: 14px;
+  }
+  .copy .title { font-size: 21px; font-weight: 700; margin: 0 0 8px; }
+  .copy .hook { font-size: 16px; font-weight: 700; margin: 0 0 10px; }
+  .copy p { font-size: 15.5px; margin: 0 0 10px; }
+  .copy .spec {
+    font-family: var(--mono); font-size: 12px; color: var(--muted);
+    border-top: 1px solid var(--hairline); padding-top: 10px; margin: 0;
+  }
+
+  pre {
+    font-family: var(--mono); font-size: 13px; line-height: 1.6;
+    background: var(--panel); border: 1px solid var(--hairline);
+    padding: 16px 18px; overflow-x: auto; border-radius: 3px; margin: 0 0 20px;
+  }
+  code { font-family: var(--mono); font-size: .92em; }
+
+  .cols { display: grid; gap: 22px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); margin-bottom: 22px; }
+  .card { border: 1px solid var(--hairline); border-radius: 3px; padding: 16px 18px; background: var(--panel); }
+  .card h4 { margin-top: 0; }
+  .card p:last-child { margin-bottom: 0; }
+  .card .n { font-family: var(--mono); font-size: 11px; color: var(--wood); letter-spacing: .1em; }
+
+  .ok { color: var(--workshop); font-weight: 650; }
+  .no { color: var(--alert); font-weight: 650; }
+
+  footer {
+    margin-top: 72px; padding-top: 20px; border-top: 1px solid var(--hairline);
+    font-family: var(--mono); font-size: 12px; color: var(--muted);
+  }
+  @media (max-width: 620px) { .wrap { padding: 0 18px 80px; } .masthead { padding-top: 44px; } }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <p class="stamp">Strategy · Lebon Grace</p>
+    <h1>Pivot to locally made wooden toys</h1>
+    <p class="standfirst">Replacing 515 dropshipped items with 41 laser-cut educational puzzles made to order in the workshop. What changes, what it costs, and what to charge.</p>
+    <div class="meta">
+      <span>Written <b>2026-08-01</b></span>
+      <span>Products <b>41</b></span>
+      <span>Supersedes <b>SOURCING-BLUEPRINT.md</b></span>
+    </div>
+  </header>
+
+  <section>
+    <h2>1 · What changed</h2>
+    <div class="scroll">
+      <table>
+        <thead><tr><th></th><th>Before</th><th>After</th></tr></thead>
+        <tbody>
+          <tr><td>Product</td><td>515 dropshipped items from CJ</td><td>41 laser-cut wooden toys made in-house</td></tr>
+          <tr><td>Fulfilment</td><td>Air freight per order, 8 to 50 days</td><td>Cut to order, 2 to 3 days</td></tr>
+          <tr><td>Marginal cost</td><td>Near zero, priced on volume</td><td>Your time, priced on margin</td></tr>
+          <tr><td>Delivery</td><td class="num">AED 8.70 baked into every unit</td><td>Pickup free, local, international</td></tr>
+          <tr><td>Inventory</td><td>Supplier stock you cannot see</td><td>Made to order, no stock risk</td></tr>
+          <tr><td>Returns</td><td>Standard distance selling</td><td>Restricted, faulty replaced in 7 days</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>The old blueprint targeted <em>1,000+ SKUs at AED 5 to 25, impulse-buy territory</em>. That was sound for commodity goods with no marginal cost. It is the wrong strategy for handmade products, and the AED 5 anchor is the most damaging thing carried over from it.</p>
+  </section>
+
+  <section>
+    <h2>2 · The product line</h2>
+    <p>41 sellable products, three images each, 123 images. All children's educational wooden puzzles.</p>
+    <div class="cols">
+      <div class="card"><span class="n">09</span><h4>Alphabet and literacy</h4><p>Car, fish, snail, bear and duck alphabet boards; ABC jigsaws; the colour-in dinosaur.</p></div>
+      <div class="card"><span class="n">07</span><h4>Numbers and counting</h4><p>Montessori number board, owl, elephant and giraffe jigsaws, math pegs, counting hands.</p></div>
+      <div class="card"><span class="n">06</span><h4>Shapes and Montessori</h4><p>Geometric boards, stencils, peg shapes, heart tangram, six truck peg variants.</p></div>
+      <div class="card"><span class="n">07</span><h4>Animals and nature</h4><p>3D animals, peg boards, sea creatures, teddy bear, solar system.</p></div>
+      <div class="card"><span class="n">05</span><h4>Vehicles</h4><p>Cement truck, tractor, excavator, vehicle shapes, tool set.</p></div>
+      <div class="card"><span class="n">02</span><h4>3D and architectural</h4><p>House jigsaw, rocket number puzzle.</p></div>
+    </div>
+    <p>Two photography styles are present and both are good: natural wood on linen with styled props, and clean white background with crayons for the colour-in range.</p>
+  </section>
+
+  <section>
+    <h2>3 · Pricing</h2>
+
+    <h3>The honest competitive picture</h3>
+    <p>Mass-produced MDF puzzles on Amazon.ae and Noon sit roughly <span class="num">AED 20 to 60</span>. Exact live figures could not be pulled (Noon blocks automated access), so treat that as indicative rather than verified.</p>
+
+    <div class="note warn">
+      <span class="lbl">The core constraint</span>
+      <p><strong>You cannot win a price fight against a factory.</strong> A plant running 100,000 units has a unit cost of a few dirhams. You have laser time and your own hands. Matching their price means working for nothing.</p>
+    </div>
+
+    <h3>What makes yours a different product</h3>
+    <ol>
+      <li><strong>Personalisation.</strong> A child's name engraved on the board. A factory cannot do this. Typically commands 2 to 3x and is the strongest lever available.</li>
+      <li><strong>Made to order in the UAE.</strong> Days, not weeks. No customs, local accountability.</li>
+      <li><strong>Design exclusivity.</strong> Your catalogue, not the SKU seventy other sellers list.</li>
+      <li><strong>Gift framing.</strong> Birthdays, Eid, new baby, nursery gifts. Gift buyers are far less price sensitive.</li>
+      <li><strong>The photography.</strong> Already editorial grade. A cheap price would contradict it and read as suspicious.</li>
+    </ol>
+
+    <h3>Recommended structure</h3>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Tier</th><th>Products</th><th>Plain</th><th>Personalised</th></tr></thead>
+        <tbody>
+          <tr><td>Starter</td><td>Stencils, simple peg puzzles</td><td class="num">AED 49</td><td class="num">AED 79</td></tr>
+          <tr><td>Core</td><td>Alphabet and number boards, animals</td><td class="num">AED 69</td><td class="num">AED 99</td></tr>
+          <tr><td>Premium</td><td>3D puzzles, Montessori boards</td><td class="num">AED 99</td><td class="num">AED 139</td></tr>
+          <tr><td>Colour-in</td><td>Paint-your-own, crayons included</td><td class="num">AED 59</td><td class="num">AED 89</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Personalisation is where the margin lives. The plain tier exists to be undercut by Amazon and to make the personalised option look obviously worth it.</p>
+
+    <h3>Why not AED 5</h3>
+<pre>MDF material                    AED  3 to  6
+laser time and labour           AED  5 to 10
+packaging                       AED  3 to  5
+                                --------------
+cost per unit before delivery   AED 11 to 21</pre>
+    <p>At AED 5 you lose <span class="num">AED 6 to 16</span> per unit before anyone delivers anything. With delivery the loss doubles. <strong>No volume fixes a negative unit margin.</strong> More sales lose more money.</p>
+  </section>
+
+  <section>
+    <h2>4 · Delivery</h2>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Option</th><th>Price</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Workshop pickup</td><td class="num ok">Free</td><td>Strongest margin. Promote it.</td></tr>
+          <tr><td>UAE delivery</td><td class="num">AED 20 to 25</td><td>Free above AED 200 to lift basket size</td></tr>
+          <tr><td>International</td><td class="num">Calculated</td><td>Quote per destination, customs on the buyer</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Free, prominent pickup protects margin on small orders and gives price-sensitive customers a way to say yes without discounting the product.</p>
+  </section>
+
+  <section>
+    <h2>5 · Policies</h2>
+    <ul>
+      <li><strong>Returns.</strong> Made-to-order items are not returnable unless faulty. State this on the product page before checkout, not buried in a policy.</li>
+      <li><strong>Faulty or damaged.</strong> Free replacement within <strong>7 days</strong>. This is what earns trust when returns are restricted, so make it prominent.</li>
+      <li><strong>Personalised items.</strong> Never returnable except faulty. Confirm spelling on screen before payment.</li>
+      <li><strong>Production time.</strong> "Made to order in 2 to 3 working days" on every product page.</li>
+      <li><strong>Clearance.</strong> Different rules, clearly stated: stock items, returnable 7 days, unused.</li>
+      <li><strong>50/50 deposit.</strong> Now makes more sense than it did for dropshipping. It protects you if a customer abandons a piece you have already cut.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>6 · Copy direction</h2>
+    <p>The current folder names are search keyword strings, not product names. They read as clip-art files, which is what they were. All 41 need rewriting: benefit-led name, one bold hook, a short warm paragraph, then a spec line.</p>
+
+    <div class="copy">
+      <span class="was">Was · Laser Cut Montessori Number Puzzle</span>
+      <p class="title">Count and Match Number Board, 1 to 10</p>
+      <p class="hook">The puzzle that teaches counting before they can read.</p>
+      <p>Ten hand-cut pieces pair each numeral with the dots that match it, so little fingers feel the difference between three and eight before they can say it. Cut and sanded to order in our Dubai workshop, edges smoothed by hand.</p>
+      <p class="spec">Ages 2 to 5 · 30 x 20 cm · Made to order in 2 to 3 days · Add their name +AED 30</p>
+    </div>
+
+    <div class="copy">
+      <span class="was">Was · Laser Cut Wooden Dinosaur Jigsaw Puzzle</span>
+      <p class="title">Colour-Me Dinosaur Alphabet Puzzle</p>
+      <p class="hook">26 pieces. 26 letters. One dinosaur they made themselves.</p>
+      <p>Every piece is a letter, and every piece is blank, waiting for them. Comes with eight crayons, so the first thing they build is also the first thing they paint.</p>
+      <p class="spec">Ages 3 to 6 · Crayons included · Made to order in 2 to 3 days</p>
+    </div>
+
+    <div class="copy">
+      <span class="was">Was · Laser Cut Wooden Heart Tangram Puzzle</span>
+      <p class="title">Heart Tangram, Nine Pieces, Endless Shapes</p>
+      <p class="hook">One heart. Nine pieces. Hundreds of ways to put it back.</p>
+      <p>The classic tangram cut into a heart, so the puzzle is beautiful even when it is finished and sitting on the shelf. Quiet play that grows with them.</p>
+      <p class="spec">Ages 4 and up · 20 cm · Made to order in 2 to 3 days · Add their name +AED 30</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>7 · Platform audit</h2>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Layer</th><th>What runs</th><th>State</th></tr></thead>
+        <tbody>
+          <tr><td>App</td><td>Next.js 16, React 19, Tailwind 4, Docker</td><td class="ok">Healthy</td></tr>
+          <tr><td>Database</td><td>Self-hosted Supabase, Postgres 17.6, RLS</td><td class="ok">Backups 03:30 UTC</td></tr>
+          <tr><td>Errors</td><td>GlitchTip</td><td class="ok">Live</td></tr>
+          <tr><td>Analytics</td><td>Self-hosted PostHog</td><td class="ok">Live</td></tr>
+          <tr><td>Storage</td><td>MinIO</td><td class="ok">Running</td></tr>
+          <tr><td>Mail</td><td>Postal authored, Resend live</td><td class="ok">SPF and DMARC valid</td></tr>
+          <tr><td>Edge</td><td>Lightsail Mumbai, Caddy, SSH tunnel</td><td class="ok">TLS to 30 Oct</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Deliberate proprietary edges: Stripe (no OSS settles cards), SES behind Postal (residential IP cannot deliver mail), Lightsail (needs a public IP), WhatsApp (Meta).</p>
+
+    <h3>What the pivot makes obsolete</h3>
+    <p>The CJ integration, sourcing agent, landed-cost gate and inventory-velocity intelligence all modelled a supplier you no longer use. Keep the code, stop running it.</p>
+
+    <h3>Design direction</h3>
+    <p>The storefront was built for 515 cheap items: dense grids, small cards, price-led. Wrong for 41 handmade pieces. It needs large photography, warm neutrals, story above spec, filtering by child age rather than price, a personalisation field visible before add-to-cart, and trust markers (made in UAE, 7-day replacement, real workshop photos).</p>
+  </section>
+
+  <section>
+    <h2>8 · Roadmap</h2>
+    <h4>Now</h4>
+    <ol>
+      <li>Unpublish all 515 dropship products (hide, do not delete).</li>
+      <li>Import the 41 products with images, tiered pricing, rewritten copy.</li>
+      <li>Add Clearance as a separate category with its own returns policy.</li>
+      <li>Delivery options: pickup free, UAE, international.</li>
+      <li>Rewrite returns, refunds and shipping pages for made to order.</li>
+    </ol>
+    <h4>Next</h4>
+    <ol start="6">
+      <li>Personalisation: name field, +AED 30, flowing to order and admin queue.</li>
+      <li>Redesign product and listing pages around large photography.</li>
+      <li>Age and category filters.</li>
+      <li>Production queue in admin: paid, cutting, sanding, ready, collected or shipped.</li>
+    </ol>
+    <h4>Later</h4>
+    <ol start="10">
+      <li>Instagram and Pinterest. This product photographs well and that is where the buyers are.</li>
+      <li>Nursery and school B2B. Classroom sets carry far higher order value.</li>
+      <li>Gift wrap and gift notes. High margin, low effort, fits the occasion buyer.</li>
+      <li>Seasonal ranges: Eid, back to school, Christmas, new baby.</li>
+      <li>Wholesale to local toy and gift shops once production is repeatable.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>9 · Open questions</h2>
+    <ol>
+      <li><strong>Personalisation.</strong> Can the laser engrave names reliably at volume? The pricing strategy rests on this.</li>
+      <li><strong>Capacity.</strong> Units per day. It caps revenue and decides whether a 2 to 3 day promise is safe.</li>
+      <li><strong>Material.</strong> Plain MDF, birch-faced ply, or both? Affects copy and price.</li>
+      <li><strong>Sizes.</strong> Needed per product for spec lines and shipping quotes.</li>
+      <li><strong>Clearance stock.</strong> What it is, how many, images to follow.</li>
+      <li><strong>Safety.</strong> UAE toy standards and age labelling need checking before selling children's products at scale.</li>
+    </ol>
+  </section>
+
+  <footer>Lebon Grace · shop.lebon-grace.com · Companion to PIVOT-STRATEGY.md</footer>
+</div>
