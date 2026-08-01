@@ -66,8 +66,15 @@ for (const [category, def] of Object.entries(CATEGORIES)) {
 
   for (const kw of def.keywords) {
     if (acceptedInCat >= LIMIT) break;
-    const page = await cjSearch(kw, 1, 20);
-    const list = page?.list || [];
+    // Screen several pages per keyword: CJ's relevance ranking is weak, so the
+    // on-target items are scattered rather than concentrated on page 1.
+    const list = [];
+    for (let pg = 1; pg <= CONFIG.PAGES_PER_KEYWORD; pg++) {
+      const page = await cjSearch(kw, pg, CONFIG.PAGE_SIZE);
+      const chunk = page?.list || [];
+      list.push(...chunk);
+      if (chunk.length < CONFIG.PAGE_SIZE) break;   // no more pages
+    }
     if (!list.length) { console.log(`  "${kw}" — no results`); continue; }
 
     for (const item of list) {

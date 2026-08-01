@@ -26,6 +26,8 @@ export const CONFIG = {
   MAX_LISTED_NUM: 200,         // saturation ceiling — too many sellers = commodity
   REQ_INTERVAL_MS: 500,        // ~2 req/s — far below CJ's documented 30/s
   MIN_UNDERCUT: 0.10,          // must sell at least 10% BELOW prevailing market price
+  PAGES_PER_KEYWORD: 3,        // CJ search is noisy; screen deeper for recall
+  PAGE_SIZE: 20,
 };
 
 export const env = Object.fromEntries(
@@ -119,7 +121,11 @@ export function filterRelevance(title, keyword) {
   const stop = new Set(["the", "and", "for", "with", "set", "of", "only", "empty", "premium"]);
   const kw = keyword.toLowerCase().split(/\s+/).filter((w) => w.length > 2 && !stop.has(w));
   const t = title.toLowerCase();
-  const hits = kw.filter((w) => t.includes(w));
+
+  // Whole-word match (with simple plural tolerance). Substring matching let
+  // "mat" match "Boot Sandals MATching" and ship footwear as a desk mat.
+  const has = (w) => new RegExp(`\\b${w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?:s|es)?\\b`, "i").test(t);
+  const hits = kw.filter(has);
 
   // The HEAD NOUN (last token, e.g. "sculptor", "bonnet", "cubes") is what the
   // product actually IS; the leading words are usually material adjectives.
@@ -127,7 +133,7 @@ export function filterRelevance(title, keyword) {
   // Identification Solution" and a "Pet Water Fountain" on the two generic
   // material words alone.
   const head = kw[kw.length - 1];
-  if (head && !t.includes(head)) {
+  if (head && !has(head)) {
     return { pass: false, reason: `off-target: missing head noun "${head}"` };
   }
   const need = Math.max(2, Math.ceil(kw.length * 0.6));

@@ -1,23 +1,18 @@
+import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { requireAdmin } from "@/lib/admin-auth";
+import { orders as orderStore, orderItems } from "@/lib/store";
 import { products, categories } from "@/lib/products";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+export async function GET(request: NextRequest) {
+  // Business metrics (revenue, orders, customers) — admin only.
+  if (!requireAdmin(request)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
-export async function GET() {
   try {
     // Fetch all orders
-    const { data: orders, error } = await supabase
-      .from("orders")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    const orders = await orderStore.getAll();
 
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -161,9 +156,7 @@ export async function GET() {
     let revenueByCategory: Record<string, number> = {};
 
     try {
-      const { data: items } = await supabase
-        .from("order_items")
-        .select("product_name, product_slug, price, quantity");
+      const items = await orderItems.getAll();
 
       if (items && items.length > 0) {
         const productSales = new Map<string, { name: string; quantity: number; revenue: number }>();

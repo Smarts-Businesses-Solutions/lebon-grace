@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { rateLimit } from "@/lib/rate-limit";
 import {
   verifyPassword,
   makeSessionToken,
@@ -15,6 +16,10 @@ export async function GET(request: NextRequest) {
 
 // POST → verify password, set the httpOnly signed session cookie.
 export async function POST(request: NextRequest) {
+  // Brute-force protection: 5 attempts per IP per 15 minutes.
+  const limited = rateLimit(request, { key: "admin-login", limit: 5, windowMs: 15 * 60 * 1000 });
+  if (limited) return limited;
+
   const body = await request.json().catch(() => ({}));
   const password = String((body as { password?: unknown }).password || "");
 

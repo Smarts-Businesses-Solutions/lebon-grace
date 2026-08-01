@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { requireAdmin } from "@/lib/admin-auth";
+import { catalog, productVariants } from "@/lib/store";
 
 /**
  * WooCommerce-style product import endpoint.
@@ -38,6 +34,12 @@ const supabase = createClient(
  */
 
 export async function POST(request: NextRequest) {
+  // Writes to the product catalog — admin only. Was unauthenticated, so anyone
+  // could inject or overwrite products.
+  if (!requireAdmin(request)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const contentType = request.headers.get("content-type") || "";
 
@@ -242,54 +244,33 @@ async function importJsonProducts(products: ImportProduct[]) {
 
   for (const product of products) {
     try {
-      // Upsert product in Supabase
-      const { error: productError } = await supabase
-        .from("products")
-        .upsert(
-          {
-            slug: product.slug,
-            name: product.name,
-            price: product.price,
-            category: product.category,
-            stock: product.stock || 50,
-            image_url: product.imageUrl || "",
-            description: product.description || "",
-            cj_pid: product.cjPid || "",
-          },
-          { onConflict: "slug" }
-        );
-
-      if (productError) {
-        errors.push(`${product.slug}: ${productError.message}`);
-        continue;
-      }
+      // Upsert product in local store
+      await catalog.upsert({
+        slug: product.slug,
+        name: product.name,
+        price: product.price,
+        category: product.category,
+        stock: product.stock || 50,
+        image_url: product.imageUrl || "",
+        description: product.description || "",
+        cj_pid: product.cjPid || "",
+      });
 
       imported++;
 
-      // Store variants in a product_variants table (create if needed)
+      // Store variants in the local product_variants table
       if (product.variants && product.variants.length > 0) {
-        for (const variant of product.variants) {
-          const { error: variantError } = await supabase
-            .from("product_variants")
-            .upsert(
-              {
-                product_slug: product.slug,
-                variant_sku: variant.sku,
-                variant_name: variant.name,
-                variant_image: variant.image,
-                variant_color: variant.color || null,
-                variant_size: variant.size || null,
-                variant_price: variant.price || product.price,
-              },
-              { onConflict: "product_slug,variant_sku" }
-            );
-
-          if (variantError) {
-            errors.push(`  ${product.slug}/${variant.sku}: ${variantError.message}`);
-          } else {
-            variantsAdded++;
-          }
-        }
+        const variants = product.variants.map((variant) => ({
+          product_slug: product.slug,
+          variant_sku: variant.sku,
+          variant_name: variant.name,
+          variant_image: variant.image,
+          variant_color: variant.color || null,
+          variant_size: variant.size || null,
+          variant_price: variant.price || product.price,
+        }));
+        const added = await productVariants.upsertMany(variants);
+        variantsAdded += added;
       }
     } catch (err) {
       errors.push(`${product.slug}: ${err}`);

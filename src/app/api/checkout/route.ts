@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { products } from "@/lib/products";
+import { rateLimit } from "@/lib/rate-limit";
+import { getAppUrl } from "@/lib/app-url";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   typescript: true,
 });
 
 export async function POST(request: NextRequest) {
+  // Each call creates a Stripe Checkout Session; cap per IP to stop abuse.
+  const limited = rateLimit(request, { key: "checkout", limit: 10, windowMs: 10 * 60 * 1000 });
+  if (limited) return limited;
+
   const body = await request.json();
   const { items, shipping, deliveryMethod, emirate } = body as {
     items: Array<{ name: string; price: number; quantity: number; image?: string; slug?: string }>;
@@ -102,8 +108,8 @@ export async function POST(request: NextRequest) {
           emirate: emirate || "Dubai",
         },
       },
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL || "https://shop.lebon-grace.com"}/checkout?success=true&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || "https://shop.lebon-grace.com"}/checkout?canceled=true`,
+      success_url: `${getAppUrl()}/checkout?success=true&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${getAppUrl()}/checkout?canceled=true`,
       metadata: {
         brand: "lebon-grace",
         entity: "shop-lebon-grace",
