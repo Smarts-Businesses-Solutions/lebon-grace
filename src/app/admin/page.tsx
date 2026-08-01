@@ -64,11 +64,34 @@ export default function AdminPage() {
     setTimeout(() => setMessage({ text: "", type: "info" }), 3000);
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === "lebongrace2026") { setAuthenticated(true); }
-    else { showMessage("Incorrect password", "error"); }
+    try {
+      const res = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      if (res.ok) { setAuthenticated(true); setPassword(""); }
+      else { showMessage("Incorrect password", "error"); }
+    } catch { showMessage("Login failed — try again", "error"); }
   };
+
+  const handleLogout = async () => {
+    try { await fetch("/api/admin/login", { method: "DELETE" }); } catch { /* ignore */ }
+    setAuthenticated(false);
+  };
+
+  // Restore an existing admin session (httpOnly cookie) on mount, so a refresh
+  // doesn't force re-login.
+  useEffect(() => {
+    let active = true;
+    fetch("/api/admin/login")
+      .then((r) => r.json())
+      .then((d) => { if (active && d?.authenticated) setAuthenticated(true); })
+      .catch(() => { /* not logged in */ });
+    return () => { active = false; };
+  }, []);
 
   const loadProducts = async () => {
     try { setLoading(true); const res = await fetch("/api/products"); const d = await res.json(); setProducts(Array.isArray(d) ? d : []); }
@@ -176,6 +199,7 @@ export default function AdminPage() {
           <div className="flex items-center gap-4">
             {message.text && <span className={`text-sm font-medium ${message.type === "error" ? "text-red-400" : "text-[#16A34A]"}`}>{message.text}</span>}
             <Link href="/" className="text-sm text-gray-400 hover:text-white transition-colors">Store</Link>
+            <button onClick={handleLogout} className="text-sm text-gray-400 hover:text-white transition-colors">Log out</button>
           </div>
         </div>
       </header>

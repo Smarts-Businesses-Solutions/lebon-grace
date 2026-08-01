@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { orders as orderStore } from "@/lib/store";
 import { sendOrderEmail } from "@/lib/email";
 import { notifyWhatsApp } from "@/lib/whatsapp";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { requireAdmin } from "@/lib/admin-auth";
 
 // GET: List all orders, or lookup by id + phone (for tracking), or email + phone (for account)
 export async function GET(request: NextRequest) {
@@ -17,66 +13,37 @@ export async function GET(request: NextRequest) {
 
   // Account lookup: email + phone
   if (email && phone) {
-    const cleanPhone = phone.replace(/\D/g, "").replace(/^0/, "971");
-    const { data, error } = await supabase
-      .from("orders")
-      .select("*")
-      .ilike("customer_email", email)
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    // Verify at least one order's phone matches
-    const matchingOrders = (data || []).filter((o) => {
-      const op = (o.customer_phone || "").replace(/\D/g, "").replace(/^0/, "971");
-      return op.endsWith(cleanPhone.slice(-8)) || cleanPhone.endsWith(op.slice(-8));
-    });
-
+    const matchingOrders = await orderStore.getByEmailPhone(email, phone);
     if (matchingOrders.length === 0) {
       return NextResponse.json({ error: "No orders found with this email and phone." }, { status: 404 });
     }
-
     return NextResponse.json({ orders: matchingOrders });
   }
 
   // Tracking lookup: id + phone required
   if (id && phone) {
-    const cleanPhone = phone.replace(/\D/g, "").replace(/^0/, "971");
-    const { data, error } = await supabase
-      .from("orders")
-      .select("*")
-      .ilike("id", `${id}%`)
-      .single();
-
-    if (error || !data) {
-      return NextResponse.json({ error: "Order not found. Please check your order ID." }, { status: 404 });
+    const order = await orderStore.getByTracking(id, phone);
+    if (!order) {
+      return NextResponse.json({ error: "Order not found or phone doesn't match." }, { status: 404 });
     }
-
-    // Verify phone matches
-    const orderPhone = (data.customer_phone || "").replace(/\D/g, "").replace(/^0/, "971");
-    if (!orderPhone.endsWith(cleanPhone.slice(-8)) && !cleanPhone.endsWith(orderPhone.slice(-8))) {
-      return NextResponse.json({ error: "Phone number doesn't match this order." }, { status: 403 });
-    }
-
-    return NextResponse.json({ order: data });
+    return NextResponse.json({ order });
   }
 
-  // Default: list all (admin)
-  const { data, error } = await supabase
-    .from("orders")
-    .select("*")
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  // Default: list ALL orders — admin only. This branch returns every customer's
+  // name/email/phone/address, so it must never be reachable unauthenticated.
+  if (!requireAdmin(request)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  return NextResponse.json(data || []);
+  const all = await orderStore.getAll();
+  return NextResponse.json(all);
 }
 
-// PUT: Update order status
+// PUT: Update order status (admin only)
 export async function PUT(request: NextRequest) {
+  if (!requireAdmin(request)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const body = await request.json();
   const { id, status, tracking_number, courier_name, notes } = body;
 
@@ -85,31 +52,21 @@ export async function PUT(request: NextRequest) {
   }
 
   // Fetch current order to check if status changed
-  const { data: currentOrder } = await supabase
-    .from("orders")
-    .select("*")
-    .eq("id", id)
-    .single();
+  const currentOrder = await orderStore.getById(id);
 
-  const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  const updates: Record<string, unknown> = {};
   if (status) updates.status = status;
   if (tracking_number) updates.tracking_number = tracking_number;
   if (courier_name) updates.courier_name = courier_name;
   if (notes) updates.notes = notes;
 
-  const { data, error } = await supabase
-    .from("orders")
-    .update(updates)
-    .eq("id", id)
-    .select();
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  const updatedOrder = await orderStore.update(id, updates);
+  if (!updatedOrder) {
+    return NextResponse.json({ error: "Order not found" }, { status: 404 });
   }
 
   // Send email notification if status changed (non-blocking)
-  const updatedOrder = data?.[0];
-  if (status && currentOrder && currentOrder.status !== status && updatedOrder) {
+  if (status && currentOrder && currentOrder.status !== status) {
     const notificationOrder = {
       id: updatedOrder.id,
       customer_name: updatedOrder.customer_name,

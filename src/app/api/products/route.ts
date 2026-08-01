@@ -1,40 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { catalog } from "@/lib/store";
+import { requireAdmin } from "@/lib/admin-auth";
 
 export async function GET() {
-  const { data, error } = await supabase
-    .from("products")
-    .select("*")
-    .order("category", { ascending: true })
-    .order("name", { ascending: true });
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
-  // Transform to match frontend Product interface
-  const products = (data || []).map((p) => ({
-    slug: p.slug,
-    name: p.name,
-    price: Number(p.price),
-    category: p.category,
-    stock: p.stock,
-    imageUrl: p.image_url,
-    description: p.description,
-    cjPid: p.cj_pid,
-    cjPrice: p.cj_price,
-    variant: p.variant || "Good Value",
-  }));
-
-  return NextResponse.json(products);
+  // The live catalog ships in src/lib/products.ts. This endpoint returns any
+  // Supabase-style overrides/imports stored locally (imported data wins).
+  const overrides = await catalog.getAll();
+  return NextResponse.json(overrides);
 }
 
 export async function PUT(request: NextRequest) {
+  if (!requireAdmin(request)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const body = await request.json();
   const { slug, name, category, price, stock, imageUrl, description } = body;
 
@@ -51,20 +30,15 @@ export async function PUT(request: NextRequest) {
   if (description !== undefined) updates.description = description;
   updates.updated_at = new Date().toISOString();
 
-  const { data, error } = await supabase
-    .from("products")
-    .update(updates)
-    .eq("slug", slug)
-    .select();
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
-  return NextResponse.json({ success: true, product: data?.[0] });
+  await catalog.upsert({ slug, ...updates });
+  return NextResponse.json({ success: true, product: { slug, ...updates } });
 }
 
 export async function DELETE(request: NextRequest) {
+  if (!requireAdmin(request)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const body = await request.json();
   const { slug } = body;
 
@@ -72,14 +46,6 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: "slug required" }, { status: 400 });
   }
 
-  const { error } = await supabase
-    .from("products")
-    .delete()
-    .eq("slug", slug);
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
+  await catalog.remove(slug);
   return NextResponse.json({ success: true });
 }

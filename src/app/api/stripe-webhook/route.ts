@@ -1,14 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
-import { createClient } from "@supabase/supabase-js";
+import { orders as orderStore, orderItems } from "@/lib/store";
 import { sendOrderEmail } from "@/lib/email";
 import { notifyWhatsApp } from "@/lib/whatsapp";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { typescript: true });
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 export async function POST(request: NextRequest) {
   const body = await request.text();
@@ -31,19 +27,17 @@ export async function POST(request: NextRequest) {
     const metadata = session.metadata || {};
 
     // ─── IDEMPOTENCY CHECK ───
-    // If Stripe retries this event, don't create a duplicate order
-    const { data: existingOrder } = await supabase
-      .from("orders")
-      .select("id")
-      .eq("stripe_session_id", session.id)
-      .single();
-
+    // If Stripe retries this event, don't create a duplicate order.
+    // Must match on the Stripe session id (stored as stripe_session_id), NOT the
+    // order's own id — getById() would compare "cs_..." against "ord_..." and
+    // never match, so retries slipped through and created duplicate orders.
+    const existingOrder = await orderStore.getBySessionId(session.id);
     if (existingOrder) {
       console.log("Duplicate webhook — order already exists:", existingOrder.id);
       return NextResponse.json({ received: true, duplicate: true });
     }
 
-    // Create order in Supabase
+    // Create order in local store
     const total = Number(metadata.total) || (Number(session.amount_total) / 100 * 2);
     const deposit = Number(session.amount_total) / 100;
     const codBalance = Number(metadata.cod_balance) || (total - deposit);
@@ -74,18 +68,23 @@ export async function POST(request: NextRequest) {
 
     const deliveryMethod = metadata.delivery_method || "delivery";
 
-    const { data, error } = await supabase
-      .from("orders")
-      .insert(order)
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Order creation failed:", error);
-      return NextResponse.json({ error: "Order creation failed" }, { status: 500 });
+    // Insert the order. The getBySessionId check above catches sequential
+    // retries; the UNIQUE(stripe_session_id) constraint is the backstop for a
+    // true concurrent race — treat its violation (Postgres 23505) as a duplicate
+    // rather than erroring back to Stripe.
+    let data;
+    try {
+      data = await orderStore.insert(order);
+    } catch (err) {
+      if ((err as { code?: string })?.code === "23505") {
+        console.log("Duplicate webhook (race) — unique constraint held");
+        return NextResponse.json({ received: true, duplicate: true });
+      }
+      throw err;
     }
+    const orderId = data.id;
 
-    console.log("Order created:", data?.id);
+    console.log("Order created:", orderId);
 
     // ─── AWAIT order items insert (not fire-and-forget) ───
     try {
@@ -101,7 +100,7 @@ export async function POST(request: NextRequest) {
             ? (product as Stripe.Product).metadata?.slug || ""
             : "";
           return {
-            order_id: data?.id,
+            order_id: orderId,
             product_slug: slug,
             product_name: li.description || "Product",
             price: (li.amount_total || 0) / 100 / (li.quantity || 1) * 2,
@@ -113,12 +112,8 @@ export async function POST(request: NextRequest) {
         });
 
       if (items.length > 0) {
-        const { error: itemsError } = await supabase.from("order_items").insert(items);
-        if (itemsError) {
-          console.error("Order items insert failed:", itemsError);
-        } else {
-          console.log(`Saved ${items.length} order items`);
-        }
+        await orderItems.insertMany(items);
+        console.log(`Saved ${items.length} order items`);
       }
     } catch (err) {
       console.error("Line items fetch failed:", err);
