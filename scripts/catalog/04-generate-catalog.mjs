@@ -35,20 +35,31 @@ if (!rows.length) { console.error("REFUSING to generate an empty catalog"); proc
 
 // Category counts drive the category list (visible products only).
 const counts = {};
-for (const r of rows) if (!r.hidden) counts[r.category] = (counts[r.category] || 0) + 1;
+// Retired products (hidden in the DB) are NOT emitted. They stay in Postgres as
+// the record of what was sold, but shipping 500+ dead entries to every browser
+// costs bundle size for nothing. `hidden` remains in the type because a product
+// can still be hidden individually without being retired.
+const visible = rows.filter((r) => !r.hidden);
+for (const r of visible) counts[r.category] = (counts[r.category] || 0) + 1;
 
 const ICONS = { "MDF Cutouts": "🪵", "DIY Kits": "🎨", "Kids Toys": "🧸" };
 
 const esc = (s) => String(s ?? "").replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\n/g, " ").trim();
 
-const productLines = rows.map((r) => {
+const productLines = visible.map((r) => {
   const details = r.details && Object.keys(r.details).length ? r.details : { material: "Mixed materials" };
   const ph = r.image_placeholder && r.image_placeholder.bg
     ? r.image_placeholder
     : { bg: "#C9A96E", initials: String(r.name || "?").slice(0, 2).toUpperCase() };
+  // Arrays (e.g. the gallery `images`) must stay arrays; String() would flatten
+  // them into one comma-joined value and the gallery would render a single
+  // broken src.
   const detailPairs = Object.entries(details)
     .filter(([, v]) => v !== null && v !== undefined && v !== "")
-    .map(([k, v]) => `${k}: "${esc(v)}"`).join(", ");
+    .map(([k, v]) => Array.isArray(v)
+      ? `${k}: [${v.map((x) => `"${esc(x)}"`).join(", ")}]`
+      : `${k}: "${esc(v)}"`)
+    .join(", ");
   return `  { slug: "${esc(r.slug)}", name: "${esc(r.name)}", variant: "${esc(r.variant || "Good Value")}", price: ${Number(r.price)}, category: "${esc(r.category)}", stock: ${Number(r.stock ?? 0)},
     description: "${esc(r.description)}",
     details: { ${detailPairs} },
@@ -64,13 +75,14 @@ const categoryLines = Object.entries(counts)
 const out = `// AUTO-GENERATED FROM POSTGRES — DO NOT EDIT BY HAND.
 // Source of truth: the \`products\` table in the self-hosted Postgres.
 // Regenerate:  node scripts/catalog/04-generate-catalog.mjs
-// Generated:   ${new Date().toISOString()}  (${rows.length} products)
+// Generated:   ${new Date().toISOString()}  (${visible.length} products)
 
 export interface Product {
   slug: string; name: string; variant: string; price: number;
   category: string;
   stock: number; description: string;
-  details: { dimensions?: string; material?: string; care?: string; weight?: string; packWeight?: string; };
+  details: { dimensions?: string; material?: string; care?: string; weight?: string; packWeight?: string;
+             age?: string; made?: string; personalisation?: string; images?: string[]; };
   imagePlaceholder: { bg: string; initials: string; };
   imageUrl: string; cjPid?: string; cjPrice?: string;
   hidden?: boolean;
@@ -101,5 +113,5 @@ ${categoryLines}
 `;
 
 writeFileSync("src/lib/products.generated.ts", out, "utf8");
-console.log(`generated src/lib/products.generated.ts — ${rows.length} products, ${Object.keys(counts).length} categories`);
+console.log(`generated src/lib/products.generated.ts — ${visible.length} products, ${Object.keys(counts).length} categories`);
 console.log(`hidden: ${rows.filter((r) => r.hidden).length}`);
