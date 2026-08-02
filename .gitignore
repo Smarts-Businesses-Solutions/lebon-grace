@@ -49,3 +49,23 @@ next-env.d.ts
 .cj_token.json
 .cj-enrich-checkpoint.json
 src/lib/products.legacy-static.ts.bak
+
+# Session scratch from earlier work: ad-hoc Playwright scripts, API response
+# dumps from the Hostinger/DNS migration, build artifacts and screenshots.
+# None of it is used by the app; it accumulated across sessions and kept
+# showing up as 40-odd uncommitted files, which makes a real change hard to see.
+_pw_*
+_verify_*.png
+*.bak
+next.config.ts.bak
+deploy_src.zip
+test-results/
+dns*.json
+hw*.json
+ho.json
+cw.json
+sub.json
+shopnode.json
+HOSTINGER_*.md
+SESSION_RESUME.md
+whatnext.md

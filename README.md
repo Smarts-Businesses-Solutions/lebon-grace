@@ -29,8 +29,31 @@ To learn more about Next.js, take a look at the following resources:
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
+## Deploy
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Self-hosted. Not Vercel, not Supabase cloud, not Hostinger.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The app runs as a Docker container on the machine described in
+`aprojects/ops/selfhost/`, behind Caddy over an SSH reverse tunnel, and stores
+orders in a self-hosted Postgres reached through PostgREST. Analytics go to a
+self-hosted PostHog and errors to GlitchTip.
+
+```bash
+# Build and (re)deploy the container
+aprojects/ops/selfhost/scripts/build-apps.sh lebon-grace
+
+# Unit tests (geometry, validators)
+npm test
+
+# Stripe go-live readiness, read-only
+node scripts/stripe/preflight.mjs
+```
+
+Environment is supplied at runtime from
+`aprojects/ops/selfhost/apps/lebon-grace.runtime.env`. `APP_URL` is read on every
+request, so the public domain can change with a restart rather than a rebuild.
+
+An earlier README revision described a Hostinger deploy backed by a local JSON
+store at `.data/store.json`. That was true for about a week in July 2026 and is
+not how anything works now: the JSON store was replaced by Postgres and the
+Hostinger move was abandoned.

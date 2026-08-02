@@ -1,0 +1,22 @@
+{
+  "generatedAt": "2026-07-30T10:39:55.138Z",
+  "source": "src\\app",
+  "routes": [
+    "/",
+    "/about",
+    "/account",
+    "/admin",
+    "/cart",
+    "/checkout",
+    "/contact",
+    "/faq",
+    "/privacy",
+    "/shop",
+    "/terms",
+    "/track"
+  ],
+  "excludedDynamic": [
+    "/shop/[slug]"
+  ],
+  "note": "Static, navigable page routes only. Dynamic routes are listed separately because smoke-testing them without real ids asserts that a 404 is acceptable."
+}
