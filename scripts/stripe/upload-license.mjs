@@ -74,13 +74,40 @@ const file = await stripe.files.create({
   purpose: "account_requirement",
   file: { data: readFileSync(path), name: basename(path), type: "application/octet-stream" },
 });
-console.log(`  PASS  Uploaded as ${file.id}`);
+console.log(`  PASS  Uploaded to Stripe as ${file.id}`);
 
-await stripe.accounts.update(account.id, {
-  company: { verification: { document: { front: file.id } } },
-  documents: { company_license: { files: [file.id] } },
-});
-console.log("  PASS  Attached to company_license on the account");
+// Attaching is where this stops being automatable.
+//
+// accounts.update is a PLATFORM operation. Called with an account's own key it
+// returns 403 StripePermissionError, "You cannot use this method on your own
+// account: you may only use it on connected accounts." That is a standing
+// restriction on direct/standard accounts, not a transient failure or a scope
+// problem, so there is no key or parameter that makes it work.
+//
+// The upload above still runs because it costs nothing and confirms the file is
+// the right size, type and purpose before a human retries it by hand.
+try {
+  await stripe.accounts.update(account.id, {
+    documents: { company_license: { files: [file.id] } },
+  });
+  console.log("  PASS  Attached to company_license on the account");
+} catch (err) {
+  if (err?.type === "StripePermissionError") {
+    console.log(
+      "\n  STOP  Stripe will not let an account attach its own verification documents.\n" +
+        `        ${err.message}\n\n` +
+        "        The file is valid and now sits in your Stripe account, but only the\n" +
+        "        Dashboard can submit it against the requirement. In the Stripe\n" +
+        "        Dashboard, live mode:\n\n" +
+        "          Settings > Business > Verification, or the banner on the home page\n" +
+        "          Upload the trade licence where it asks for the company document\n\n" +
+        "        Then re-run scripts/stripe/preflight.mjs. Verification is manual on\n" +
+        "        Stripe's side and usually takes about a business day.\n"
+    );
+    process.exit(2);
+  }
+  throw err;
+}
 
 const cap = await stripe.accounts.retrieveCapability(account.id, "card_payments");
 const r = cap.requirements || {};
