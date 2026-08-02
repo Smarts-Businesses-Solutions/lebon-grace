@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
+import { stripe, stripeMode } from "@/lib/stripe";
 import { orders as orderStore, orderItems } from "@/lib/store";
 import { sendOrderEmail } from "@/lib/email";
 import { notifyWhatsApp } from "@/lib/whatsapp";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { typescript: true });
 
 export async function POST(request: NextRequest) {
   const body = await request.text();
@@ -17,8 +16,26 @@ export async function POST(request: NextRequest) {
 
   let event: Stripe.Event;
   try {
-    event = stripe.webhooks.constructEvent(body, sig || "", process.env.STRIPE_WEBHOOK_SECRET);
-  } catch {
+    event = stripe().webhooks.constructEvent(body, sig || "", process.env.STRIPE_WEBHOOK_SECRET);
+  } catch (err) {
+    // This used to be a bare `catch {}` returning 400 with nothing logged, which
+    // is the exact shape of the commonest Stripe launch failure: live keys
+    // deployed with the TEST signing secret. Customers are charged, every event
+    // is rejected here, and no order is created. Silently.
+    //
+    // Logged loudly, with the mode and a fingerprint of the secret in use, so
+    // the mismatch is obvious. Neither value is itself a secret: the mode is
+    // visible in the key prefix and the fingerprint is a truncated hash.
+    const fingerprint = (process.env.STRIPE_WEBHOOK_SECRET || "")
+      .slice(-6)
+      .padStart(6, "*");
+    console.error(
+      `[stripe-webhook] SIGNATURE VERIFICATION FAILED. mode=${stripeMode()} ` +
+        `secret=...${fingerprint} signature_header=${sig ? "present" : "MISSING"}. ` +
+        "If payments are succeeding but no orders appear, the signing secret does " +
+        "not match this endpoint in the Stripe Dashboard.",
+      err instanceof Error ? err.message : err
+    );
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
@@ -95,7 +112,7 @@ export async function POST(request: NextRequest) {
 
     // ─── AWAIT order items insert (not fire-and-forget) ───
     try {
-      const lineItems = await stripe.checkout.sessions.listLineItems(session.id, {
+      const lineItems = await stripe().checkout.sessions.listLineItems(session.id, {
         expand: ["data.price.product"],
       });
 

@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
+import { stripe } from "@/lib/stripe";
 import { products } from "@/lib/products";
 import { rateLimit } from "@/lib/rate-limit";
 import { getAppUrl } from "@/lib/app-url";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  typescript: true,
-});
 
 export async function POST(request: NextRequest) {
   // Each call creates a Stripe Checkout Session; cap per IP to stop abuse.
@@ -120,8 +117,13 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
+    const session = await stripe().checkout.sessions.create({
+      // payment_method_types is deliberately absent. Stripe's guidance is to
+      // omit it everywhere except Terminal: including it pins the integration to
+      // cards forever, whereas omitting it turns on dynamic payment methods, so
+      // what a customer is offered is configured in the Dashboard and adapts to
+      // their country and device. Apple Pay, Google Pay and Link appear without
+      // a code change, which matters for a UAE storefront on mobile.
       line_items: lineItems,
       mode: "payment",
       // Prefills Stripe's email field, so the customer does not type it twice.
