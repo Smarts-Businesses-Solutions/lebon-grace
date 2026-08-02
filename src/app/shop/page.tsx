@@ -13,6 +13,7 @@ import {
   PRICE_TIERS,
   applyFilters,
   AGE_BANDS,
+  CLEARANCE_CATEGORY,
   getFilterCounts,
   DEFAULT_FILTERS,
   type FilterState,
@@ -165,6 +166,12 @@ function ShopContent() {
   const initialSearch = searchParams.get("search") || "";
   const { addItem } = useCart();
 
+  // Clearance is not a puzzle, so it must not be counted as one.
+  const puzzleCount = useMemo(
+    () => products.filter((p) => !p.hidden && p.category !== CLEARANCE_CATEGORY).length,
+    []
+  );
+
   // Filter state
   const [filters, setFilters] = useState<FilterState>({
     ...DEFAULT_FILTERS,
@@ -250,7 +257,7 @@ function ShopContent() {
       <FilterSection title="Category">
         <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
           <button onClick={() => updateFilter("category", "All")} className={`block w-full text-left px-3 py-1.5 rounded-lg text-xs transition-colors ${filters.category === "All" ? "bg-gray-900 text-white" : "text-gray-600 hover:bg-gray-50"}`}>
-            All ({products.length})
+            All ({puzzleCount})
           </button>
           {categories.filter((c) => !c.hidden && c.name !== "Clearance").map((cat) => {
             const count = products.filter((p) => p.category === cat.name).length;
@@ -398,7 +405,7 @@ function ShopContent() {
             <div className="text-center lg:text-left">
               <h1 className="text-3xl lg:text-4xl font-bold tracking-tight">Shop All Products</h1>
               <p className="mt-2 text-gray-300 text-sm lg:text-base max-w-lg">
-                {products.length} wooden puzzles, cut and finished by hand in our workshop. Every one made to order.
+                {puzzleCount} wooden puzzles, cut and finished by hand in our workshop. Every one made to order.
               </p>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-2 lg:gap-3">

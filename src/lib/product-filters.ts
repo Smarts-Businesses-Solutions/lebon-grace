@@ -150,6 +150,9 @@ export interface FilterState {
   sortBy: string;
 }
 
+/** The one category held out of the default browse. */
+export const CLEARANCE_CATEGORY = "Clearance";
+
 /** Age bands offered in the shop sidebar, in the order parents think about them. */
 export const AGE_BANDS = ["1-3", "2-4", "2-5", "3-6", "4+"];
 
@@ -169,9 +172,14 @@ export const DEFAULT_FILTERS: FilterState = {
 export function applyFilters(products: EnrichedProduct[], filters: FilterState): EnrichedProduct[] {
   let result = products.filter((p) => !p.hidden);
 
-  // Category
+  // Category. "All" deliberately excludes Clearance: it is stock being emptied,
+  // not part of the made-to-order range, and a phone case sitting between two
+  // toddler puzzles reads as a jumble sale. It stays reachable by asking for
+  // the Clearance category directly, which the footer link does.
   if (filters.category && filters.category !== "All") {
     result = result.filter((p) => p.category === filters.category);
+  } else {
+    result = result.filter((p) => p.category !== CLEARANCE_CATEGORY);
   }
 
   // Age band. A product tagged "1-3" should appear under both "1-3" and any

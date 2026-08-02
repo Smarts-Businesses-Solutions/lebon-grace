@@ -133,7 +133,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center mb-8">
             <h2 className="font-heading text-2xl lg:text-3xl font-semibold tracking-tight">Shop by Category</h2>
-            <p className="mt-2 text-gray-400 text-sm">{categories.length} categories, {products.length} products</p>
+            <p className="mt-2 text-gray-400 text-sm">{categories.filter((c) => c.name !== "Clearance").length} categories, {products.filter((p) => p.category !== "Clearance").length} puzzles</p>
           </div>
           <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-6 gap-6">
             {categories.filter((c) => !c.hidden && c.name !== "Clearance").slice(0, 12).map((cat) => {
