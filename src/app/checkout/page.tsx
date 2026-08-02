@@ -107,7 +107,7 @@ export default function CheckoutPage() {
         </div>
         <h1 className="mt-6 font-heading text-3xl font-semibold tracking-tight">Order Confirmed</h1>
         <p className="mt-4 text-warm-gray text-sm max-w-md mx-auto">
-          Thank you for your order. You will receive a confirmation email shortly. You have paid 50% now and the remaining 50% will be collected on delivery.
+          Thank you for your order. You will receive a confirmation email shortly. Your piece is now in the making queue. We cut, sand and finish it in 2 to 3 working days and will let you know the moment it is ready.
         </p>
         <div className="mt-8 flex gap-3 justify-center">
           <Link href="/track" className="inline-flex items-center px-6 py-3 bg-sand text-white text-sm tracking-wider uppercase font-medium rounded-sm hover:bg-sand-dark transition-colors">Track Your Order</Link>
@@ -190,7 +190,7 @@ export default function CheckoutPage() {
                 <input type="radio" name="paymentMethod" value="cod" checked={form.paymentMethod === "cod"} onChange={handleChange} className="accent-[#C9A96E]" />
                 <div>
                   <p className="text-sm font-medium text-charcoal">Cash on Delivery</p>
-                  <p className="text-xs text-warm-gray mt-0.5">Pay {formatPrice(payOnDelivery)} on delivery (remaining 50%)</p>
+                  <p className="text-xs text-warm-gray mt-0.5">Paid in full. Ready to collect in 2 to 3 working days.</p>
                 </div>
               </label>
             </div>
@@ -200,7 +200,7 @@ export default function CheckoutPage() {
             <label className="flex items-start gap-3 cursor-pointer">
               <input type="checkbox" name="termsAccepted" checked={form.termsAccepted} onChange={handleChange} className="mt-0.5 accent-[#C9A96E]" />
               <span className="text-xs text-warm-gray leading-relaxed">
-                I agree to the <Link href="/terms" className="text-sand hover:text-sand-dark underline">Terms of Service</Link> and <Link href="/privacy" className="text-sand hover:text-sand-dark underline">Privacy Policy</Link>. I understand that 50% of the order total will be charged now and the remaining 50% will be collected on delivery. All orders are final — no cancellations or refunds.
+                I agree to the <Link href="/terms" className="text-sand hover:text-sand-dark underline">Terms of Service</Link> and <Link href="/privacy" className="text-sand hover:text-sand-dark underline">Privacy Policy</Link>. I understand that each piece is made to order and cannot be returned unless faulty, and that the full order total is charged now. All orders are final — no cancellations or refunds.
               </span>
             </label>
             {errors.terms && <p className="mt-1 text-red-500 text-xs">{errors.terms}</p>}

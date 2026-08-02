@@ -33,7 +33,7 @@ export default function TermsPage() {
         <div>
           <h2 className="font-heading text-xl font-semibold tracking-tight mb-3">3. Orders and Payment</h2>
           <p className="text-charcoal text-sm leading-relaxed">
-            By placing an order, you are making an offer to purchase a product. All orders are subject to acceptance by us. Our 50/50 payment model requires 50% of the order total to be paid upfront via credit card, with the remaining 50% collected as cash on delivery. We accept all major credit and debit cards through our secure Stripe payment gateway.
+            By placing an order, you are making an offer to purchase a product. All orders are subject to acceptance by us. Payment is taken in full at checkout via credit card. Items are made to order and production begins once payment is received. We accept all major credit and debit cards through our secure Stripe payment gateway.
           </p>
         </div>
 

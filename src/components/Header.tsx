@@ -156,7 +156,7 @@ export default function Header() {
                       <button onClick={() => { setSelectedCat("All"); setCatOpen(false); }} className={`w-full text-left px-4 py-2 text-sm ${selectedCat === "All" ? "bg-[#16A34A]/5 text-[#16A34A] font-medium" : "text-gray-700 hover:bg-gray-50"}`}>
                         All Categories
                       </button>
-                      {categories.map((cat) => (
+                      {categories.filter((c) => !c.hidden).map((cat) => (
                         <button key={cat.name} onClick={() => { setSelectedCat(cat.name); setCatOpen(false); }} className={`w-full text-left px-4 py-2 text-sm ${selectedCat === cat.name ? "bg-[#16A34A]/5 text-[#16A34A] font-medium" : "text-gray-700 hover:bg-gray-50"}`}>
                           {cat.name}
                         </button>

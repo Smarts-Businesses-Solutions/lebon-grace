@@ -52,7 +52,7 @@ export default function AboutPage() {
               </div>
               <h3 className="font-heading text-lg font-semibold tracking-tight">Honest Pricing</h3>
               <p className="mt-3 text-warm-gray text-sm leading-relaxed">
-                We source directly and skip the middlemen. You pay what the product is worth — not 5x markup. Our 50/50 payment model means you trust us before we trust you.
+                There is no middleman because there is no supplier. Every piece is drawn, cut, sanded and finished here, so you pay for the wood and the work, nothing else.
               </p>
             </div>
             <div className="text-center">

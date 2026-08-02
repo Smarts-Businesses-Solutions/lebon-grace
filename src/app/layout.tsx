@@ -17,7 +17,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Lebon Grace — Everyday Essentials, Beautifully Priced",
   description:
-    "Affordable workspace, travel, home, jewelry, and drinkware accessories. Quality picks, honest prices. Pay 50% now, 50% on delivery.",
+    "Affordable workspace, travel, home, jewelry, and drinkware accessories. Quality picks, honest prices. Made to order in our workshop. Free collection, or delivery across the UAE.",
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon-16.png",

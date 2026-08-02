@@ -100,7 +100,7 @@ export default function HomePage() {
               <span className="text-[#C9A96E]">Beautifully Priced</span>
             </h1>
             <p className="mt-6 text-gray-300 text-base sm:text-lg leading-relaxed max-w-lg">
-              Affordable accessories for your workspace, travel, home, and style. Quality picks, honest prices. Pay 50% now, 50% on delivery.
+              Affordable accessories for your workspace, travel, home, and style. Quality picks, honest prices. Made to order in 2 to 3 days. Free collection from the workshop.
             </p>
             <div className="flex flex-wrap gap-3 mt-8">
               <Link href="/shop" className="inline-flex items-center gap-2 bg-[#16A34A] text-white px-8 py-3.5 rounded-lg text-sm font-semibold hover:bg-[#15803D] transition-colors">
@@ -121,7 +121,7 @@ export default function HomePage() {
           <div className="flex flex-wrap items-center justify-center gap-6 text-white text-sm font-medium">
             <span>🚚 Free shipping on orders over AED 300</span>
             <span className="hidden sm:inline text-white/40">|</span>
-            <span>💳 Pay 50% now, 50% on delivery</span>
+            <span>💳 Free collection, or UAE delivery</span>
             <span className="hidden sm:inline text-white/40">|</span>
             <span>📦 Arrives in 10–14 days</span>
           </div>
@@ -136,7 +136,7 @@ export default function HomePage() {
             <p className="mt-2 text-gray-400 text-sm">{categories.length} categories, {products.length} products</p>
           </div>
           <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-6">
-            {categories.slice(0, 12).map((cat) => {
+            {categories.filter((c) => !c.hidden).slice(0, 12).map((cat) => {
               // Use curated Unsplash images that clearly represent each category
               const categoryImages: Record<string, string> = {
                 "Jewelry": "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400&h=400&fit=crop",
@@ -227,8 +227,8 @@ export default function HomePage() {
                 </svg>
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900 mb-1">50/50 Payment</h3>
-                <p className="text-gray-500 text-sm leading-relaxed">Pay 50% now with your card, and the remaining 50% when your order arrives.</p>
+                <h3 className="font-semibold text-gray-900 mb-1">Made to Order</h3>
+                <p className="text-gray-500 text-sm leading-relaxed">Every piece is cut, sanded and finished after you order, when your order arrives.</p>
               </div>
             </div>
             <div className="flex items-start gap-4 p-6 bg-gray-50 rounded-xl">

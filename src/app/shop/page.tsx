@@ -115,7 +115,7 @@ function ProductCard({ product, index, onAdd }: { product: EnrichedProduct; inde
           <img
             src={product.imageUrl}
             alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
             loading="lazy"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
@@ -251,7 +251,7 @@ function ShopContent() {
           <button onClick={() => updateFilter("category", "All")} className={`block w-full text-left px-3 py-1.5 rounded-lg text-xs transition-colors ${filters.category === "All" ? "bg-gray-900 text-white" : "text-gray-600 hover:bg-gray-50"}`}>
             All ({products.length})
           </button>
-          {categories.map((cat) => {
+          {categories.filter((c) => !c.hidden).map((cat) => {
             const count = products.filter((p) => p.category === cat.name).length;
             return (
               <button key={cat.name} onClick={() => updateFilter("category", cat.name)} className={`block w-full text-left px-3 py-1.5 rounded-lg text-xs transition-colors ${filters.category === cat.name ? "bg-gray-900 text-white" : "text-gray-600 hover:bg-gray-50"}`}>
@@ -373,7 +373,7 @@ function ShopContent() {
             </div>
             <div className="flex flex-wrap items-center justify-center gap-2 lg:gap-3">
               <span className="px-3 py-1.5 bg-white/10 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap">🚚 Free Shipping</span>
-              <span className="px-3 py-1.5 bg-white/10 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap">💳 Pay 50% Now</span>
+              <span className="px-3 py-1.5 bg-white/10 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap">💳 Made to Order</span>
               <span className="px-3 py-1.5 bg-white/10 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap">📦 10-14 Days</span>
             </div>
           </div>
@@ -501,8 +501,8 @@ function ShopContent() {
                 </div>
                 <div>
                   <div className="text-2xl mb-2">💳</div>
-                  <p className="text-sm font-medium text-gray-800">Pay 50% Now</p>
-                  <p className="text-xs text-gray-400 mt-0.5">50% on delivery</p>
+                  <p className="text-sm font-medium text-gray-800">Made to Order</p>
+                  <p className="text-xs text-gray-400 mt-0.5">Cut to order in 2 to 3 days</p>
                 </div>
                 <div>
                   <div className="text-2xl mb-2">🔒</div>

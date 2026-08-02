@@ -4,8 +4,8 @@ import { useState } from "react";
 
 const faqs = [
   {
-    question: "How does the 50/50 payment work?",
-    answer: "When you place your order, you pay 50% of the total via credit card through our secure Stripe checkout. The remaining 50% is collected as cash on delivery (COD) when your order arrives at your door. This way, you only commit half upfront and pay the rest once you receive your items.",
+    question: "How does the ordering and collection work?",
+    answer: "You pay in full at checkout through our secure Stripe page, and we start making your piece straight away. Everything is cut, sanded and finished to order, which takes 2 to 3 working days. Collection from the workshop is free, or we can deliver anywhere in the UAE for AED 20, free on orders over AED 150.",
   },
   {
     question: "How long does delivery take?",
@@ -37,7 +37,7 @@ const faqs = [
   },
   {
     question: "What payment methods do you accept?",
-    answer: "We accept all major credit and debit cards through our secure Stripe payment gateway. For the remaining 50%, we accept cash on delivery. We do not currently accept bank transfers or digital wallets.",
+    answer: "We accept all major credit and debit cards through our secure Stripe payment gateway. Payment is taken in full at checkout. We do not currently accept bank transfers or digital wallets.",
   },
   {
     question: "Are the product images accurate?",

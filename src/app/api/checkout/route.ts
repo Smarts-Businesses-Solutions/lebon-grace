@@ -49,8 +49,11 @@ export async function POST(request: NextRequest) {
 
   // Calculate amounts (all in AED)
   const total = subtotal + (shipping || 0);
-  const depositAmount = Math.round(total / 2); // 50% deposit in AED
-  const codAmount = total - depositAmount; // remaining 50% COD in AED
+  // Full payment at checkout. Made-to-order pieces are cut after payment, so
+  // the old 50% deposit plus cash on delivery is gone: it added a courier COD
+  // fee and meant spending material before being paid.
+  const depositAmount = total;
+  const codAmount = 0;
 
   try {
     // Build line items for Stripe — each product at 50% of its price
@@ -68,7 +71,7 @@ export async function POST(request: NextRequest) {
               slug: item.slug || "",
             },
           },
-          unit_amount: Math.round(item.price * 100 / 2), // 50% in fils
+          unit_amount: Math.round(item.price * 100), // full price in fils
         },
         quantity: item.quantity,
       })
@@ -83,7 +86,7 @@ export async function POST(request: NextRequest) {
             name: "Shipping Fee",
             metadata: { brand: "lebon-grace" },
           },
-          unit_amount: Math.round(shipping * 100 / 2), // 50% of shipping in fils
+          unit_amount: Math.round(shipping * 100), // delivery in full
         },
         quantity: 1,
       });
@@ -98,7 +101,7 @@ export async function POST(request: NextRequest) {
         metadata: {
           brand: "lebon-grace",
           entity: "shop-lebon-grace",
-          order_type: "50_50_split",
+          order_type: "full_payment",
           total: String(total),
           subtotal: String(subtotal),
           shipping: String(shipping || 0),
@@ -113,7 +116,7 @@ export async function POST(request: NextRequest) {
       metadata: {
         brand: "lebon-grace",
         entity: "shop-lebon-grace",
-        order_type: "50_50_split",
+        order_type: "full_payment",
         total: String(total),
         deposit: String(depositAmount),
         cod_balance: String(codAmount),

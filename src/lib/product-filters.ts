@@ -161,7 +161,7 @@ export const DEFAULT_FILTERS: FilterState = {
 
 // --- Apply filters ---
 export function applyFilters(products: EnrichedProduct[], filters: FilterState): EnrichedProduct[] {
-  let result = [...products];
+  let result = products.filter((p) => !p.hidden);
 
   // Category
   if (filters.category && filters.category !== "All") {

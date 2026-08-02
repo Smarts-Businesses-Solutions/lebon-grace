@@ -141,7 +141,7 @@ export default function CartPage() {
 
             {/* Payment Breakdown */}
             <div className="mt-4 p-4 bg-gray-50 rounded-xl">
-              <p className="text-xs text-gray-700 font-semibold mb-2">50/50 Payment</p>
+              <p className="text-xs text-gray-700 font-semibold mb-2">Made to Order</p>
               <div className="space-y-1.5 text-xs text-gray-500">
                 <div className="flex justify-between">
                   <span>Pay now (card)</span>

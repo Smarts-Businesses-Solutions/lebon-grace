@@ -36,6 +36,12 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
+// Delivery. Pickup is free and is the default: it is the best margin for the
+// workshop and avoids a courier fee that would otherwise exceed the price of a
+// single AED 15 puzzle.
+export const UAE_DELIVERY = 20;
+export const FREE_DELIVERY_OVER = 150;
+
 const CART_KEY = "lebon-grace-cart";
 const CART_EMAIL_KEY = "lebon-grace-cart-email";
 const CART_TS_KEY = "lebon-grace-cart-ts";
@@ -98,7 +104,7 @@ export function clearCartRecovery(): void {
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
-  const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>("delivery");
+  const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>("pickup");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -160,12 +166,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const shipping = useMemo(() => {
     if (deliveryMethod === "pickup") return 0;
-    return subtotal >= 300 ? 0 : 25;
+    return subtotal >= FREE_DELIVERY_OVER ? 0 : UAE_DELIVERY;
   }, [subtotal, deliveryMethod]);
 
   const total = subtotal + shipping;
-  const depositNow = Math.round(total / 2);
-  const payOnDelivery = total - depositNow;
+
+  // Payment is taken in full at checkout. The old 50/50 deposit plus cash on
+  // delivery made sense when goods shipped from China and the customer waited
+  // weeks; on made-to-order pieces cut locally in two to three days it only
+  // added a courier COD handling fee and meant cutting wood before being paid.
+  // These two values are kept so the order records and admin views keep their
+  // shape, with the whole amount taken up front.
+  const depositNow = total;
+  const payOnDelivery = 0;
 
   const value = useMemo(
     () => ({

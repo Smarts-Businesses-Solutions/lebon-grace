@@ -76,7 +76,9 @@ export default function ProductDetailPage() {
       .then((data) => {
         if (data.variants && data.variants.length > 0) {
           setCjVariants(data.variants);
-          if (data.images) setCjImages(data.images);
+          // Show the hero (side-by-side) as the main image, with variant overlays as follow-on views.
+          if (data.images && data.images.length > 0) setCjImages([rawProduct!.imageUrl, ...data.images]);
+          else setCjImages([rawProduct!.imageUrl]);
         } else if (rawProduct.cjPid) {
           return fetch(`/api/variants?pid=${rawProduct.cjPid}`)
             .then((r) => r.json())
@@ -117,7 +119,15 @@ export default function ProductDetailPage() {
   };
 
   // Generate variant images (main + CJ images + color variations)
-  const images = cjImages.length > 0 ? cjImages : [product.imageUrl];
+  // The elephant uses a clean side-by-side hero; skip the legacy -dim.png (watermarked) for it.
+  const dimImage = (isMDF && slug !== "mdf-elephant-cutout") ? `/images/mdf/${slug}-dim.png` : null;
+  // Made-to-order products carry their own gallery in details.images (three
+  // photographs each). Check that first: cjImages only ever populates for the
+  // retired dropship range, so without this the page showed a single image.
+  const ownGallery = (product.details as { images?: string[] })?.images;
+  const images = ownGallery && ownGallery.length > 0
+    ? ownGallery
+    : cjImages.length > 0 ? cjImages : (dimImage ? [product.imageUrl, dimImage] : [product.imageUrl]);
 
   // Related products (use scored similar, fall back to same category)
   const related = products.filter((p) => p.category === product.category && p.slug !== product.slug).slice(0, 6);
@@ -141,7 +151,7 @@ export default function ProductDetailPage() {
             <img
               src={images[selectedImage]}
               alt={product.name}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
               loading="eager"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
@@ -166,7 +176,7 @@ export default function ProductDetailPage() {
             <div className="flex gap-2 mt-3">
               {images.map((img, i) => (
                 <button key={i} onClick={() => setSelectedImage(i)} className={`w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors ${selectedImage === i ? "border-[#16A34A]" : "border-gray-200 hover:border-gray-300"}`}>
-                  <img src={img} alt={`View ${i + 1}`} className="w-full h-full object-cover" />
+                  <img src={img} alt={`View ${i + 1}`} className="w-full h-full object-contain" />
                 </button>
               ))}
             </div>
@@ -186,9 +196,9 @@ export default function ProductDetailPage() {
 
           {/* Price */}
           <div className="mt-4">
-            <span className="text-3xl font-bold text-gray-900">{formatPrice(product.price)}</span>
-            <span className="ml-2 text-sm text-gray-400 line-through">{formatPrice(Math.round(product.price * 1.4))}</span>
-            <span className="ml-2 text-sm font-medium text-[#16A34A]">Save {formatPrice(Math.round(product.price * 0.4))}</span>
+            <span className="text-3xl font-bold text-gray-900">{formatPrice(displayPrice)}</span>
+            <span className="ml-2 text-sm text-gray-400 line-through">{formatPrice(Math.round(displayPrice * 1.4))}</span>
+            <span className="ml-2 text-sm font-medium text-[#16A34A]">Save {formatPrice(Math.round(displayPrice * 0.4))}</span>
           </div>
 
           {/* CJ Variant Selector */}
@@ -213,7 +223,7 @@ export default function ProductDetailPage() {
                       className={`group relative flex flex-col items-center gap-1.5 p-1.5 rounded-xl border-2 transition-all ${isActive ? "border-[#16A34A] bg-[#16A34A]/5" : "border-gray-200 hover:border-gray-300"}`}
                     >
                       <div className="w-14 h-14 rounded-lg overflow-hidden bg-gray-50">
-                        <img src={v.image} alt={v.name} className="w-full h-full object-cover" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                        <img src={v.image} alt={v.name} className="w-full h-full object-contain" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                       </div>
                       <span className={`text-[10px] font-medium truncate max-w-[60px] ${isActive ? "text-[#16A34A]" : "text-gray-500"}`} title={v.name}>{v.color || v.name}</span>
                       {isActive && (
@@ -246,7 +256,7 @@ export default function ProductDetailPage() {
                       className={`group relative flex flex-col items-center gap-1.5 p-1.5 rounded-xl border-2 transition-all ${isActive ? "border-[#16A34A] bg-[#16A34A]/5" : "border-gray-200 hover:border-gray-300"}`}
                     >
                       <div className="w-14 h-14 rounded-lg overflow-hidden bg-gray-50">
-                        <img src={v.image} alt={v.name} className="w-full h-full object-cover" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                        <img src={v.image} alt={v.name} className="w-full h-full object-contain" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                       </div>
                       <span className={`text-[10px] font-medium text-center leading-tight max-w-[60px] truncate ${isActive ? "text-[#16A34A]" : "text-gray-500"}`}>{vLabel}</span>
                       {isActive && (

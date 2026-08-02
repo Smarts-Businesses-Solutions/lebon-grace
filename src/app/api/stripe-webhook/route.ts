@@ -38,9 +38,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Create order in local store
-    const total = Number(metadata.total) || (Number(session.amount_total) / 100 * 2);
+    // Stripe now collects the full amount, so amount_total IS the order total.
+    // The old code doubled it because only a 50% deposit was charged.
+    const total = Number(metadata.total) || Number(session.amount_total) / 100;
     const deposit = Number(session.amount_total) / 100;
-    const codBalance = Number(metadata.cod_balance) || (total - deposit);
+    const codBalance = 0;
     const shipping = Number(metadata.shipping) || 0;
 
     const order = {
@@ -56,11 +58,11 @@ export async function POST(request: NextRequest) {
       total: total,
       deposit_amount: deposit,
       cod_amount: codBalance,
-      status: "deposit_paid",
+      status: "paid",
       metadata: JSON.stringify({
         brand: metadata.brand || "lebon-grace",
         entity: metadata.entity || "shop-lebon-grace",
-        order_type: metadata.order_type || "50_50_split",
+        order_type: metadata.order_type || "full_payment",
         cod_balance: String(codBalance),
         delivery_method: metadata.delivery_method || "delivery",
       }),
@@ -103,7 +105,8 @@ export async function POST(request: NextRequest) {
             order_id: orderId,
             product_slug: slug,
             product_name: li.description || "Product",
-            price: (li.amount_total || 0) / 100 / (li.quantity || 1) * 2,
+            // No doubling: the line item is charged at full price.
+            price: (li.amount_total || 0) / 100 / (li.quantity || 1),
             quantity: li.quantity || 1,
             image_url: typeof product === "object" && product && "images" in product
               ? (product as Stripe.Product).images?.[0] || ""
