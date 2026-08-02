@@ -9,15 +9,15 @@ import { categories, formatPrice } from "@/lib/products";
 
 const navLinks = [
   { href: "/shop", label: "Shop" },
-  { href: "/shop?category=Home+Decor", label: "Home" },
-  { href: "/shop?category=Fashion+%26+Accessories", label: "Fashion" },
-  { href: "/shop?category=Jewelry", label: "Jewelry" },
+  { href: "/shop?category=Alphabet+%26+Literacy", label: "Alphabet" },
+  { href: "/shop?category=Numbers+%26+Counting", label: "Numbers" },
+  { href: "/shop?category=Shapes+%26+Montessori", label: "Montessori" },
   { href: "/about", label: "About" },
 ];
 
 const RECENT_KEY = "lebon-grace-recent-searches";
 const MAX_RECENT = 5;
-const TRENDING = ["earring", "keychain", "bag", "pet", "jewelry", "candle"];
+const TRENDING = ["alphabet", "numbers", "montessori", "dinosaur", "tangram", "animals"];
 
 function getRecentSearches(): string[] {
   if (typeof window === "undefined") return [];
@@ -156,7 +156,7 @@ export default function Header() {
                       <button onClick={() => { setSelectedCat("All"); setCatOpen(false); }} className={`w-full text-left px-4 py-2 text-sm ${selectedCat === "All" ? "bg-[#16A34A]/5 text-[#16A34A] font-medium" : "text-gray-700 hover:bg-gray-50"}`}>
                         All Categories
                       </button>
-                      {categories.filter((c) => !c.hidden).map((cat) => (
+                      {categories.filter((c) => !c.hidden && c.name !== "Clearance").map((cat) => (
                         <button key={cat.name} onClick={() => { setSelectedCat(cat.name); setCatOpen(false); }} className={`w-full text-left px-4 py-2 text-sm ${selectedCat === cat.name ? "bg-[#16A34A]/5 text-[#16A34A] font-medium" : "text-gray-700 hover:bg-gray-50"}`}>
                           {cat.name}
                         </button>
@@ -359,13 +359,10 @@ export default function Header() {
               <hr className="my-2 border-border" />
               <p className="px-3 py-1 text-xs text-gray-400 uppercase tracking-wider">Categories</p>
               {[
-                { href: "/shop?category=Pet+Supplies", label: "Pets" },
-                { href: "/shop?category=Kitchen+%26+Dining", label: "Kitchen" },
-                { href: "/shop?category=Beauty+%26+Grooming", label: "Beauty" },
-                { href: "/shop?category=Bags+%26+Travel", label: "Travel" },
-                { href: "/shop?category=Desk+%26+Office", label: "Office" },
-                { href: "/shop?category=Garden+%26+Outdoor", label: "Garden" },
-                { href: "/shop?category=Fitness+%26+Wellness", label: "Fitness" },
+                { href: "/shop?category=Animals+%26+Nature", label: "Animals" },
+                { href: "/shop?category=Vehicles+%26+Making", label: "Vehicles" },
+                { href: "/shop?category=3D+%26+Architecture", label: "3D Puzzles" },
+                { href: "/shop?category=Clearance", label: "Clearance" },
                 { href: "/track", label: "Track Order" },
                 { href: "/account", label: "My Account" },
                 { href: "/contact", label: "Contact" },

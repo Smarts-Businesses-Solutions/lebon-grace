@@ -2,13 +2,15 @@ import Link from "next/link";
 
 const quickLinks = [
   { href: "/shop", label: "Shop All" },
-  { href: "/shop?category=Home+Decor", label: "Home Decor" },
-  { href: "/shop?category=Fashion+%26+Accessories", label: "Fashion" },
-  { href: "/shop?category=Jewelry", label: "Jewelry" },
-  { href: "/shop?category=Pet+Supplies", label: "Pets" },
-  { href: "/shop?category=Kitchen+%26+Dining", label: "Kitchen" },
-  { href: "/shop?category=Beauty+%26+Grooming", label: "Beauty" },
-  { href: "/shop?category=Bags+%26+Travel", label: "Travel" },
+  { href: "/shop?category=Alphabet+%26+Literacy", label: "Alphabet & Literacy" },
+  { href: "/shop?category=Numbers+%26+Counting", label: "Numbers & Counting" },
+  { href: "/shop?category=Shapes+%26+Montessori", label: "Shapes & Montessori" },
+  { href: "/shop?category=Animals+%26+Nature", label: "Animals & Nature" },
+  { href: "/shop?category=Vehicles+%26+Making", label: "Vehicles & Making" },
+  { href: "/shop?category=3D+%26+Architecture", label: "3D & Architecture" },
+  // Clearance lives here rather than in the main navigation: it is stock being
+  // emptied, not part of the made-to-order range.
+  { href: "/shop?category=Clearance", label: "Clearance" },
 ];
 
 const policyLinks = [

@@ -135,8 +135,8 @@ export default function HomePage() {
             <h2 className="font-heading text-2xl lg:text-3xl font-semibold tracking-tight">Shop by Category</h2>
             <p className="mt-2 text-gray-400 text-sm">{categories.length} categories, {products.length} products</p>
           </div>
-          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-6">
-            {categories.filter((c) => !c.hidden).slice(0, 12).map((cat) => {
+          <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-6 gap-6">
+            {categories.filter((c) => !c.hidden && c.name !== "Clearance").slice(0, 12).map((cat) => {
               // Use curated Unsplash images that clearly represent each category
               const categoryImages: Record<string, string> = {
                 "Jewelry": "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400&h=400&fit=crop",
@@ -197,7 +197,7 @@ export default function HomePage() {
               View all →
             </Link>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {bestSellers.map((product, index) => (
               <ProductCard key={product.slug} product={product} index={index} onAdd={() => addItem(product)} />
             ))}
@@ -258,7 +258,7 @@ export default function HomePage() {
               View all →
             </Link>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {newArrivals.map((product, index) => (
               <ProductCard key={product.slug} product={product} index={index + 10} onAdd={() => addItem(product)} />
             ))}

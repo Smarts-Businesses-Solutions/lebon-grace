@@ -60,7 +60,7 @@ function CategoryShowcase() {
   return (
     <section className="bg-white border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-8 gap-4">
+        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-5">
           {topCategories.map((cat) => (
             <Link key={cat.name} href={"/shop?category=" + encodeURIComponent(cat.name)} className="group flex flex-col items-center gap-2 text-center">
               <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden bg-gray-100 border-2 border-transparent group-hover:border-[#16A34A] transition-colors duration-200">
@@ -251,7 +251,7 @@ function ShopContent() {
           <button onClick={() => updateFilter("category", "All")} className={`block w-full text-left px-3 py-1.5 rounded-lg text-xs transition-colors ${filters.category === "All" ? "bg-gray-900 text-white" : "text-gray-600 hover:bg-gray-50"}`}>
             All ({products.length})
           </button>
-          {categories.filter((c) => !c.hidden).map((cat) => {
+          {categories.filter((c) => !c.hidden && c.name !== "Clearance").map((cat) => {
             const count = products.filter((p) => p.category === cat.name).length;
             return (
               <button key={cat.name} onClick={() => updateFilter("category", cat.name)} className={`block w-full text-left px-3 py-1.5 rounded-lg text-xs transition-colors ${filters.category === cat.name ? "bg-gray-900 text-white" : "text-gray-600 hover:bg-gray-50"}`}>
@@ -464,7 +464,7 @@ function ShopContent() {
             </div>
 
             {/* Product Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 lg:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
               {visibleProducts.map((product, index) => (
                 <ProductCard key={product.slug + index} product={product} index={index} onAdd={() => addItem(product)} />
               ))}
