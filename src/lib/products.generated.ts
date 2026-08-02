@@ -1,20 +1,31 @@
 // AUTO-GENERATED FROM POSTGRES — DO NOT EDIT BY HAND.
 // Source of truth: the `products` table in the self-hosted Postgres.
 // Regenerate:  node scripts/catalog/04-generate-catalog.mjs
-// Generated:   2026-08-01T22:36:41.603Z  (41 products)
+// Generated:   2026-08-02T04:27:54.738Z  (42 products)
 
 export interface Product {
   slug: string; name: string; variant: string; price: number;
   category: string;
   stock: number; description: string;
-  details: { dimensions?: string; material?: string; care?: string; weight?: string; packWeight?: string;
-             age?: string; made?: string; personalisation?: string; images?: string[]; };
+  // The details object maps to a jsonb column, so its shape is open by design.
+  // Named keys are the ones the UI reads; the index signature stops every new
+  // attribute (fits, condition, returns and so on) from being a type error.
+  details: {
+    dimensions?: string; material?: string; care?: string; weight?: string; packWeight?: string;
+    age?: string; made?: string; personalisation?: string; images?: string[];
+    [key: string]: string | string[] | undefined;
+  };
   imagePlaceholder: { bg: string; initials: string; };
   imageUrl: string; cjPid?: string; cjPrice?: string;
   hidden?: boolean;
 }
 
 export const products: Product[] = [
+  { slug: "phone-case-clearance", name: "Phone Case Clearance", variant: "Good Value", price: 5, category: "Clearance", stock: 179,
+    description: "Cases for older handsets, clearing the shelf at AED 5 each.  These are new and still sealed. They fit phones from around 2018 to 2019, including iPhone XS Max, iPhone 11 Pro Max and Samsung S9. The range covers leather flip cases, wallet styles with card slots, and plain protective shells.  Tell us your phone model in the order notes and we will match you to what we have in stock. If we cannot match your model we will refund you in full, no quibbling.",
+    details: { fits: "Older iPhone and Samsung models, 2018 to 2019", images: ["/images/clearance/phone-case-clearance-0.jpg", "/images/clearance/phone-case-clearance-1.jpg", "/images/clearance/phone-case-clearance-2.jpg", "/images/clearance/phone-case-clearance-3.jpg", "/images/clearance/phone-case-clearance-4.jpg", "/images/clearance/phone-case-clearance-5.jpg"], returns: "Returnable within 7 days, unused", material: "Mixed: leather-look PU, TPU, silicone", condition: "New, sealed in original packaging", collection: "Workshop collection only at this price" },
+    imagePlaceholder: { bg: "#6E6862", initials: "PC" },
+    imageUrl: "/images/clearance/phone-case-clearance-0.jpg" },
   { slug: "abc-jigsaw-board", name: "Abc Jigsaw Board", variant: "Good Value", price: 15, category: "Alphabet & Literacy", stock: 999,
     description: "The whole alphabet, one piece at a time.  A full A to Z jigsaw board where every letter interlocks with the next. Repetition that never feels like drilling.",
     details: { age: "3-6", made: "Made to order in 2 to 3 working days", images: ["/images/lasercut/abc-jigsaw-board-0.png", "/images/lasercut/abc-jigsaw-board-1.png", "/images/lasercut/abc-jigsaw-board-2.png"], material: "3mm MDF, sanded by hand", personalisation: "Add a name free of charge, just ask at checkout" },
@@ -243,5 +254,6 @@ export const categories: Category[] = [
   { name: "Alphabet & Literacy", description: "8 products", icon: "📦" },
   { name: "Animals & Nature", description: "7 products", icon: "📦" },
   { name: "Shapes & Montessori", description: "5 products", icon: "📦" },
+  { name: "Clearance", description: "1 products", icon: "📦" },
   { name: "3D & Architecture", description: "1 products", icon: "📦" },
 ]

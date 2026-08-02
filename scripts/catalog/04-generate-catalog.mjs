@@ -81,8 +81,14 @@ export interface Product {
   slug: string; name: string; variant: string; price: number;
   category: string;
   stock: number; description: string;
-  details: { dimensions?: string; material?: string; care?: string; weight?: string; packWeight?: string;
-             age?: string; made?: string; personalisation?: string; images?: string[]; };
+  // The details object maps to a jsonb column, so its shape is open by design.
+  // Named keys are the ones the UI reads; the index signature stops every new
+  // attribute (fits, condition, returns and so on) from being a type error.
+  details: {
+    dimensions?: string; material?: string; care?: string; weight?: string; packWeight?: string;
+    age?: string; made?: string; personalisation?: string; images?: string[];
+    [key: string]: string | string[] | undefined;
+  };
   imagePlaceholder: { bg: string; initials: string; };
   imageUrl: string; cjPid?: string; cjPrice?: string;
   hidden?: boolean;
