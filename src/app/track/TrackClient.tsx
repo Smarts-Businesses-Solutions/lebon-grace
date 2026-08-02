@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import WhatsAppLink from "@/components/WhatsAppLink";
 import Link from "next/link";
 
 const STATUS_STEPS = [
@@ -220,14 +221,12 @@ export default function TrackClient() {
                 <Link href="/contact" className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-200 transition-colors">
                   Contact Us
                 </Link>
-                <a
-                  href={`https://wa.me/971588286630?text=${encodeURIComponent(`Hi! I need help with my order #${String(order.id).slice(0, 8)}`)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <WhatsAppLink
+                  message={`Hi, I need help with my order #${String(order.id).slice(0, 8)}`}
                   className="px-4 py-2 bg-[#25D366] text-white rounded-xl text-sm font-medium hover:bg-[#1DA851] transition-colors"
                 >
                   WhatsApp Us
-                </a>
+                </WhatsAppLink>
               </div>
             </div>
           </div>
