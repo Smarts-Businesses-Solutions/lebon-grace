@@ -9,7 +9,8 @@
       "age": "2-5",
       "hook": "The puzzle that teaches counting before they can read.",
       "desc": "Ten hand-cut pieces pair each numeral with the dots that match it, so little fingers feel the difference between three and eight before they can say it. Cut and sanded to order in our workshop, edges smoothed by hand.",
-      "name": "Count & Match Number Board"
+      "name": "Count & Match Number Board",
+      "dim": "130mm x 200mm"
     },
     {
       "slug": "colour-me-dinosaur-alphabet-puzzle",
@@ -227,7 +228,8 @@
       "age": "3-6",
       "hook": "The whole alphabet, one piece at a time.",
       "desc": "A full A to Z jigsaw board where every letter interlocks with the next. Repetition that never feels like drilling.",
-      "name": "ABC Jigsaw Board"
+      "name": "ABC Jigsaw Board",
+      "dim": "196mm x 149mm"
     },
     {
       "slug": "alphabet-learning-board",
@@ -379,5 +381,6 @@
       "desc": "Sixth design in the peg truck range. Same easy pegs, same satisfying fit, a different shape to learn.",
       "name": "Truck Peg Puzzle, Design Six"
     }
-  ]
+  ],
+  "_dimensions_note": "Dimensions are printed top-left on each product's third image. Read them from public/images/lasercut/<slug>-2.png and set `dim` here, then re-run 05-import-lasercut.mjs and 04-generate-catalog.mjs."
 }

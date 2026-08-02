@@ -84,6 +84,8 @@ const rows = spec.products.filter((p) => imageMap[p.slug]).map((p) => ({
   description: `${p.hook}\n\n${p.desc}`,
   details: {
     material: "3mm MDF, sanded by hand",
+    // Printed on the third photograph of each product; see _dimensions_note.
+    ...(p.dim ? { dimensions: p.dim } : {}),
     age: p.age,
     made: "Made to order in 2 to 3 working days",
     personalisation: "Add a name free of charge, just ask at checkout",

@@ -12,6 +12,7 @@ import {
   MATERIALS,
   PRICE_TIERS,
   applyFilters,
+  AGE_BANDS,
   getFilterCounts,
   DEFAULT_FILTERS,
   type FilterState,
@@ -256,6 +257,35 @@ function ShopContent() {
             return (
               <button key={cat.name} onClick={() => updateFilter("category", cat.name)} className={`block w-full text-left px-3 py-1.5 rounded-lg text-xs transition-colors ${filters.category === cat.name ? "bg-gray-900 text-white" : "text-gray-600 hover:bg-gray-50"}`}>
                 {cat.name} ({count})
+              </button>
+            );
+          })}
+        </div>
+      </FilterSection>
+
+      {/* Age. Placed above Price deliberately: at a single AED 15 price the
+          price filter is meaningless, and a parent shops by how old the child
+          is, not by cost. */}
+      <FilterSection title="Age">
+        <div className="flex flex-wrap gap-2">
+          {AGE_BANDS.map((band) => {
+            const isActive = filters.ages.includes(band);
+            return (
+              <button
+                key={band}
+                onClick={() =>
+                  updateFilter(
+                    "ages",
+                    isActive ? filters.ages.filter((a) => a !== band) : [...filters.ages, band]
+                  )
+                }
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                  isActive
+                    ? "bg-[#C9A96E] text-white border-[#C9A96E]"
+                    : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
+                }`}
+              >
+                {band === "4+" ? "4 years +" : band.replace("-", " to ") + " years"}
               </button>
             );
           })}

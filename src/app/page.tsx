@@ -94,21 +94,21 @@ export default function HomePage() {
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-28">
           <div className="max-w-2xl">
-            <p className="text-[#C9A96E] text-xs sm:text-sm tracking-[0.3em] uppercase mb-4 font-medium">694 Products &bull; 17 Categories &bull; All Under AED 50</p>
+            <p className="text-[#C9A96E] text-xs sm:text-sm tracking-[0.3em] uppercase mb-4 font-medium">41 Designs &bull; Cut To Order &bull; Free Name Engraving</p>
             <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight tracking-tight">
-              Everyday Essentials,<br />
-              <span className="text-[#C9A96E]">Beautifully Priced</span>
+              Wooden puzzles,<br />
+              <span className="text-[#C9A96E]">made one at a time</span>
             </h1>
             <p className="mt-6 text-gray-300 text-base sm:text-lg leading-relaxed max-w-lg">
-              Affordable accessories for your workspace, travel, home, and style. Quality picks, honest prices. Made to order in 2 to 3 days. Free collection from the workshop.
+              Alphabet boards, number puzzles and Montessori shapes, cut and sanded by hand after you order. Ready in two to three days. Add a child’s name at no extra cost.
             </p>
             <div className="flex flex-wrap gap-3 mt-8">
               <Link href="/shop" className="inline-flex items-center gap-2 bg-[#16A34A] text-white px-8 py-3.5 rounded-lg text-sm font-semibold hover:bg-[#15803D] transition-colors">
-                Shop All Products
+                Shop All Puzzles
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
               </Link>
               <Link href="/about" className="inline-flex items-center border border-white/30 text-white px-6 py-3.5 rounded-lg text-sm font-medium hover:bg-white/10 transition-colors">
-                Learn More
+                How We Make Them
               </Link>
             </div>
           </div>
@@ -228,7 +228,7 @@ export default function HomePage() {
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900 mb-1">Made to Order</h3>
-                <p className="text-gray-500 text-sm leading-relaxed">Every piece is cut, sanded and finished after you order, when your order arrives.</p>
+                <p className="text-gray-500 text-sm leading-relaxed">Nothing sits in a warehouse. Your puzzle is cut, sanded and finished once you order it, then it is yours.</p>
               </div>
             </div>
             <div className="flex items-start gap-4 p-6 bg-gray-50 rounded-xl">
@@ -239,7 +239,7 @@ export default function HomePage() {
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900 mb-1">Secure & Trusted</h3>
-                <p className="text-gray-500 text-sm leading-relaxed">All payments processed securely via Stripe. WhatsApp support for every order.</p>
+                <p className="text-gray-500 text-sm leading-relaxed">Payment through Stripe, and a real person on WhatsApp for every order. If a piece arrives faulty we replace it free within 7 days.</p>
               </div>
             </div>
           </div>

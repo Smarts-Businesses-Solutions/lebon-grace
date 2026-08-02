@@ -1,7 +1,7 @@
 // AUTO-GENERATED FROM POSTGRES — DO NOT EDIT BY HAND.
 // Source of truth: the `products` table in the self-hosted Postgres.
 // Regenerate:  node scripts/catalog/04-generate-catalog.mjs
-// Generated:   2026-08-02T05:46:16.554Z  (42 products)
+// Generated:   2026-08-02T05:51:25.534Z  (42 products)
 
 export interface Product {
   slug: string; name: string; variant: string; price: number;
@@ -28,7 +28,7 @@ export const products: Product[] = [
     imageUrl: "/images/clearance/phone-case-clearance-0.jpg" },
   { slug: "abc-jigsaw-board", name: "ABC Jigsaw Board", variant: "Good Value", price: 15, category: "Alphabet & Literacy", stock: 999,
     description: "The whole alphabet, one piece at a time.  A full A to Z jigsaw board where every letter interlocks with the next. Repetition that never feels like drilling.",
-    details: { age: "3-6", made: "Made to order in 2 to 3 working days", images: ["/images/lasercut/abc-jigsaw-board-0.png", "/images/lasercut/abc-jigsaw-board-1.png", "/images/lasercut/abc-jigsaw-board-2.png"], material: "3mm MDF, sanded by hand", personalisation: "Add a name free of charge, just ask at checkout" },
+    details: { age: "3-6", made: "Made to order in 2 to 3 working days", images: ["/images/lasercut/abc-jigsaw-board-0.png", "/images/lasercut/abc-jigsaw-board-1.png", "/images/lasercut/abc-jigsaw-board-2.png"], material: "3mm MDF, sanded by hand", dimensions: "196mm x 149mm", personalisation: "Add a name free of charge, just ask at checkout" },
     imagePlaceholder: { bg: "#C9A96E", initials: "AB" },
     imageUrl: "/images/lasercut/abc-jigsaw-board-0.png" },
   { slug: "alphabet-car-puzzle", name: "Alphabet Car", variant: "Good Value", price: 15, category: "Alphabet & Literacy", stock: 999,
@@ -73,7 +73,7 @@ export const products: Product[] = [
     imageUrl: "/images/lasercut/colour-me-dinosaur-alphabet-puzzle-0.png" },
   { slug: "count-and-match-number-board", name: "Count & Match Number Board", variant: "Good Value", price: 15, category: "Numbers & Counting", stock: 999,
     description: "The puzzle that teaches counting before they can read.  Ten hand-cut pieces pair each numeral with the dots that match it, so little fingers feel the difference between three and eight before they can say it. Cut and sanded to order in our workshop, edges smoothed by hand.",
-    details: { age: "2-5", made: "Made to order in 2 to 3 working days", images: ["/images/lasercut/count-and-match-number-board-0.png", "/images/lasercut/count-and-match-number-board-1.png", "/images/lasercut/count-and-match-number-board-2.png"], material: "3mm MDF, sanded by hand", personalisation: "Add a name free of charge, just ask at checkout" },
+    details: { age: "2-5", made: "Made to order in 2 to 3 working days", images: ["/images/lasercut/count-and-match-number-board-0.png", "/images/lasercut/count-and-match-number-board-1.png", "/images/lasercut/count-and-match-number-board-2.png"], material: "3mm MDF, sanded by hand", dimensions: "130mm x 200mm", personalisation: "Add a name free of charge, just ask at checkout" },
     imagePlaceholder: { bg: "#C9A96E", initials: "CO" },
     imageUrl: "/images/lasercut/count-and-match-number-board-0.png" },
   { slug: "counting-hands-board-1", name: "Counting Hands Board", variant: "Good Value", price: 15, category: "Numbers & Counting", stock: 999,

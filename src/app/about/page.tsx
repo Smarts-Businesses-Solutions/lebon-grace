@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export const metadata = {
   title: "About — Lebon Grace",
-  description: "Affordable workspace, travel, and home accessories. Quality picks, honest prices.",
+  description: "Affordable workspace, travel, and home accessories. Cut, sanded and finished by hand.",
 };
 
 export default function AboutPage() {
@@ -24,7 +24,7 @@ export default function AboutPage() {
               Lebon Grace was born from a simple idea: everyday essentials should look good and cost less. In a market where Amazon offers quantity but not quality, and luxury brands charge ten times the real cost, we chose a different path.
             </p>
             <p>
-              Founded in the UAE, we source workspace, travel, home, jewelry, and drinkware accessories directly from verified suppliers. We cut out the middlemen, skip the markup, and pass the savings to you. Every product is selected for its design, durability, and honest price.
+              We are a small workshop in the UAE making wooden puzzles for children. Everything here is drawn as a cutting file, cut from MDF on our own laser, sanded by hand and checked before it goes out. Nothing is bought in and relabelled, and nothing sits in a warehouse waiting for someone to want it. Your puzzle does not exist until you order it, which is why it takes two or three days and why we can put your child’s name on it for nothing.
             </p>
             <p>
               Our name reflects our approach. "Lebon" means good in French. "Grace" means doing it with style. Together — good things, done well, at fair prices.
@@ -36,7 +36,7 @@ export default function AboutPage() {
         <div className="bg-charcoal text-offwhite rounded-sm p-8 lg:p-12">
           <h2 className="font-heading text-2xl font-semibold tracking-tight mb-4">Our Mission</h2>
           <p className="text-warm-gray text-sm leading-relaxed">
-            To be the go-to destination for affordable everyday essentials in the UAE. We believe quality products shouldn't cost a fortune. Through direct sourcing and honest pricing, we make it easy to upgrade your workspace, travel gear, home, and style — all under AED 50.
+            To make toys that are worth keeping, at a price that does not make you think twice. A wooden alphabet board should not cost a hundred dirhams, and it should not fall apart either. all under AED 50.
           </p>
         </div>
 
@@ -62,9 +62,9 @@ export default function AboutPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
               </div>
-              <h3 className="font-heading text-lg font-semibold tracking-tight">Direct Sourcing</h3>
+              <h3 className="font-heading text-lg font-semibold tracking-tight">Made to Order</h3>
               <p className="mt-3 text-warm-gray text-sm leading-relaxed">
-                No middlemen, no inflated prices. We source directly from verified suppliers and ship to your door. That's how we keep prices low.
+                We hold no stock, so nothing is ever discontinued or out of size. You order it, we make it, you collect it or we send it. Two to three working days, every time.
               </p>
             </div>
             <div className="text-center">
@@ -75,7 +75,7 @@ export default function AboutPage() {
               </div>
               <h3 className="font-heading text-lg font-semibold tracking-tight">Customer First</h3>
               <p className="mt-3 text-warm-gray text-sm leading-relaxed">
-                Free pickup option, WhatsApp support, honest pricing. We treat every order like it matters — because it does.
+                Free collection, WhatsApp support, and a free replacement within 7 days if anything arrives faulty. You do not send it back; we just make you another one.
               </p>
             </div>
           </div>
@@ -83,7 +83,7 @@ export default function AboutPage() {
 
         {/* CTA */}
         <div className="text-center">
-          <p className="text-warm-gray text-sm mb-4">Ready to explore our curated collection?</p>
+          <p className="text-warm-gray text-sm mb-4">Come and see what we make</p>
           <Link href="/shop" className="inline-flex items-center px-8 py-3.5 bg-sand text-white text-sm tracking-wider uppercase font-medium rounded-sm hover:bg-sand-dark transition-colors">
             Shop the Collection
           </Link>

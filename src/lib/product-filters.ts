@@ -139,6 +139,8 @@ export const PRICE_TIERS = [
 // --- Filter state type ---
 export interface FilterState {
   category: string;
+  /** Age bands the product suits, e.g. "1-3". Parents shop by child age. */
+  ages: string[];
   colors: string[];
   sizes: string[];
   materials: string[];
@@ -148,8 +150,12 @@ export interface FilterState {
   sortBy: string;
 }
 
+/** Age bands offered in the shop sidebar, in the order parents think about them. */
+export const AGE_BANDS = ["1-3", "2-4", "2-5", "3-6", "4+"];
+
 export const DEFAULT_FILTERS: FilterState = {
   category: "All",
+  ages: [],
   colors: [],
   sizes: [],
   materials: [],
@@ -166,6 +172,24 @@ export function applyFilters(products: EnrichedProduct[], filters: FilterState):
   // Category
   if (filters.category && filters.category !== "All") {
     result = result.filter((p) => p.category === filters.category);
+  }
+
+  // Age band. A product tagged "1-3" should appear under both "1-3" and any
+  // overlapping band, so bands are compared as ranges rather than strings:
+  // "4+" is stored as 4 to 99 and matches a parent browsing for a five year old.
+  if (filters.ages.length > 0) {
+    const parse = (band: string): [number, number] => {
+      if (band.endsWith("+")) return [parseInt(band, 10), 99];
+      const [a, b] = band.split("-").map((n) => parseInt(n, 10));
+      return [a, isNaN(b) ? a : b];
+    };
+    const wanted = filters.ages.map(parse);
+    result = result.filter((p) => {
+      const raw = (p.details as { age?: string })?.age;
+      if (!raw) return false;
+      const [lo, hi] = parse(raw);
+      return wanted.some(([wlo, whi]) => lo <= whi && hi >= wlo);
+    });
   }
 
   // Colors
