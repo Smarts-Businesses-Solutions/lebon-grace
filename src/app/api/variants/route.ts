@@ -121,26 +121,13 @@ export async function GET(request: NextRequest) {
       if (sb) return NextResponse.json(sb);
       return NextResponse.json({ source: "mdf-standalone", variants: [], images: [] });
     }
-    if (product) {
-      const similar = products
-        .filter((p) => p.category === product.category && p.slug !== slug)
-        .map((p) => {
-          const words = product.name.toLowerCase().split(/\s+/).filter((w) => w.length > 3);
-          const score = words.filter((w) => p.name.toLowerCase().includes(w)).length;
-          return { product: p, score };
-        })
-        .filter((x) => x.score >= 2)
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 8);
-
-      if (similar.length > 0) {
-        const all = [
-          { sku: product.cjPid || product.slug, name: product.name, image: product.imageUrl, price: product.price, color: extractLabel(product.name) },
-          ...similar.map((s) => ({ sku: s.product.cjPid || s.product.slug, name: s.product.name, image: s.product.imageUrl, price: s.product.price, color: extractLabel(s.product.name) })),
-        ];
-        return NextResponse.json({ source: "similar", variants: all, images: all.map((v) => v.image) });
-      }
-    }
+    // The "similar products" fallback is deliberately gone. It matched other
+    // products in the same category by shared words and returned them as
+    // VARIANTS, so the product page rendered a "Style" selector listing
+    // different puzzles as though they were versions of the one being viewed.
+    // Picking one swapped the photograph too, which is why the range looked
+    // mixed up. Distinct products are not variants of each other; if a product
+    // has no rows in product_variants it simply has no variants.
   }
 
   // 2. CJ API (if pid provided)

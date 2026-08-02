@@ -44,7 +44,10 @@ for (const r of visible) counts[r.category] = (counts[r.category] || 0) + 1;
 
 const ICONS = { "MDF Cutouts": "🪵", "DIY Kits": "🎨", "Kids Toys": "🧸" };
 
-const esc = (s) => String(s ?? "").replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\n/g, " ").trim();
+// Newlines are ESCAPED, not flattened to a space. Collapsing them merged each
+// product's opening hook into its body paragraph, so every description on the
+// site rendered as one run-on sentence.
+const esc = (s) => String(s ?? "").replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\r/g, "").replace(/\n/g, "\\n").trim();
 
 const productLines = visible.map((r) => {
   const details = r.details && Object.keys(r.details).length ? r.details : { material: "Mixed materials" };

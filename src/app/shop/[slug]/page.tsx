@@ -200,9 +200,11 @@ export default function ProductDetailPage() {
 
           {/* Price */}
           <div className="mt-4">
+            {/* No struck-through "was" price. The old markup invented one at 1.4x
+                and advertised the difference as a saving; the product was never
+                sold at that price, which is a false reference price. */}
             <span className="text-3xl font-bold text-gray-900">{formatPrice(displayPrice)}</span>
-            <span className="ml-2 text-sm text-gray-400 line-through">{formatPrice(Math.round(displayPrice * 1.4))}</span>
-            <span className="ml-2 text-sm font-medium text-[#16A34A]">Save {formatPrice(Math.round(displayPrice * 0.4))}</span>
+            <span className="ml-3 text-sm text-gray-500">Name engraved free</span>
           </div>
 
           {/* CJ Variant Selector */}
@@ -368,7 +370,7 @@ export default function ProductDetailPage() {
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                 </button>
               </div>
-              <span className="text-gray-400 text-xs">{product.stock} in stock</span>
+              <span className="text-gray-400 text-xs">Made to order</span>
             </div>
 
             <button
@@ -422,21 +424,10 @@ export default function ProductDetailPage() {
             )}
           </div>
 
-          {/* 50/50 Payment */}
-          <div className="mt-4 p-4 bg-[#16A34A]/5 rounded-xl border border-[#16A34A]/10">
-            <div className="flex items-center gap-2 mb-1">
-              <svg className="w-4 h-4 text-[#16A34A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" /></svg>
-              <span className="text-sm font-semibold text-[#16A34A]">50/50 Payment</span>
-            </div>
-            <p className="text-xs text-gray-500 leading-relaxed">
-              Pay <strong>{formatPrice(Math.round(product.price / 2))}</strong> now via card + <strong>{formatPrice(Math.ceil(product.price / 2))}</strong> cash on delivery.
-            </p>
-          </div>
-
           {/* Key Reasons to Buy */}
           <div className="mt-5 space-y-2.5">
             {[
-              { icon: "🚚", text: "Free pickup available — or AED 25 delivery" },
+              { icon: "🚚", text: "Free collection, or AED 20 UAE delivery (free over AED 150)" },
               { icon: "🔒", text: "Secure payment via Stripe" },
               { icon: "⚡", text: "Ships within 2-3 business days" },
               { icon: "💬", text: "WhatsApp support: +971 58 828 6630" },
@@ -470,7 +461,7 @@ export default function ProductDetailPage() {
             <div className="space-y-3">
               <div className="flex items-start gap-2.5">
                 <svg className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" /></svg>
-                <div><p className="text-xs font-medium text-gray-700">Delivery: 10-14 days</p><p className="text-[11px] text-gray-400">International shipping</p></div>
+                <div><p className="text-xs font-medium text-gray-700">Ready in 2 to 3 days</p><p className="text-[11px] text-gray-400">Cut and finished after you order</p></div>
               </div>
               <div className="flex items-start gap-2.5">
                 <svg className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg>
@@ -479,7 +470,7 @@ export default function ProductDetailPage() {
               <hr className="border-gray-100" />
               <div className="flex items-start gap-2.5">
                 <svg className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>
-                <div><p className="text-xs font-medium text-gray-700">All sales final</p><p className="text-[11px] text-gray-400">No returns or refunds. Damaged items: contact within 48h.</p></div>
+                <div><p className="text-xs font-medium text-gray-700">Faulty? Replaced free</p><p className="text-[11px] text-gray-400">Send a photo within 7 days. Nothing to send back.</p></div>
               </div>
             </div>
           </div>
@@ -490,8 +481,8 @@ export default function ProductDetailPage() {
               {[
                 { icon: "🛡️", label: "Secure Payment" },
                 { icon: "✅", label: "Quality Checked" },
-                { icon: "📦", label: "Tracked Shipping" },
-                { icon: "💬", label: "24/7 Support" },
+                { icon: "📦", label: "Made to Order" },
+                { icon: "💬", label: "WhatsApp Support" },
               ].map((badge, i) => (
                 <div key={i} className="flex items-center gap-2">
                   <span className="text-sm">{badge.icon}</span>
@@ -574,14 +565,14 @@ export default function ProductDetailPage() {
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
                   <div className="flex items-center gap-3">
                     <span className="text-lg">🚚</span>
-                    <div><p className="text-sm font-medium text-gray-700">Standard Delivery</p><p className="text-xs text-gray-400">10-14 business days</p></div>
+                    <div><p className="text-sm font-medium text-gray-700">UAE Delivery</p><p className="text-xs text-gray-400">AED 20, free over AED 150</p></div>
                   </div>
                   <span className="text-sm font-bold text-gray-900">AED 25</span>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-[#16A34A]/5 rounded-xl border border-[#16A34A]/10">
                   <div className="flex items-center gap-3">
                     <span className="text-lg">📍</span>
-                    <div><p className="text-sm font-medium text-gray-700">Pickup (Dubai)</p><p className="text-xs text-gray-400">Ready in 10-14 days</p></div>
+                    <div><p className="text-sm font-medium text-gray-700">Free Collection</p><p className="text-xs text-gray-400">Ready in 2 to 3 working days</p></div>
                   </div>
                   <span className="text-sm font-bold text-[#16A34A]">FREE</span>
                 </div>

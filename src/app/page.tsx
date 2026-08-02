@@ -94,7 +94,7 @@ export default function HomePage() {
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-28">
           <div className="max-w-2xl">
-            <p className="text-[#C9A96E] text-xs sm:text-sm tracking-[0.3em] uppercase mb-4 font-medium">41 Designs &bull; Cut To Order &bull; Free Name Engraving</p>
+            <p className="text-[#C9A96E] text-xs sm:text-sm tracking-[0.3em] uppercase mb-4 font-medium">Cut To Order &bull; Free Name Engraving &bull; Ready In 2 To 3 Days</p>
             <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight tracking-tight">
               Wooden puzzles,<br />
               <span className="text-[#C9A96E]">made one at a time</span>
@@ -133,7 +133,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center mb-8">
             <h2 className="font-heading text-2xl lg:text-3xl font-semibold tracking-tight">Shop by Category</h2>
-            <p className="mt-2 text-gray-400 text-sm">{categories.filter((c) => c.name !== "Clearance").length} categories, {products.filter((p) => p.category !== "Clearance").length} puzzles</p>
+            <p className="mt-2 text-gray-400 text-sm">Cut and finished by hand, one at a time</p>
           </div>
           <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-6 gap-6">
             {categories.filter((c) => !c.hidden && c.name !== "Clearance").slice(0, 12).map((cat) => {

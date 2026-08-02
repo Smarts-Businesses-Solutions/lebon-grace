@@ -405,7 +405,7 @@ function ShopContent() {
             <div className="text-center lg:text-left">
               <h1 className="text-3xl lg:text-4xl font-bold tracking-tight">Shop All Products</h1>
               <p className="mt-2 text-gray-300 text-sm lg:text-base max-w-lg">
-                {puzzleCount} wooden puzzles, cut and finished by hand in our workshop. Every one made to order.
+                Wooden puzzles, cut and finished by hand in our workshop. Every one made to order.
               </p>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-2 lg:gap-3">
