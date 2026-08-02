@@ -59,9 +59,31 @@ try {
 
 if (mode === "live") {
   // charges_enabled false is the difference between "we have live keys" and
-  // "we can take money". Onboarding is often incomplete when it is false.
+  // "we can take money".
   if (account.charges_enabled) ok("Account can accept charges.");
-  else bad("Account cannot accept charges yet. Finish Stripe onboarding before switching.");
+  else {
+    // The ACCOUNT-level requirements can be completely empty while the
+    // capability underneath is blocked, which is exactly what happened here:
+    // account.requirements showed nothing due and no disabled_reason, while
+    // card_payments was past_due on an expired trade licence. Reporting only
+    // the account level sends you hunting through the Dashboard for a reason
+    // the API already knows.
+    let detail = "";
+    try {
+      const cap = await stripe.accounts.retrieveCapability(account.id, "card_payments");
+      const r = cap.requirements || {};
+      const due = [...new Set([...(r.past_due || []), ...(r.currently_due || [])])];
+      const errs = (r.errors || []).map((e) => `${e.requirement}: ${e.reason}`);
+      detail =
+        `\n        capability card_payments = ${cap.status}` +
+        (r.disabled_reason ? `\n        disabled_reason: ${r.disabled_reason}` : "") +
+        (due.length ? `\n        needed: ${due.join(", ")}` : "") +
+        (errs.length ? `\n        ${errs.join("\n        ")}` : "");
+    } catch {
+      detail = "\n        (could not read card_payments capability for detail)";
+    }
+    bad("Account cannot accept charges yet." + detail);
+  }
 
   if (account.payouts_enabled) ok("Payouts enabled, so money can reach the bank.");
   else warn("Payouts are not enabled. Charges may work while settlement is held.");
