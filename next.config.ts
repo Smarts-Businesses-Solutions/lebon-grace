@@ -33,6 +33,8 @@ export default withSentryConfig(nextConfig, {
   sourcemaps: { deleteSourcemapsAfterUpload: true },
   disableLogger: true,
 
-  // Vercel integration
-  automaticVercelMonitors: true,
+  // automaticVercelMonitors was set here. It instruments Vercel Cron Jobs, and
+  // this app has not run on Vercel since it moved to self-hosting: the schedule
+  // is supercronic inside a container, and errors report to GlitchTip rather
+  // than Sentry's cloud. Nothing was being monitored.
 });
