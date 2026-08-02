@@ -567,7 +567,7 @@ export default function ProductDetailPage() {
                     <span className="text-lg">🚚</span>
                     <div><p className="text-sm font-medium text-gray-700">UAE Delivery</p><p className="text-xs text-gray-400">AED 20, free over AED 150</p></div>
                   </div>
-                  <span className="text-sm font-bold text-gray-900">AED 25</span>
+                  <span className="text-sm font-bold text-gray-900">AED 20</span>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-[#16A34A]/5 rounded-xl border border-[#16A34A]/10">
                   <div className="flex items-center gap-3">
@@ -581,10 +581,9 @@ export default function ProductDetailPage() {
             <div>
               <h4 className="text-sm font-semibold text-gray-800 mb-2">Return Policy</h4>
               <p className="text-sm text-gray-600 leading-relaxed">
-                As a small company sourcing affordable products directly from international suppliers, <strong>all sales are final</strong>. We do not offer returns or refunds. This helps us keep our prices as low as possible.
-              </p>
+                Every piece is cut and finished only after you order it, so <strong>made-to-order items cannot be returned if you change your mind</strong>. A piece engraved with a name can never be returned, because it cannot go to anyone else. Clearance stock is different and can be returned within 7 days, unused.</p>
               <p className="text-sm text-gray-600 leading-relaxed mt-2">
-                If you receive a <strong>damaged or incorrect item</strong>, please contact us within 48 hours of delivery with photos, and we will arrange a replacement or store credit.
+                <strong>If anything arrives faulty, damaged or wrong, we replace it free.</strong> Send us a photo within 7 days and we will make a new one and get it to you at no cost. There is nothing to send back.
               </p>
             </div>
           </div>

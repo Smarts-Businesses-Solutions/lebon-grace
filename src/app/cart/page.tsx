@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCart, lineId} from "@/lib/cart-context";
+import { useCart, lineId, UAE_DELIVERY, FREE_DELIVERY_OVER} from "@/lib/cart-context";
 import { formatPrice } from "@/lib/products";
 import CartRecoveryBanner from "@/components/CartRecoveryBanner";
 
@@ -99,7 +99,7 @@ export default function CartPage() {
                 >
                   <div className="text-lg mb-1">🚚</div>
                   <div className="text-xs font-semibold">Deliver to me</div>
-                  <div className="text-[10px] mt-0.5">{subtotal >= 300 ? "Free" : "AED 25"}</div>
+                  <div className="text-[10px] mt-0.5">{subtotal >= FREE_DELIVERY_OVER ? "Free" : `AED ${UAE_DELIVERY}`}</div>
                 </button>
                 <button
                   onClick={() => setDeliveryMethod("pickup")}

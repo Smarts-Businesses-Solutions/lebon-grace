@@ -21,8 +21,7 @@ export default function AboutPage() {
           <h2 className="font-heading text-2xl lg:text-3xl font-semibold tracking-tight mb-6">Our Story</h2>
           <div className="space-y-4 text-charcoal text-sm leading-relaxed">
             <p>
-              Lebon Grace was born from a simple idea: everyday essentials should look good and cost less. In a market where Amazon offers quantity but not quality, and luxury brands charge ten times the real cost, we chose a different path.
-            </p>
+              Lebon Grace started with a laser cutter and a simple thought: a wooden toy that teaches a child their letters should not cost a hundred dirhams, and it should not be made on the other side of the world either. So we draw them, cut them and sand them here, one order at a time.</p>
             <p>
               We are a small workshop in the UAE making wooden puzzles for children. Everything here is drawn as a cutting file, cut from MDF on our own laser, sanded by hand and checked before it goes out. Nothing is bought in and relabelled, and nothing sits in a warehouse waiting for someone to want it. Your puzzle does not exist until you order it, which is why it takes two or three days and why we can put your child’s name on it for nothing.
             </p>
