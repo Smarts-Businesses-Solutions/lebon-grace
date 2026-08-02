@@ -18,9 +18,24 @@ export const metadata: Metadata = {
   title: "Lebon Grace — Wooden Puzzles, Made to Order in the UAE",
   description:
     "Wooden alphabet, number and Montessori puzzles for children, cut and finished by hand in our UAE workshop. Made to order, free name engraving, free collection.",
+  // src/app/favicon.ico used to sit alongside these. It was the stock Vercel
+  // triangle from create-next-app, never replaced. Next's file convention gave
+  // it rel="icon" sizes="256x256" type="image/x-icon", so browsers preferred it
+  // over the LG mark below and the tab showed Vercel's logo. Removing that file
+  // also removed a malformed URL: deploymentId appends ?dpl=, and the file
+  // convention already carries its own query, producing
+  //   /favicon.ico?favicon.2vob68tjqpejf.ico?dpl=20260802173222
+  //
+  // Order matters. A browser takes the last icon it understands, so the .ico
+  // is listed first as the fallback and the SVG last: the SVG is one shape that
+  // stays sharp at any size and in dark mode.
   icons: {
-    icon: "/favicon.svg",
-    shortcut: "/favicon-16.png",
+    icon: [
+      { url: "/favicon.ico", sizes: "16x16 32x32 48x48 256x256", type: "image/x-icon" },
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/favicon.ico",
     apple: "/apple-touch-icon.png",
   },
   keywords: [
