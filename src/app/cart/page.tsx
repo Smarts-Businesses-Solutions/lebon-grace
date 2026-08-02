@@ -29,23 +29,25 @@ export default function CartPage() {
 
       <CartRecoveryBanner />
 
-      {/* Free Shipping Progress Bar */}
-      {deliveryMethod === "delivery" && subtotal < 300 && subtotal > 0 && (
+      {/* Free delivery progress. Every 300 in this block was hardcoded while the
+          basket charged on FREE_DELIVERY_OVER, so the bar asked for twice the
+          spend that actually earns free delivery. */}
+      {deliveryMethod === "delivery" && subtotal < FREE_DELIVERY_OVER && subtotal > 0 && (
         <div className="mb-6 p-4 bg-[#16A34A]/5 border border-[#16A34A]/10 rounded-xl">
           <div className="flex items-center justify-between mb-2">
             <p className="text-sm text-gray-600">
-              Add <strong className="text-[#16A34A]">{formatPrice(300 - subtotal)}</strong> more for <strong>FREE shipping</strong> 🚚
+              Add <strong className="text-[#16A34A]">{formatPrice(FREE_DELIVERY_OVER - subtotal)}</strong> more for <strong>free delivery</strong> 🚚
             </p>
-            <span className="text-xs text-gray-400">{Math.round((subtotal / 300) * 100)}%</span>
+            <span className="text-xs text-gray-400">{Math.round((subtotal / FREE_DELIVERY_OVER) * 100)}%</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
-            <div className="bg-[#16A34A] h-2 rounded-full transition-all" style={{ width: `${Math.min((subtotal / 300) * 100, 100)}%` }} />
+            <div className="bg-[#16A34A] h-2 rounded-full transition-all" style={{ width: `${Math.min((subtotal / FREE_DELIVERY_OVER) * 100, 100)}%` }} />
           </div>
         </div>
       )}
-      {deliveryMethod === "delivery" && subtotal >= 300 && (
+      {deliveryMethod === "delivery" && subtotal >= FREE_DELIVERY_OVER && (
         <div className="mb-6 p-3 bg-[#16A34A]/10 border border-[#16A34A]/20 rounded-xl text-center">
-          <p className="text-sm font-medium text-[#16A34A]">🎉 You qualify for FREE shipping!</p>
+          <p className="text-sm font-medium text-[#16A34A]">🎉 Your delivery is free</p>
         </div>
       )}
 
@@ -114,8 +116,13 @@ export default function CartPage() {
                   <div className="text-[10px] mt-0.5">Free</div>
                 </button>
               </div>
-              {deliveryMethod === "delivery" && subtotal < 300 && (
-                <p className="text-gray-400 text-xs mt-2">Free shipping on orders over AED 300</p>
+              {/* Hardcoded 300 here while the line above charges on
+                  FREE_DELIVERY_OVER, so a basket of AED 200 already had free
+                  delivery and was still being told it needed AED 300. */}
+              {deliveryMethod === "delivery" && subtotal < FREE_DELIVERY_OVER && (
+                <p className="text-gray-400 text-xs mt-2">
+                  Free delivery on orders over {formatPrice(FREE_DELIVERY_OVER)}
+                </p>
               )}
               {deliveryMethod === "pickup" && (
                 <p className="text-[#16A34A] text-xs mt-2">✓ Free pickup — no shipping fee</p>

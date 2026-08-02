@@ -5,23 +5,24 @@ import { useState, useMemo } from "react";
 import { useCart } from "@/lib/cart-context";
 import { products, formatPrice, categories } from "@/lib/products";
 
-function StarRating({ rating, count }: { rating: number; count: number }) {
-  return (
-    <div className="flex items-center gap-0.5">
-      {[1,2,3,4,5].map((i) => (
-        <svg key={i} className={`w-3 h-3 ${i <= Math.floor(rating) ? "text-yellow-400" : "text-gray-200"}`} fill="currentColor" viewBox="0 0 20 20">
-          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-        </svg>
-      ))}
-      <span className="text-gray-400 text-[11px] ml-0.5">({count})</span>
-    </div>
-  );
-}
-
-function ProductCard({ product, index, onAdd }: { product: typeof products[0]; index: number; onAdd: () => void }) {
-  const rating = 3.5 + (index % 3) * 0.5;
-  const reviewCount = (index * 7 + 12) % 50 + 5;
-
+/**
+ * There is deliberately no StarRating here.
+ *
+ * The version this replaces rendered stars and a review count on every card,
+ * both derived from the product's index in the array:
+ *
+ *   const rating = 3.5 + (index % 3) * 0.5;
+ *   const reviewCount = (index * 7 + 12) % 50 + 5;
+ *
+ * Not one review existed. The shop had never taken an order. Invented ratings
+ * are the same fault as the invented "Save AED 6" discount that used to sit on
+ * the product pages, and they carry real exposure under UAE Federal Law No. 15
+ * of 2020 on Consumer Protection.
+ *
+ * When there are genuine reviews, they can go back in reading from a reviews
+ * table. Until then a card shows no rating at all, which is the truth.
+ */
+function ProductCard({ product, onAdd }: { product: typeof products[0]; onAdd: () => void }) {
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const target = e.currentTarget;
     target.style.display = "none";
@@ -57,7 +58,6 @@ function ProductCard({ product, index, onAdd }: { product: typeof products[0]; i
         <Link href={"/shop/" + product.slug}>
           <h3 className="text-[13px] font-medium text-gray-800 leading-snug line-clamp-2 hover:text-[#16A34A] transition-colors mb-1">{product.name}</h3>
         </Link>
-        <StarRating rating={rating} count={reviewCount} />
         <div className="flex items-center justify-between mt-2">
           <span className="text-gray-900 font-bold text-base">{formatPrice(product.price)}</span>
           <button onClick={onAdd}
@@ -75,14 +75,55 @@ export default function HomePage() {
   const { addItem } = useCart();
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
+  const [honeypot, setHoneypot] = useState("");
 
-  const handleSubscribe = (e: React.FormEvent) => {
+  /**
+   * The old version of this set `subscribed` and stopped. It told the visitor
+   * to check their inbox for a welcome offer that did not exist, and every
+   * address typed into the box was discarded. It now posts to /api/newsletter,
+   * which stores the address, and it reports a failure as a failure.
+   */
+  const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email.trim()) { setSubscribed(true); setEmail(""); }
+    if (!email.trim() || sending) return;
+    setSending(true);
+    setError("");
+    try {
+      const r = await fetch("/api/newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, website: honeypot }),
+      });
+      if (!r.ok) {
+        const { error } = await r.json().catch(() => ({ error: "" }));
+        setError(error || "Something went wrong. Please try again.");
+        return;
+      }
+      setSubscribed(true);
+      setEmail("");
+    } catch {
+      setError("Could not reach the server. Please try again.");
+    } finally {
+      setSending(false);
+    }
   };
 
-  const bestSellers = products.slice(0, 8);
-  const newArrivals = products.slice(10, 18);
+  // Clearance is old phone-case stock being emptied, not part of the range, so
+  // it is kept out of both homepage grids the same way it is kept out of the
+  // category row. Without this filter it sorts first and led the homepage.
+  const puzzles = useMemo(
+    () => products.filter((p) => p.category !== "Clearance"),
+    []
+  );
+
+  // These are two slices of the catalogue, nothing more. They were previously
+  // labelled "Best Sellers" and "New Arrivals" on a shop that had never sold
+  // anything and where every product was listed on the same day. The headings
+  // below now say what these actually are.
+  const featured = puzzles.slice(0, 8);
+  const alsoMade = puzzles.slice(8, 16);
 
   return (
     <>
@@ -119,11 +160,14 @@ export default function HomePage() {
       <section className="bg-[#16A34A]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex flex-wrap items-center justify-center gap-6 text-white text-sm font-medium">
-            <span>🚚 Free shipping on orders over AED 300</span>
+            {/* These three must match the cart. They previously said AED 300 and
+                10-14 days, both left over from the dropship catalogue, while the
+                cart charged on a AED 150 threshold. */}
+            <span>🚚 Free UAE delivery over AED 150</span>
             <span className="hidden sm:inline text-white/40">|</span>
-            <span>💳 Free collection, or UAE delivery</span>
+            <span>💳 Free collection, or AED 20 UAE delivery</span>
             <span className="hidden sm:inline text-white/40">|</span>
-            <span>📦 Arrives in 10–14 days</span>
+            <span>📦 Ready in 2 to 3 days</span>
           </div>
         </div>
       </section>
@@ -185,21 +229,21 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Best Sellers */}
+      {/* A slice of the range. Not ranked by sales, and no longer claiming to be. */}
       <section className="bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h2 className="font-heading text-2xl lg:text-3xl font-semibold tracking-tight">Best Sellers</h2>
-              <p className="mt-1 text-gray-400 text-sm">Our most popular products right now</p>
+              <h2 className="font-heading text-2xl lg:text-3xl font-semibold tracking-tight">Popular Shapes</h2>
+              <p className="mt-1 text-gray-400 text-sm">Alphabet boards, animals and Montessori trays</p>
             </div>
             <Link href="/shop" className="text-[#16A34A] text-sm font-medium hover:underline hidden sm:block">
               View all →
             </Link>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-            {bestSellers.map((product, index) => (
-              <ProductCard key={product.slug} product={product} index={index} onAdd={() => addItem(product)} />
+            {featured.map((product) => (
+              <ProductCard key={product.slug} product={product} onAdd={() => addItem(product)} />
             ))}
           </div>
         </div>
@@ -216,8 +260,8 @@ export default function HomePage() {
                 </svg>
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900 mb-1">Free Shipping</h3>
-                <p className="text-gray-500 text-sm leading-relaxed">Free delivery on all orders over AED 300 across all Emirates.</p>
+                <h3 className="font-semibold text-gray-900 mb-1">Collection or Delivery</h3>
+                <p className="text-gray-500 text-sm leading-relaxed">Collect from the workshop free, or AED 20 anywhere in the UAE. Delivery is free over AED 150.</p>
               </div>
             </div>
             <div className="flex items-start gap-4 p-6 bg-gray-50 rounded-xl">
@@ -246,21 +290,22 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* New Arrivals */}
+      {/* The rest of the range. Every design was listed the same day, so there is
+          nothing here that is meaningfully newer than anything else. */}
       <section className="bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h2 className="font-heading text-2xl lg:text-3xl font-semibold tracking-tight">New Arrivals</h2>
-              <p className="mt-1 text-gray-400 text-sm">The latest additions to our collection</p>
+              <h2 className="font-heading text-2xl lg:text-3xl font-semibold tracking-tight">More From The Workshop</h2>
+              <p className="mt-1 text-gray-400 text-sm">Numbers, vehicles and build-it-yourself kits</p>
             </div>
             <Link href="/shop" className="text-[#16A34A] text-sm font-medium hover:underline hidden sm:block">
               View all →
             </Link>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-            {newArrivals.map((product, index) => (
-              <ProductCard key={product.slug} product={product} index={index + 10} onAdd={() => addItem(product)} />
+            {alsoMade.map((product) => (
+              <ProductCard key={product.slug} product={product} onAdd={() => addItem(product)} />
             ))}
           </div>
         </div>
@@ -271,13 +316,24 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="max-w-xl mx-auto text-center">
             <h2 className="font-heading text-2xl lg:text-3xl font-semibold tracking-tight mb-3">Stay in the Loop</h2>
-            <p className="text-gray-400 text-sm mb-8">Be the first to discover new arrivals, exclusive offers, and deals delivered to your inbox.</p>
+            <p className="text-gray-400 text-sm mb-8">New designs and workshop news, now and then. No offers you have not asked for.</p>
             {subscribed ? (
               <div className="bg-[#16A34A]/10 text-[#16A34A] p-4 rounded-lg font-medium">
-                ✓ You&apos;re subscribed! Check your inbox for a welcome offer.
+                ✓ You are on the list. We will email you when there is something new.
               </div>
             ) : (
               <form onSubmit={handleSubscribe} className="flex gap-2">
+                {/* Honeypot. Hidden from people, filled by bots. */}
+                <input
+                  type="text"
+                  name="website"
+                  value={honeypot}
+                  onChange={(e) => setHoneypot(e.target.value)}
+                  tabIndex={-1}
+                  autoComplete="off"
+                  aria-hidden="true"
+                  className="absolute left-[-9999px] w-px h-px opacity-0"
+                />
                 <input
                   type="email"
                   value={email}
@@ -286,11 +342,16 @@ export default function HomePage() {
                   className="flex-1 px-4 py-3 border border-gray-200 rounded-lg text-sm focus:border-[#16A34A] focus:ring-1 focus:ring-[#16A34A] outline-none"
                   required
                 />
-                <button type="submit" className="px-6 py-3 bg-[#16A34A] text-white rounded-lg text-sm font-semibold hover:bg-[#15803D] transition-colors whitespace-nowrap">
-                  Subscribe
+                <button
+                  type="submit"
+                  disabled={sending}
+                  className="px-6 py-3 bg-[#16A34A] text-white rounded-lg text-sm font-semibold hover:bg-[#15803D] transition-colors whitespace-nowrap disabled:opacity-60"
+                >
+                  {sending ? "Saving…" : "Subscribe"}
                 </button>
               </form>
             )}
+            {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
           </div>
         </div>
       </section>

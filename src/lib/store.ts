@@ -198,3 +198,21 @@ export const catalog = {
     if (error) throw error;
   },
 };
+
+// ───────────────────────── newsletter subscribers ─────────────────────────
+// Lives here rather than in the route so it shares db(), which resolves the
+// URL from SUPABASE_URL *or* NEXT_PUBLIC_SUPABASE_URL. The container only sets
+// the NEXT_PUBLIC_ one, so a route that read SUPABASE_URL directly threw
+// "supabaseUrl is required" on every signup.
+export const subscribers = {
+  /** Returns true if this created a new subscriber, false if already on the list. */
+  async add(email: string, source = "homepage"): Promise<boolean> {
+    const { error } = await db()
+      .from("newsletter_subscribers")
+      .insert({ email: email.trim().toLowerCase(), source });
+    // 23505 = unique violation on email. Subscribing twice is not a failure.
+    if (error && error.code === "23505") return false;
+    if (error) throw error;
+    return true;
+  },
+};
