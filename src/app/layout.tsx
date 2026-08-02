@@ -32,6 +32,7 @@ export const metadata: Metadata = {
     "personalised wooden toys",
     "handmade toys UAE",
     "UAE",
+    "Sharjah",
     "Dubai",
   ],
   openGraph: {

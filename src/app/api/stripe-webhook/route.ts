@@ -48,9 +48,14 @@ export async function POST(request: NextRequest) {
     const order = {
       stripe_session_id: session.id,
       stripe_payment_intent: (session.payment_intent as string) || "",
-      customer_name: session.customer_details?.name || "Customer",
-      customer_email: session.customer_details?.email || "",
-      customer_phone: session.customer_details?.phone || "",
+      // Prefer what the customer typed on our own form, carried through Stripe
+      // metadata. session.customer_details.phone is only populated when
+      // phone_number_collection is enabled on the session, so relying on it
+      // alone stored an empty phone on every order, and both Track Order and
+      // My Account look orders up by phone.
+      customer_name: metadata.customer_name || session.customer_details?.name || "Customer",
+      customer_email: session.customer_details?.email || metadata.customer_email || "",
+      customer_phone: metadata.customer_phone || session.customer_details?.phone || "",
       delivery_address: session.customer_details?.address?.line1 || "",
       emirate: metadata.emirate || "Dubai",
       subtotal: Number(metadata.subtotal) || total - shipping,

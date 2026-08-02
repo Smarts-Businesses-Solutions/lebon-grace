@@ -227,7 +227,7 @@ export default function ProductDetailPage() {
                       aria-pressed={isActive}
                       className={`group relative flex flex-col items-center gap-1.5 p-1.5 rounded-xl border-2 transition-all ${isActive ? "border-[#16A34A] bg-[#16A34A]/5" : "border-gray-200 hover:border-gray-300"}`}
                     >
-                      <div className="w-14 h-14 rounded-lg overflow-hidden bg-gray-50">
+                      <div className="relative w-14 h-14 rounded-lg overflow-hidden bg-gray-50">
                         <ProductImage src={v.image} alt={v.name} sizes="64px" className="object-contain" />
                       </div>
                       <span className={`text-[10px] font-medium truncate max-w-[60px] ${isActive ? "text-[#16A34A]" : "text-gray-500"}`} title={v.name}>{v.color || v.name}</span>
@@ -260,7 +260,7 @@ export default function ProductDetailPage() {
                       href={`/shop/${v.slug}`}
                       className={`group relative flex flex-col items-center gap-1.5 p-1.5 rounded-xl border-2 transition-all ${isActive ? "border-[#16A34A] bg-[#16A34A]/5" : "border-gray-200 hover:border-gray-300"}`}
                     >
-                      <div className="w-14 h-14 rounded-lg overflow-hidden bg-gray-50">
+                      <div className="relative w-14 h-14 rounded-lg overflow-hidden bg-gray-50">
                         <ProductImage src={v.image} alt={v.name} sizes="64px" className="object-contain" />
                       </div>
                       <span className={`text-[10px] font-medium text-center leading-tight max-w-[60px] truncate ${isActive ? "text-[#16A34A]" : "text-gray-500"}`}>{vLabel}</span>
@@ -386,7 +386,7 @@ export default function ProductDetailPage() {
             {/* MDF-specific action buttons */}
             {isMDF && (
               <div className="mt-3 space-y-2">
-                <p className="text-[11px] text-gray-400 uppercase tracking-wider font-medium">Locally Made — Dubai, UAE</p>
+                <p className="text-[11px] text-gray-400 uppercase tracking-wider font-medium">Locally Made in Dubai, UAE</p>
                 <Link
                   href={"/contact?subject=Custom+MDF+Design&product=" + encodeURIComponent(slug)}
                   className="flex items-center gap-3 w-full px-4 py-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:border-[#16A34A] hover:text-[#16A34A] transition-colors"
@@ -462,7 +462,25 @@ export default function ProductDetailPage() {
               </div>
               <div className="flex items-start gap-2.5">
                 <svg className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg>
-                <div><p className="text-xs font-medium text-gray-700">Pickup: Free</p><p className="text-[11px] text-gray-400">Dubai, UAE</p></div>
+                <div><p className="text-xs font-medium text-gray-700">Pickup: Free</p><p className="text-[11px] text-gray-400">Dubai. We send the exact location on WhatsApp or email when your piece is ready.</p></div>
+              </div>
+              {/* The card previously listed pickup only, so a customer who could
+                  not collect had no idea what delivery cost until the cart. All
+                  three options are shown here. */}
+              <div className="flex items-start gap-2.5">
+                <svg className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375c-.621 0-1.125-.504-1.125-1.125V14.25m17.25 4.5v-3.375c0-.621-.504-1.125-1.125-1.125H17.25m0 0V6.375c0-.621-.504-1.125-1.125-1.125H7.875c-.621 0-1.125.504-1.125 1.125v5.25" /></svg>
+                <div><p className="text-xs font-medium text-gray-700">UAE delivery: AED 20</p><p className="text-[11px] text-gray-400">Free on orders over AED 150. Arrives 1 to 2 days after your piece is finished.</p></div>
+              </div>
+              <div className="flex items-start gap-2.5">
+                <svg className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9 9 0 100-18 9 9 0 000 18zm0 0c2.5-2.5 3.75-5.5 3.75-9S14.5 5.5 12 3m0 18c-2.5-2.5-3.75-5.5-3.75-9S9.5 5.5 12 3M3.6 9h16.8M3.6 15h16.8" /></svg>
+                <div>
+                  <p className="text-xs font-medium text-gray-700">International: quoted</p>
+                  <p className="text-[11px] text-gray-400">
+                    We ship worldwide.{" "}
+                    <Link href="/contact" className="text-[#16A34A] hover:underline">Ask for a quote</Link>{" "}
+                    with your country before ordering. Any customs or import charges are yours to pay.
+                  </p>
+                </div>
               </div>
               <hr className="border-gray-100" />
               <div className="flex items-start gap-2.5">
@@ -590,7 +608,7 @@ export default function ProductDetailPage() {
         {isMDF && activeTab === "how-its-made" && (
           <div className="max-w-3xl space-y-8">
             <div>
-              <h4 className="text-base font-semibold text-gray-800 mb-3">From Design to Your Door — Made in Dubai</h4>
+              <h4 className="text-base font-semibold text-gray-800 mb-3">From Design to Your Door, Made in Dubai</h4>
               <p className="text-sm text-gray-600 leading-relaxed">
                 Every MDF product is designed and laser-cut right here in our Dubai workshop. We use precision laser technology to transform raw MDF sheets into the beautiful shapes and structures you see in our catalog.
               </p>
@@ -723,7 +741,10 @@ export default function ProductDetailPage() {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             {related.map((p) => (
               <Link key={p.slug} href={"/shop/" + p.slug} className="group bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
-                <div className="aspect-square overflow-hidden bg-gray-50">
+                {/* relative is mandatory: <Image fill> positions against the
+                    nearest positioned ancestor, so without it the image escapes
+                    this card and blankets the page, covering Add to Cart. */}
+                <div className="relative aspect-square overflow-hidden bg-gray-50">
                   <ProductImage src={p.imageUrl} alt={p.name} sizes="(min-width: 1024px) 300px, 45vw" className="object-cover group-hover:scale-105 transition-transform duration-500" />
                 </div>
                 <div className="p-3">

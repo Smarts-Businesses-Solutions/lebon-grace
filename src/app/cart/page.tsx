@@ -7,7 +7,7 @@ import { formatPrice } from "@/lib/products";
 import CartRecoveryBanner from "@/components/CartRecoveryBanner";
 
 export default function CartPage() {
-  const { items, removeItem, updateQuantity, deliveryMethod, setDeliveryMethod, subtotal, shipping, total, depositNow, payOnDelivery } = useCart();
+  const { items, removeItem, updateQuantity, deliveryMethod, setDeliveryMethod, subtotal, shipping, total, depositNow } = useCart();
 
   if (items.length === 0) {
     return (
@@ -145,19 +145,17 @@ export default function CartPage() {
               </div>
             </div>
 
-            {/* Payment Breakdown */}
+            {/* This was a two-line split, "Pay now (card)" over "Pay on
+                delivery", left from the 50/50 deposit model. payOnDelivery is
+                hardcoded to 0 in cart-context, so every basket showed a
+                meaningless "Pay on delivery AED 0" row. Same remnant as the one
+                removed from the account page. */}
             <div className="mt-4 p-4 bg-gray-50 rounded-xl">
               <p className="text-xs text-gray-700 font-semibold mb-2">Made to Order</p>
-              <div className="space-y-1.5 text-xs text-gray-500">
-                <div className="flex justify-between">
-                  <span>Pay now (card)</span>
-                  <span className="text-gray-900 font-medium">{formatPrice(depositNow)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Pay on delivery</span>
-                  <span className="text-gray-900 font-medium">{formatPrice(payOnDelivery)}</span>
-                </div>
-              </div>
+              <p className="text-xs text-gray-500 leading-relaxed">
+                You pay the full {formatPrice(depositNow)} now by card. We start cutting your
+                piece once payment clears, and it is ready in 2 to 3 working days.
+              </p>
             </div>
 
             <Link

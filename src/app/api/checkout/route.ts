@@ -14,13 +14,20 @@ export async function POST(request: NextRequest) {
   if (limited) return limited;
 
   const body = await request.json();
-  const { items, shipping, deliveryMethod, emirate } = body as {
+  const { items, shipping, deliveryMethod, emirate, customer } = body as {
     items: Array<{ name: string; price: number; quantity: number; image?: string; slug?: string; personalisation?: string }>;
     subtotal: number;
     shipping: number;
     deliveryMethod: string;
     emirate?: string;
+    customer?: { email?: string; phone?: string; name?: string };
   };
+
+  // Trimmed and capped: these are echoed into Stripe metadata and then into the
+  // order the workshop reads, so they are not trusted at whatever length arrives.
+  const custEmail = String(customer?.email || "").trim().slice(0, 200);
+  const custPhone = String(customer?.phone || "").trim().slice(0, 32);
+  const custName = String(customer?.name || "").trim().slice(0, 120);
 
   if (!items || items.length === 0) {
     return NextResponse.json({ error: "Items required" }, { status: 400 });
@@ -61,7 +68,20 @@ export async function POST(request: NextRequest) {
   const codAmount = 0;
 
   try {
-    // Build line items for Stripe — each product at 50% of its price
+    // Stripe requires product images to be absolute URLs. The catalogue stores
+    // them site-relative ("/images/lasercut/x.png"), so passing them straight
+    // through made every session create fail with
+    //   500 {"error":"Not a valid URL"}
+    // and no customer could reach the payment page at all. Anything already
+    // absolute (a CDN URL) is left alone.
+    const absoluteImage = (src?: string): string[] => {
+      if (!src) return [];
+      if (/^https?:\/\//i.test(src)) return [src];
+      return [`${getAppUrl()}${src.startsWith("/") ? "" : "/"}${src}`];
+    };
+
+    // Build line items for Stripe. Orders are charged in full at checkout; the
+    // 50% deposit model this once described was removed.
     // Stripe unit_amount is in fils (1 AED = 100 fils)
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = validatedItems.map(
       (item: { name: string; price: number; quantity: number; image?: string; slug?: string; personalisation?: string }) => ({
@@ -71,7 +91,7 @@ export async function POST(request: NextRequest) {
             // The engraved name rides on the line item so it appears on the
             // Stripe receipt and in the order the workshop actually reads.
             name: item.personalisation ? `${item.name} (engraved: ${item.personalisation})` : item.name,
-            images: item.image ? [item.image] : [],
+            images: absoluteImage(item.image),
             metadata: {
               brand: "lebon-grace",
               entity: "shop-lebon-grace",
@@ -85,7 +105,7 @@ export async function POST(request: NextRequest) {
       })
     );
 
-    // Add shipping as separate line item (also at 50%)
+    // Delivery as its own line item, charged in full.
     if (shipping && shipping > 0) {
       lineItems.push({
         price_data: {
@@ -104,6 +124,8 @@ export async function POST(request: NextRequest) {
       payment_method_types: ["card"],
       line_items: lineItems,
       mode: "payment",
+      // Prefills Stripe's email field, so the customer does not type it twice.
+      ...(custEmail ? { customer_email: custEmail } : {}),
       payment_intent_data: {
         statement_descriptor_suffix: "LBGRACE",
         metadata: {
@@ -117,6 +139,8 @@ export async function POST(request: NextRequest) {
           cod_balance: String(codAmount),
           delivery_method: deliveryMethod || "delivery",
           emirate: emirate || "Dubai",
+          customer_name: custName,
+          customer_phone: custPhone,
         },
       },
       success_url: `${getAppUrl()}/checkout?success=true&session_id={CHECKOUT_SESSION_ID}`,
@@ -130,6 +154,11 @@ export async function POST(request: NextRequest) {
         cod_balance: String(codAmount),
         delivery_method: deliveryMethod || "delivery",
         emirate: emirate || "Dubai",
+        // The webhook reads these. session.customer_details.phone is empty
+        // unless phone_number_collection is on, and we already asked the
+        // customer for it on our own form.
+        customer_name: custName,
+        customer_phone: custPhone,
       },
     });
 

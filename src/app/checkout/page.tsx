@@ -66,6 +66,17 @@ export default function CheckoutPage() {
           shipping: shipping,
           deliveryMethod: deliveryMethod,
           emirate: form.emirate,
+          // The customer's own details were never sent. Stripe therefore asked
+          // for the email a second time on its own page, and phone was never
+          // captured at all: customer_details.phone is only populated when
+          // phone_number_collection is enabled, so every order stored an empty
+          // phone. Track Order and My Account both look orders up BY phone, so
+          // neither could ever have matched a real order.
+          customer: {
+            email: form.email.trim(),
+            phone: form.phone.trim(),
+            name: `${form.firstName.trim()} ${form.lastName.trim()}`.trim(),
+          },
         }),
       });
       
@@ -124,6 +135,14 @@ export default function CheckoutPage() {
       <h1 className="font-heading text-3xl lg:text-4xl font-semibold tracking-tight mb-8">Checkout</h1>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
         <form onSubmit={handleSubmit} className="lg:col-span-2 space-y-6">
+          {/* First and last name live here, not in the delivery block.
+              validate() requires them unconditionally, but they used to render
+              only when deliveryMethod === "delivery". Pickup is the DEFAULT, so
+              on the default path the customer filled everything visible, hit
+              Pay, and validation failed on two fields that were not on screen
+              with error messages inside the hidden block. The button did nothing
+              and said nothing. No pickup order could ever be placed.
+              We also need a name for pickup: it is who we hand the piece to. */}
           <div>
             <h2 className="font-heading text-lg font-semibold tracking-tight mb-4">Contact Information</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -137,13 +156,6 @@ export default function CheckoutPage() {
                 <input type="tel" name="phone" value={form.phone} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-border rounded-sm text-sm text-dark focus:outline-none focus:border-sand transition-colors" placeholder="+971 50 123 4567" />
                 {errors.phone && <p className="mt-1 text-red-500 text-xs">{errors.phone}</p>}
               </div>
-            </div>
-          </div>
-
-          {deliveryMethod === "delivery" && (
-          <div>
-            <h2 className="text-lg font-semibold tracking-tight mb-4">Delivery Address</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs text-charcoal tracking-wide mb-1.5">First Name *</label>
                 <input type="text" name="firstName" value={form.firstName} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-border rounded-sm text-sm text-dark focus:outline-none focus:border-sand transition-colors" />
@@ -154,6 +166,13 @@ export default function CheckoutPage() {
                 <input type="text" name="lastName" value={form.lastName} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-border rounded-sm text-sm text-dark focus:outline-none focus:border-sand transition-colors" />
                 {errors.lastName && <p className="mt-1 text-red-500 text-xs">{errors.lastName}</p>}
               </div>
+            </div>
+          </div>
+
+          {deliveryMethod === "delivery" && (
+          <div>
+            <h2 className="text-lg font-semibold tracking-tight mb-4">Delivery Address</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="sm:col-span-2">
                 <label className="block text-xs text-charcoal tracking-wide mb-1.5">Address *</label>
                 <input type="text" name="address" value={form.address} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-border rounded-sm text-sm text-dark focus:outline-none focus:border-sand transition-colors" placeholder="Street address" />
@@ -179,22 +198,19 @@ export default function CheckoutPage() {
           )}
 
           <div>
-            <h2 className="text-lg font-semibold tracking-tight mb-4">Payment Method</h2>
-            <div className="space-y-3">
-              <label className="flex items-center gap-3 p-4 bg-white border border-border rounded-sm cursor-pointer hover:border-sand/40 transition-colors">
-                <input type="radio" name="paymentMethod" value="card" checked={form.paymentMethod === "card"} onChange={handleChange} className="accent-[#C9A96E]" />
-                <div>
-                  <p className="text-sm font-medium text-charcoal">Credit Card (Stripe)</p>
-                  <p className="text-xs text-warm-gray mt-0.5">Pay {formatPrice(depositNow)} now via secure card payment</p>
-                </div>
-              </label>
-              <label className="flex items-center gap-3 p-4 bg-white border border-border rounded-sm cursor-pointer hover:border-sand/40 transition-colors">
-                <input type="radio" name="paymentMethod" value="cod" checked={form.paymentMethod === "cod"} onChange={handleChange} className="accent-[#C9A96E]" />
-                <div>
-                  <p className="text-sm font-medium text-charcoal">Cash on Delivery</p>
-                  <p className="text-xs text-warm-gray mt-0.5">Paid in full. Ready to collect in 2 to 3 working days.</p>
-                </div>
-              </label>
+            {/* There was a "Cash on Delivery" radio here, described as "Paid in
+                full", which is a contradiction on its face. Worse, it did
+                nothing: paymentMethod is never read by /api/checkout and the
+                client does not branch on it either, so choosing Cash on
+                Delivery still created a Stripe session and sent the customer to
+                a card payment page. Card is the only method, so the choice is
+                gone rather than left there as a lie. */}
+            <h2 className="text-lg font-semibold tracking-tight mb-4">Payment</h2>
+            <div className="p-4 bg-white border border-border rounded-sm">
+              <p className="text-sm font-medium text-charcoal">Credit or debit card</p>
+              <p className="text-xs text-warm-gray mt-0.5">
+                You will pay {formatPrice(depositNow)} on Stripe&apos;s secure page. We never see your card details.
+              </p>
             </div>
           </div>
 
@@ -202,7 +218,12 @@ export default function CheckoutPage() {
             <label className="flex items-start gap-3 cursor-pointer">
               <input type="checkbox" name="termsAccepted" checked={form.termsAccepted} onChange={handleChange} className="mt-0.5 accent-[#C9A96E]" />
               <span className="text-xs text-warm-gray leading-relaxed">
-                I agree to the <Link href="/terms" className="text-sand hover:text-sand-dark underline">Terms of Service</Link> and <Link href="/privacy" className="text-sand hover:text-sand-dark underline">Privacy Policy</Link>. I understand that each piece is made to order and cannot be returned unless faulty, and that the full order total is charged now. All orders are final — no cancellations or refunds.
+                {/* This used to end "All orders are final — no cancellations or
+                    refunds", which contradicts Terms section 6: we refund in
+                    full if cutting has not started, and replace faulty pieces
+                    free within 7 days. Consent text that overstates the
+                    restriction is not enforceable and reads as a trap. */}
+                I agree to the <Link href="/terms" className="text-sand hover:text-sand-dark underline">Terms of Service</Link> and <Link href="/privacy" className="text-sand hover:text-sand-dark underline">Privacy Policy</Link>. I understand each piece is made to order, that the full total is charged now, and that I cannot return it simply because I change my mind. If you have not started cutting, you will cancel and refund me in full. If it arrives faulty or damaged, you will replace it free within 7 days.
               </span>
             </label>
             {errors.terms && <p className="mt-1 text-red-500 text-xs">{errors.terms}</p>}

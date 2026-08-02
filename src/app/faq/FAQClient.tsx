@@ -36,7 +36,7 @@ const faqs = [
   },
   {
     question: "Can I pick up my order instead of delivery?",
-    answer: "Yes, and it is free. Pickup is selected by default at checkout. We will message you on WhatsApp when your piece is ready to collect.",
+    answer: "Yes, and it is free. Pickup is selected by default at checkout. Collection is in Dubai, and we send you the exact location and a time on WhatsApp or by email once your piece is ready, which is 2 to 3 working days after you order. If Dubai is not convenient, choose delivery instead: AED 20 anywhere in the UAE, free over AED 150.",
   },
   {
     question: "What payment methods do you accept?",
