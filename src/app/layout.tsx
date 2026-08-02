@@ -15,29 +15,29 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Lebon Grace — Everyday Essentials, Beautifully Priced",
+  title: "Lebon Grace — Wooden Puzzles, Made to Order in the UAE",
   description:
-    "Affordable workspace, travel, home, jewelry, and drinkware accessories. Quality picks, honest prices. Made to order in our workshop. Free collection, or delivery across the UAE.",
+    "Wooden alphabet, number and Montessori puzzles for children, cut and finished by hand in our UAE workshop. Made to order, free name engraving, free collection.",
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon-16.png",
     apple: "/apple-touch-icon.png",
   },
   keywords: [
-    "affordable accessories",
-    "workspace accessories",
-    "travel accessories",
-    "home decor",
-    "jewelry storage",
-    "drinkware accessories",
+    "wooden puzzles",
+    "Montessori toys",
+    "alphabet puzzle",
+    "number puzzle",
+    "educational toys",
+    "personalised wooden toys",
+    "handmade toys UAE",
     "UAE",
     "Dubai",
-    "D2C",
   ],
   openGraph: {
-    title: "Lebon Grace — Everyday Essentials, Beautifully Priced",
+    title: "Lebon Grace — Wooden Puzzles, Made to Order in the UAE",
     description:
-      "Affordable workspace, travel, home, jewelry, and drinkware accessories. Quality picks, honest prices.",
+      "Wooden alphabet, number and Montessori puzzles for children, cut and finished by hand in our UAE workshop. Free name engraving.",
     type: "website",
     locale: "en_AE",
   },

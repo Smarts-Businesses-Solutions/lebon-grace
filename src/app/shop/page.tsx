@@ -368,13 +368,13 @@ function ShopContent() {
             <div className="text-center lg:text-left">
               <h1 className="text-3xl lg:text-4xl font-bold tracking-tight">Shop All Products</h1>
               <p className="mt-2 text-gray-300 text-sm lg:text-base max-w-lg">
-                Browse {products.length} everyday essentials across {categories.length} categories. All under AED 50.
+                {products.length} wooden puzzles, cut and finished by hand in our workshop. Every one made to order.
               </p>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-2 lg:gap-3">
-              <span className="px-3 py-1.5 bg-white/10 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap">🚚 Free Shipping</span>
+              <span className="px-3 py-1.5 bg-white/10 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap">🚚 Free Collection</span>
               <span className="px-3 py-1.5 bg-white/10 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap">💳 Made to Order</span>
-              <span className="px-3 py-1.5 bg-white/10 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap">📦 10-14 Days</span>
+              <span className="px-3 py-1.5 bg-white/10 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap">📦 Ready in 2 to 3 Days</span>
             </div>
           </div>
         </div>
@@ -497,7 +497,7 @@ function ShopContent() {
                 <div>
                   <div className="text-2xl mb-2">🚚</div>
                   <p className="text-sm font-medium text-gray-800">Free Pickup</p>
-                  <p className="text-xs text-gray-400 mt-0.5">Or AED 25 delivery</p>
+                  <p className="text-xs text-gray-400 mt-0.5">Or AED 20 UAE delivery, free over AED 150</p>
                 </div>
                 <div>
                   <div className="text-2xl mb-2">💳</div>
@@ -511,8 +511,8 @@ function ShopContent() {
                 </div>
                 <div>
                   <div className="text-2xl mb-2">📦</div>
-                  <p className="text-sm font-medium text-gray-800">All Sales Final</p>
-                  <p className="text-xs text-gray-400 mt-0.5">Review before buying</p>
+                  <p className="text-sm font-medium text-gray-800">Faulty? Replaced Free</p>
+                  <p className="text-xs text-gray-400 mt-0.5">Send a photo within 7 days</p>
                 </div>
               </div>
             </div>

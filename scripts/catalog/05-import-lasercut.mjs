@@ -61,7 +61,10 @@ if (missing.length) console.log("  MISSING:", missing.join(", "));
 
 // ── 2. retire the dropship catalog ──
 if (!DRY) {
-  const r = await fetch(`${SB}/rest/v1/products?hidden=is.false`, {
+  // Only retire the dropship range. Without the cj_pid filter this also hides
+  // anything added since (the clearance listing), and re-running the import
+  // would silently pull it off the site.
+  const r = await fetch(`${SB}/rest/v1/products?hidden=is.false&cj_pid=not.is.null`, {
     method: "PATCH", headers: { ...H, Prefer: "return=minimal" },
     body: JSON.stringify({ hidden: true }),
   });
@@ -71,7 +74,9 @@ if (!DRY) {
 // ── 3. upsert the new range ──
 const rows = spec.products.filter((p) => imageMap[p.slug]).map((p) => ({
   slug: p.slug,
-  name: p.hook.length < 60 ? titleFrom(p.slug) : titleFrom(p.slug),
+  // Explicit names: title-casing a slug produced "Abc Jigsaw Board" and
+  // "Montessori 3d Layer Puzzle".
+  name: p.name || titleFrom(p.slug),
   price: PRICE,
   category: p.category,
   stock: 999,                       // made to order: never out of stock
