@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCart } from "@/lib/cart-context";
+import { useCart, lineId} from "@/lib/cart-context";
 import { formatPrice } from "@/lib/products";
 import CartRecoveryBanner from "@/components/CartRecoveryBanner";
 
@@ -53,7 +53,7 @@ export default function CartPage() {
         {/* Cart Items */}
         <div className="lg:col-span-2 space-y-4">
           {items.map((item) => (
-            <div key={item.product.slug} className="flex gap-4 sm:gap-6 p-4 bg-white border border-gray-100 rounded-xl">
+            <div key={lineId(item)} className="flex gap-4 sm:gap-6 p-4 bg-white border border-gray-100 rounded-xl">
               <Link href={"/shop/" + item.product.slug} className="flex-shrink-0">
                 <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg overflow-hidden bg-gray-100">
                   <img src={item.product.imageUrl} alt={item.product.name} className="w-full h-full object-cover"
@@ -69,11 +69,11 @@ export default function CartPage() {
                 <p className="text-gray-900 text-sm font-semibold mt-2">{formatPrice(item.product.price)}</p>
                 <div className="mt-2 flex items-center justify-between">
                   <div className="flex items-center border border-gray-200 rounded-lg">
-                    <button onClick={() => updateQuantity(item.product.slug, item.quantity - 1)} className="px-2.5 py-1.5 text-gray-500 hover:text-gray-700 transition-colors text-sm">−</button>
+                    <button onClick={() => updateQuantity(lineId(item), item.quantity - 1)} className="px-2.5 py-1.5 text-gray-500 hover:text-gray-700 transition-colors text-sm">−</button>
                     <span className="px-3 py-1.5 text-sm font-medium">{item.quantity}</span>
-                    <button onClick={() => updateQuantity(item.product.slug, item.quantity + 1)} className="px-2.5 py-1.5 text-gray-500 hover:text-gray-700 transition-colors text-sm">+</button>
+                    <button onClick={() => updateQuantity(lineId(item), item.quantity + 1)} className="px-2.5 py-1.5 text-gray-500 hover:text-gray-700 transition-colors text-sm">+</button>
                   </div>
-                  <button onClick={() => removeItem(item.product.slug)} className="text-gray-400 text-xs hover:text-red-500 transition-colors">Remove</button>
+                  <button onClick={() => removeItem(lineId(item))} className="text-gray-400 text-xs hover:text-red-500 transition-colors">Remove</button>
                 </div>
               </div>
             </div>

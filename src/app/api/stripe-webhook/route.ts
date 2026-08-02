@@ -98,13 +98,18 @@ export async function POST(request: NextRequest) {
         .filter((li) => li.description !== "Shipping Fee")
         .map((li) => {
           const product = li.price?.product;
-          const slug = typeof product === "object" && product && "metadata" in product
-            ? (product as Stripe.Product).metadata?.slug || ""
-            : "";
+          const meta = typeof product === "object" && product && "metadata" in product
+            ? (product as Stripe.Product).metadata || {}
+            : {};
+          const slug = meta.slug || "";
+          // The engraved name is what the workshop needs to read off the order.
+          const personalisation = meta.personalisation || "";
           return {
             order_id: orderId,
             product_slug: slug,
-            product_name: li.description || "Product",
+            product_name: personalisation
+              ? `${li.description || "Product"} (engraved: ${personalisation})`
+              : (li.description || "Product"),
             // No doubling: the line item is charged at full price.
             price: (li.amount_total || 0) / 100 / (li.quantity || 1),
             quantity: li.quantity || 1,

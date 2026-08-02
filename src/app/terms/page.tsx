@@ -40,24 +40,24 @@ export default function TermsPage() {
         <div>
           <h2 className="font-heading text-xl font-semibold tracking-tight mb-3">4. Shipping and Delivery</h2>
           <p className="text-charcoal text-sm leading-relaxed">
-            We deliver to all seven emirates in the UAE. Standard delivery takes 10-14 business days. Free shipping is offered on orders over AED 300. A flat fee of AED 25 applies to orders under AED 300. We also offer a free pickup option — select "Pick up" at checkout and collect your order at no additional cost. Delivery times are estimates and may vary due to unforeseen circumstances.
+            Every piece is made to order. We cut, sand and finish your item within 2 to 3 working days and contact you as soon as it is ready. Collection from our workshop is free and is the default option at checkout. Delivery anywhere in the UAE is AED 20, and free on orders over AED 150. International delivery is available on request: contact us before ordering and we will quote for your country. Any customs duties or import charges outside the UAE are the responsibility of the recipient.
           </p>
         </div>
 
         <div>
           <h2 className="font-heading text-xl font-semibold tracking-tight mb-3">5. Returns and Refunds</h2>
           <p className="text-charcoal text-sm leading-relaxed">
-            Due to the nature of our business — sourcing affordable products directly from international suppliers — <strong>we do not offer returns or refunds</strong> once an order has been delivered. All sales are final. We are a small company committed to keeping prices as low as possible, and the cost of international return shipping would make returns impractical for both parties.
+            Every puzzle is cut and finished only after you order it, so it is made specifically for you. For that reason <strong>made-to-order items cannot be returned or exchanged if you simply change your mind</strong>. This includes any item personalised with a name, which cannot be resold to anyone else. Clearance items are different: they are existing stock and may be returned within 7 days, unused and in their original packaging.
           </p>
           <p className="text-charcoal text-sm leading-relaxed mt-3">
-            We encourage you to review product details, images, and sizing information carefully before placing your order. If you receive a damaged or incorrect item, please contact us within 48 hours of delivery with photos, and we will work with you to resolve the issue — including a replacement or store credit where applicable.
+            <strong>If anything arrives faulty, damaged or not what you ordered, we replace it free of charge.</strong> Send us a photo within 7 days of receiving it and we will make a new one and get it to you at no cost, with no need to return the original. Where a replacement is not possible we will refund you in full. Nothing here affects your statutory rights under UAE consumer protection law.
           </p>
         </div>
 
         <div>
           <h2 className="font-heading text-xl font-semibold tracking-tight mb-3">6. Order Modifications and Cancellations</h2>
           <p className="text-charcoal text-sm leading-relaxed">
-            <strong>All orders are final once placed.</strong> We do not offer modifications or cancellations. As a small company sourcing products from international suppliers, our fulfillment process begins immediately after an order is received to ensure the fastest possible delivery. Please review your order carefully before completing your purchase.
+            Because production starts soon after payment, please contact us as quickly as possible if you need to change or cancel an order. <strong>If we have not yet begun cutting your piece we will cancel it and refund you in full.</strong> Once the wood has been cut, or a name has been engraved, the item cannot be cancelled or refunded. If you have asked for personalisation, please check the spelling carefully at checkout: we engrave exactly what you give us.
           </p>
         </div>
 

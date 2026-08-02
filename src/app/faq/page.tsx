@@ -9,15 +9,15 @@ const faqs = [
   },
   {
     question: "How long does delivery take?",
-    answer: "All orders are delivered within 10-14 business days across the UAE. We ship to all seven emirates: Dubai, Abu Dhabi, Sharjah, Ajman, Ras Al Khaimah, Fujairah, and Umm Al Quwain. You will receive tracking information once your order has been dispatched.",
+    answer: "Every piece is made to order, so allow 2 to 3 working days for us to cut, sand and finish it. We will message you the moment it is ready. Collection from the workshop is free; UAE delivery usually arrives within 1 to 2 days after that.",
   },
   {
     question: "Is there free shipping?",
-    answer: "Yes, we offer free shipping on all orders over AED 300. For orders under AED 300, a flat shipping fee of AED 25 applies. You can also choose to pick up your order for free — select 'Pick up' at checkout and collect at no additional cost.",
+    answer: "Collection from our workshop is always free, and it is the option we recommend. UAE delivery is a flat AED 20, and free on orders over AED 150.",
   },
   {
     question: "What is your return policy?",
-    answer: "As a small company sourcing affordable products directly from international suppliers, we do not offer returns or refunds once an order has been delivered — all sales are final. This helps us keep our prices as low as possible. We encourage you to review product details carefully before ordering. If you receive a damaged or incorrect item, please contact us within 48 hours of delivery with photos, and we will arrange a replacement or store credit.",
+    answer: "Each puzzle is cut only after you order it, so made-to-order items cannot be returned if you simply change your mind. Personalised pieces cannot be returned either, since a name makes them yours alone. If anything arrives faulty, damaged or wrong, send us a photo within 7 days and we will make you a new one free of charge, with nothing to send back. Clearance items are existing stock and can be returned within 7 days, unused.",
   },
   {
     question: "Can I track my order?",
@@ -25,15 +25,15 @@ const faqs = [
   },
   {
     question: "Do you ship outside the UAE?",
-    answer: "Currently, we only deliver within the United Arab Emirates. We are working on expanding to other GCC countries in the future. Sign up for our newsletter to be the first to know when we expand.",
+    answer: "Yes, on request. Contact us before ordering with your country and what you would like, and we will quote for delivery. Any customs or import charges are the recipient's responsibility.",
   },
   {
     question: "Can I change or cancel my order?",
-    answer: "All orders are final once placed. As a small company sourcing products from international suppliers, we are unable to modify or cancel orders after they have been submitted. Our fulfillment process begins immediately to ensure fast delivery. Please review your cart and details carefully before completing your purchase.",
+    answer: "Contact us as soon as you can. If we have not started cutting your piece we will cancel it and refund you in full. Once the wood is cut, or a name engraved, we cannot cancel it. Please double check the spelling of any personalisation before you pay, because we engrave exactly what you give us.",
   },
   {
     question: "Can I pick up my order instead of delivery?",
-    answer: "Yes! We offer a free pickup option. Simply select 'Pick up' at checkout instead of 'Deliver to me'. You won't pay any shipping fee. We'll notify you via WhatsApp when your order is ready for collection.",
+    answer: "Yes, and it is free. Pickup is selected by default at checkout. We will message you on WhatsApp when your piece is ready to collect.",
   },
   {
     question: "What payment methods do you accept?",
@@ -41,7 +41,7 @@ const faqs = [
   },
   {
     question: "Are the product images accurate?",
-    answer: "We strive to represent our products as accurately as possible. Due to the handcrafted nature of some items, there may be slight variations in color, texture, or shape. These variations are part of what makes each piece unique.",
+    answer: "The photographs show pieces we have made. Because everything is cut and sanded by hand from natural material, the grain and tone of your piece will differ slightly. That variation is the point: no two are identical.",
   },
   {
     question: "How can I contact customer support?",

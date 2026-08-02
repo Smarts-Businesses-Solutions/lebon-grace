@@ -59,6 +59,7 @@ export default function CheckoutPage() {
             quantity: item.quantity,
             image: item.product.imageUrl,
             slug: item.product.slug,
+            personalisation: item.personalisation || undefined,
           })),
           subtotal: subtotal,
           shipping: shipping,

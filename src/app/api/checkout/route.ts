@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
 
   const body = await request.json();
   const { items, shipping, deliveryMethod, emirate } = body as {
-    items: Array<{ name: string; price: number; quantity: number; image?: string; slug?: string }>;
+    items: Array<{ name: string; price: number; quantity: number; image?: string; slug?: string; personalisation?: string }>;
     subtotal: number;
     shipping: number;
     deliveryMethod: string;
@@ -35,12 +35,17 @@ export async function POST(request: NextRequest) {
     if (!catalogProduct) {
       throw new Error(`Unknown product: ${item.slug}`);
     }
+    // Trim and cap the engraved name here too: the client limits it, but the
+    // client is not a security boundary and this string ends up on Stripe and
+    // in the workshop queue.
+    const engraved = String(item.personalisation || "").trim().slice(0, 20);
     return {
       ...item,
       name: catalogProduct.name,
       price: catalogProduct.price,
       image: catalogProduct.imageUrl,
       slug: item.slug,
+      personalisation: engraved || undefined,
     };
   });
 
@@ -59,16 +64,19 @@ export async function POST(request: NextRequest) {
     // Build line items for Stripe — each product at 50% of its price
     // Stripe unit_amount is in fils (1 AED = 100 fils)
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = validatedItems.map(
-      (item: { name: string; price: number; quantity: number; image?: string; slug?: string }) => ({
+      (item: { name: string; price: number; quantity: number; image?: string; slug?: string; personalisation?: string }) => ({
         price_data: {
           currency: "aed",
           product_data: {
-            name: item.name,
+            // The engraved name rides on the line item so it appears on the
+            // Stripe receipt and in the order the workshop actually reads.
+            name: item.personalisation ? `${item.name} (engraved: ${item.personalisation})` : item.name,
             images: item.image ? [item.image] : [],
             metadata: {
               brand: "lebon-grace",
               entity: "shop-lebon-grace",
               slug: item.slug || "",
+              personalisation: item.personalisation || "",
             },
           },
           unit_amount: Math.round(item.price * 100), // full price in fils

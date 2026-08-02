@@ -46,6 +46,10 @@ export default function ProductDetailPage() {
   const [added, setAdded] = useState(false);
   const [activeTab, setActiveTab] = useState<"description" | "specifications" | "shipping" | "how-its-made" | "customization" | "care-guide">("description");
   const [selectedImage, setSelectedImage] = useState(0);
+  // Personalisation is free and opt-in. Engraving makes the piece unreturnable,
+  // so it must be a deliberate choice, never a default.
+  const [wantsName, setWantsName] = useState(false);
+  const [engraveName, setEngraveName] = useState("");
   const [cjVariants, setCjVariants] = useState<{ sku: string; name: string; image: string; price: number; color?: string; size?: string }[]>([]);
   const [cjImages, setCjImages] = useState<string[]>([]);
   const [loadingVariants, setLoadingVariants] = useState(false);
@@ -113,7 +117,7 @@ export default function ProductDetailPage() {
         price: selectedCjVariant.price || product.price,
       } : {}),
     };
-    addItem(cartItem, quantity);
+    addItem(cartItem, quantity, wantsName ? engraveName.trim() : undefined);
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   };
@@ -316,6 +320,40 @@ export default function ProductDetailPage() {
               </div>
             </div>
           )}
+
+          {/* Personalisation: free, opt-in, and clear about the consequence */}
+          <div className="mb-5 p-4 border border-gray-200 rounded-xl bg-[#FAF8F5]">
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={wantsName}
+                onChange={(e) => { setWantsName(e.target.checked); if (!e.target.checked) setEngraveName(""); }}
+                className="mt-0.5 w-4 h-4 accent-[#C9A96E]"
+              />
+              <span className="text-sm text-gray-800">
+                Engrave a name on it
+                <span className="ml-2 text-[11px] font-semibold uppercase tracking-wider text-[#16A34A]">Free</span>
+                <span className="block text-xs text-gray-500 mt-0.5">
+                  Adds nothing to the price or the making time.
+                </span>
+              </span>
+            </label>
+            {wantsName && (
+              <div className="mt-3 pl-7">
+                <input
+                  type="text"
+                  value={engraveName}
+                  onChange={(e) => setEngraveName(e.target.value.slice(0, 20))}
+                  placeholder="e.g. Amira"
+                  maxLength={20}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-[#C9A96E] focus:ring-2 focus:ring-[#C9A96E]/20 outline-none"
+                />
+                <p className="text-xs text-gray-500 mt-1.5">
+                  We engrave exactly what you type, so please check the spelling. Personalised pieces cannot be returned unless faulty.
+                </p>
+              </div>
+            )}
+          </div>
 
           {/* Quantity + Add to Cart */}
           <div className="mt-6 flex flex-col gap-3">

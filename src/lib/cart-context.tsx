@@ -16,15 +16,26 @@ export type DeliveryMethod = "pickup" | "delivery";
 export interface CartItem {
   product: Product;
   quantity: number;
+  /** Name to engrave. Free and optional; empty means no personalisation. */
+  personalisation?: string;
+}
+
+/**
+ * Cart lines are keyed by this, not by slug alone: the same puzzle ordered
+ * twice with two different names is two different products to make, and must
+ * not collapse into one line with quantity 2.
+ */
+export function lineId(item: CartItem): string {
+  return item.personalisation ? `${item.product.slug}::${item.personalisation}` : item.product.slug;
 }
 
 interface CartContextType {
   items: CartItem[];
   deliveryMethod: DeliveryMethod;
   setDeliveryMethod: (method: DeliveryMethod) => void;
-  addItem: (product: Product, quantity?: number) => void;
-  removeItem: (slug: string) => void;
-  updateQuantity: (slug: string, quantity: number) => void;
+  addItem: (product: Product, quantity?: number, personalisation?: string) => void;
+  removeItem: (id: string) => void;
+  updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
   totalItems: number;
   subtotal: number;
@@ -118,32 +129,34 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [items, mounted]);
 
-  const addItem = useCallback((product: Product, quantity = 1) => {
+  const addItem = useCallback((product: Product, quantity = 1, personalisation?: string) => {
+    const incoming: CartItem = { product, quantity, personalisation: personalisation || undefined };
+    const id = lineId(incoming);
     setItems((prev) => {
-      const existing = prev.find((item) => item.product.slug === product.slug);
+      const existing = prev.find((item) => lineId(item) === id);
       if (existing) {
         return prev.map((item) =>
-          item.product.slug === product.slug
+          lineId(item) === id
             ? { ...item, quantity: Math.min(item.quantity + quantity, product.stock) }
             : item
         );
       }
-      return [...prev, { product, quantity: Math.min(quantity, product.stock) }];
+      return [...prev, { ...incoming, quantity: Math.min(quantity, product.stock) }];
     });
   }, []);
 
-  const removeItem = useCallback((slug: string) => {
-    setItems((prev) => prev.filter((item) => item.product.slug !== slug));
+  const removeItem = useCallback((id: string) => {
+    setItems((prev) => prev.filter((item) => lineId(item) !== id));
   }, []);
 
-  const updateQuantity = useCallback((slug: string, quantity: number) => {
+  const updateQuantity = useCallback((id: string, quantity: number) => {
     if (quantity <= 0) {
-      setItems((prev) => prev.filter((item) => item.product.slug !== slug));
+      setItems((prev) => prev.filter((item) => lineId(item) !== id));
       return;
     }
     setItems((prev) =>
       prev.map((item) =>
-        item.product.slug === slug
+        lineId(item) === id
           ? { ...item, quantity: Math.min(quantity, item.product.stock) }
           : item
       )
