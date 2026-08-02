@@ -35,8 +35,8 @@ export default function Footer() {
               LEBON GRACE
             </span>
             <p className="mt-4 text-warm-gray text-sm leading-relaxed max-w-xs">
-              Affordable workspace, travel, and home
-              accessories with quality picks and honest prices.
+              Wooden puzzles for children, cut and finished by hand in our
+              workshop. Made to order, with a name engraved free.
             </p>
             <div className="mt-6 flex gap-4">
               {/* Instagram */}
@@ -55,9 +55,9 @@ export default function Footer() {
               </a>
               {/* Email */}
               <a
-                href="mailto:care@lebon-grace.com"
+                href="/contact"
                 className="text-warm-gray hover:text-sand transition-colors"
-                aria-label="Email us"
+                aria-label="Contact us"
               >
                 <svg
                   className="h-5 w-5"

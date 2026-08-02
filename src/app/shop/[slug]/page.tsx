@@ -399,7 +399,7 @@ export default function ProductDetailPage() {
                   </div>
                 </Link>
                 <a
-                  href={"https://wa.me/971580000030?text=" + encodeURIComponent("Hi! I'm interested in custom MDF products like " + product.name + ". Can you help?")}
+                  href={"https://wa.me/971588286630?text=" + encodeURIComponent("Hi! I'm interested in custom MDF products like " + product.name + ". Can you help?")}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 w-full px-4 py-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:border-[#25D366] hover:text-[#25D366] transition-colors"
@@ -430,7 +430,7 @@ export default function ProductDetailPage() {
               { icon: "🚚", text: "Free collection, or AED 20 UAE delivery (free over AED 150)" },
               { icon: "🔒", text: "Secure payment via Stripe" },
               { icon: "⚡", text: "Ships within 2-3 business days" },
-              { icon: "💬", text: "WhatsApp support: +971 58 828 6630" },
+              { icon: "💬", text: "WhatsApp support, number shown on the contact page" },
             ].map((item, i) => (
               <div key={i} className="flex items-start gap-2.5">
                 <span className="text-sm mt-0.5">{item.icon}</span>
@@ -762,7 +762,7 @@ export default function ProductDetailPage() {
         </div>
         {isMDF && (
           <a
-            href={"https://wa.me/971580000030?text=" + encodeURIComponent("Hi! I'm interested in " + product.name + ". Can you help?")}
+            href={"https://wa.me/971588286630?text=" + encodeURIComponent("Hi! I'm interested in " + product.name + ". Can you help?")}
             target="_blank"
             rel="noopener noreferrer"
             className="p-2.5 bg-[#25D366] text-white rounded-lg hover:bg-[#1da855] transition-colors flex-shrink-0"

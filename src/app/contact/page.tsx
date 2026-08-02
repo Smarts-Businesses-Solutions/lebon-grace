@@ -4,6 +4,10 @@ import { useState } from "react";
 import Link from "next/link";
 
 export default function ContactPage() {
+  // Honeypot. Hidden from people, filled in by most naive bots. The API
+  // silently accepts and discards anything that arrives with it set.
+  const [honeypot, setHoneypot] = useState("");
+
   const [form, setForm] = useState({
     name: "", email: "", phone: "+971 ", subject: "General Inquiry", message: "",
   });
@@ -30,11 +34,26 @@ export default function ContactPage() {
     const ne = validate();
     if (Object.keys(ne).length > 0) { setErrors(ne); return; }
     setSending(true);
-    // Simulate send
-    setTimeout(() => {
-      setSending(false);
-      setSent(true);
-    }, 1500);
+    // Actually send it. This used to be a setTimeout that showed "sent" while
+    // discarding the message, so every enquiry was silently lost.
+    (async () => {
+      try {
+        const res = await fetch("/api/contact", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...form, website: honeypot }),
+        });
+        if (res.ok) setSent(true);
+        else {
+          const d = await res.json().catch(() => ({}));
+          setErrors({ form: d.error || "Could not send. Please try again." });
+        }
+      } catch {
+        setErrors({ form: "Could not send. Please check your connection." });
+      } finally {
+        setSending(false);
+      }
+    })();
   };
 
   if (sent) {
@@ -72,6 +91,16 @@ export default function ContactPage() {
           {/* Contact Form */}
           <div className="lg:col-span-2">
             <form onSubmit={handleSubmit} className="space-y-5">
+              <input
+                type="text"
+                name="website"
+                value={honeypot}
+                onChange={(e) => setHoneypot(e.target.value)}
+                tabIndex={-1}
+                autoComplete="off"
+                aria-hidden="true"
+                className="absolute left-[-9999px] w-px h-px opacity-0"
+              />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-xs text-gray-600 tracking-wide mb-1.5">Full Name *</label>
@@ -115,6 +144,13 @@ export default function ContactPage() {
                 {errors.message && <p className="mt-1 text-red-500 text-xs">{errors.message}</p>}
               </div>
 
+              {/* A failed send must say so. The old form always claimed
+                  success, so nobody ever knew a message had not arrived. */}
+              {errors.form && (
+                <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-4 py-3">
+                  {errors.form}
+                </p>
+              )}
               <button type="submit" disabled={sending}
                 className="px-8 py-3.5 bg-[#16A34A] text-white text-sm font-semibold rounded-xl hover:bg-[#15803D] transition-colors disabled:opacity-60">
                 {sending ? "Sending..." : "Send Message"}
@@ -136,7 +172,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-900">Email</p>
-                    <a href="mailto:care@lebon-grace.com" className="text-sm text-gray-500 hover:text-[#16A34A] transition-colors">care@lebon-grace.com</a>
+                    <a href="/contact" className="text-sm text-gray-500 hover:text-[#16A34A] transition-colors">our contact form</a>
                   </div>
                 </div>
 

@@ -106,7 +106,7 @@ export default function AccountClient() {
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+971 58 828 6630"
+                  placeholder="WhatsApp us"
                   className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-[#C9A96E] focus:ring-2 focus:ring-[#C9A96E]/20 outline-none transition-all"
                 />
               </div>
