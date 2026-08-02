@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useMemo } from "react";
 import { useCart } from "@/lib/cart-context";
+import ProductImage from "@/components/ProductImage";
 import { products, formatPrice, categories } from "@/lib/products";
 
 /**
@@ -23,34 +24,34 @@ import { products, formatPrice, categories } from "@/lib/products";
  * table. Until then a card shows no rating at all, which is the truth.
  */
 function ProductCard({ product, onAdd }: { product: typeof products[0]; onAdd: () => void }) {
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    const target = e.currentTarget;
-    target.style.display = "none";
-    const parent = target.parentElement;
-    if (parent) {
-      parent.style.backgroundColor = product.imagePlaceholder.bg;
-      parent.style.display = "flex";
-      parent.style.alignItems = "center";
-      parent.style.justifyContent = "center";
-      const span = document.createElement("span");
-      span.className = "font-bold text-2xl opacity-60";
-      const isLight = product.imagePlaceholder.bg === "#C9A96E" || product.imagePlaceholder.bg === "#D4BA85";
-      span.style.color = isLight ? "#2D2D2D" : "#FAF8F5";
-      span.textContent = product.imagePlaceholder.initials;
-      parent.appendChild(span);
-    }
-  };
+  // The hand-rolled onError handler that used to live here reached into the DOM
+  // to hide the img, restyle its parent and append a span of initials.
+  // ProductImage renders nothing on failure, so the container's own background
+  // shows through and the placeholder is plain CSS below.
+  const ph = product.imagePlaceholder;
+  const isLight = ph.bg === "#C9A96E" || ph.bg === "#D4BA85";
 
   return (
     <div className="group bg-white rounded-xl overflow-hidden border border-gray-100 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
       <Link href={"/shop/" + product.slug} className="block">
-        <div className="aspect-square overflow-hidden bg-gray-50">
-          <img
+        {/* relative is required: ProductImage fills its nearest positioned
+            ancestor. The initials sit underneath and are revealed only if the
+            image fails to load, which replaces the old imperative fallback. */}
+        <div
+          className="relative aspect-square overflow-hidden flex items-center justify-center"
+          style={{ backgroundColor: ph.bg }}
+        >
+          <span
+            className="font-bold text-2xl opacity-60"
+            style={{ color: isLight ? "#2D2D2D" : "#FAF8F5" }}
+          >
+            {ph.initials}
+          </span>
+          <ProductImage
             src={product.imageUrl}
             alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            loading="lazy"
-            onError={handleImageError}
+            sizes="(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw"
+            className="object-cover group-hover:scale-105 transition-transform duration-500"
           />
         </div>
       </Link>
@@ -196,9 +197,9 @@ export default function HomePage() {
               const count = products.filter(p => p.category === cat.name).length;
               return (
                 <Link key={cat.name} href={"/shop?category=" + encodeURIComponent(cat.name)} className="group flex flex-col items-center gap-3 text-center">
-                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden bg-gray-100 border-2 border-gray-100 group-hover:border-[#16A34A] group-hover:shadow-md transition-all duration-200">
+                  <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden bg-gray-100 border-2 border-gray-100 group-hover:border-[#16A34A] group-hover:shadow-md transition-all duration-200">
                     {categoryImage ? (
-                      <img src={categoryImage} alt={cat.name} className="w-full h-full object-cover" loading="lazy" />
+                      <ProductImage src={categoryImage} alt={cat.name} sizes="96px" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-gray-100 text-2xl">{cat.icon}</div>
                     )}

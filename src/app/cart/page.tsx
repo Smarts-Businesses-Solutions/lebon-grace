@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import ProductImage from "@/components/ProductImage";
 import { useCart, lineId, UAE_DELIVERY, FREE_DELIVERY_OVER} from "@/lib/cart-context";
 import { formatPrice } from "@/lib/products";
 import CartRecoveryBanner from "@/components/CartRecoveryBanner";
@@ -57,10 +58,8 @@ export default function CartPage() {
           {items.map((item) => (
             <div key={lineId(item)} className="flex gap-4 sm:gap-6 p-4 bg-white border border-gray-100 rounded-xl">
               <Link href={"/shop/" + item.product.slug} className="flex-shrink-0">
-                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg overflow-hidden bg-gray-100">
-                  <img src={item.product.imageUrl} alt={item.product.name} className="w-full h-full object-cover"
-                    onError={(e) => { e.currentTarget.style.display = "none"; }}
-                  />
+                <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-lg overflow-hidden bg-gray-100">
+                  <ProductImage src={item.product.imageUrl} alt={item.product.name} sizes="96px" />
                 </div>
               </Link>
               <div className="flex-1 min-w-0">

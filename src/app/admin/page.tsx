@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import ProductImage from "@/components/ProductImage";
 import Link from "next/link";
 import OperationsDashboard from "@/components/OperationsDashboard";
 
@@ -246,7 +247,12 @@ export default function AdminPage() {
                     ) : filteredProducts.map((p) => (
                       <tr key={p.slug} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
                         <td className="px-5 py-3"><div className="flex items-center gap-3">
-                          <img src={p.imageUrl} alt={p.name} className="w-10 h-10 rounded-lg object-cover bg-gray-100 flex-shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                          {/* This table lists the whole catalogue, so it pulled a
+                              full-size original per row. At 40px rendered that
+                              was the heaviest page on the site. */}
+                          <div className="relative w-10 h-10 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                            <ProductImage src={p.imageUrl} alt={p.name} sizes="40px" />
+                          </div>
                           {editSlug === p.slug ? <input value={editName} onChange={(e) => setEditName(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm w-full focus:border-[#16A34A] outline-none" /> : <span className="text-gray-800 font-medium text-sm">{p.name}</span>}
                         </div></td>
                         <td className="px-5 py-3">{editSlug === p.slug ? (

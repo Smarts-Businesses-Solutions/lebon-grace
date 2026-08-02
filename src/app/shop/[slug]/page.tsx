@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import ProductImage from "@/components/ProductImage";
 import WhatsAppLink from "@/components/WhatsAppLink";
 import { useParams } from "next/navigation";
 import { useState, useEffect, useMemo } from "react";
@@ -152,36 +153,33 @@ export default function ProductDetailPage() {
         {/* ─── Image Gallery ─── */}
         <div className="lg:col-span-5">
           {/* Main image */}
-          <div className="aspect-square rounded-2xl overflow-hidden bg-gray-50 border border-gray-100">
-            <img
+          {/* Placeholder initials sit beneath the image rather than being
+              appended to the DOM by an onError handler. */}
+          <div
+            className="relative aspect-square rounded-2xl overflow-hidden border border-gray-100 flex items-center justify-center"
+            style={{ backgroundColor: product.imagePlaceholder.bg }}
+          >
+            <span
+              className="text-7xl font-bold opacity-60"
+              style={{ color: ["#C9A96E", "#D4BA85"].includes(product.imagePlaceholder.bg) ? "#2D2D2D" : "#FAF8F5" }}
+            >
+              {product.imagePlaceholder.initials}
+            </span>
+            <ProductImage
               src={images[selectedImage]}
               alt={product.name}
-              className="w-full h-full object-contain"
-              loading="eager"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = "none";
-                const parent = target.parentElement;
-                if (parent) {
-                  parent.style.backgroundColor = product.imagePlaceholder.bg;
-                  parent.style.display = "flex";
-                  parent.style.alignItems = "center";
-                  parent.style.justifyContent = "center";
-                  const span = document.createElement("span");
-                  span.className = "text-7xl font-bold opacity-60";
-                  span.style.color = ["#C9A96E", "#D4BA85"].includes(product.imagePlaceholder.bg) ? "#2D2D2D" : "#FAF8F5";
-                  span.textContent = product.imagePlaceholder.initials;
-                  parent.appendChild(span);
-                }
-              }}
+              sizes="(min-width: 1024px) 560px, 100vw"
+              className="object-contain"
+              priority
+             
             />
           </div>
           {/* Thumbnail strip */}
           {images.length > 1 && (
             <div className="flex gap-2 mt-3">
               {images.map((img, i) => (
-                <button key={i} onClick={() => setSelectedImage(i)} className={`w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors ${selectedImage === i ? "border-[#16A34A]" : "border-gray-200 hover:border-gray-300"}`}>
-                  <img src={img} alt={`View ${i + 1}`} className="w-full h-full object-contain" />
+                <button key={i} onClick={() => setSelectedImage(i)} className={`relative w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors ${selectedImage === i ? "border-[#16A34A]" : "border-gray-200 hover:border-gray-300"}`}>
+                  <ProductImage src={img} alt={`View ${i + 1}`} sizes="64px" className="object-contain" />
                 </button>
               ))}
             </div>
@@ -230,7 +228,7 @@ export default function ProductDetailPage() {
                       className={`group relative flex flex-col items-center gap-1.5 p-1.5 rounded-xl border-2 transition-all ${isActive ? "border-[#16A34A] bg-[#16A34A]/5" : "border-gray-200 hover:border-gray-300"}`}
                     >
                       <div className="w-14 h-14 rounded-lg overflow-hidden bg-gray-50">
-                        <img src={v.image} alt={v.name} className="w-full h-full object-contain" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                        <ProductImage src={v.image} alt={v.name} sizes="64px" className="object-contain" />
                       </div>
                       <span className={`text-[10px] font-medium truncate max-w-[60px] ${isActive ? "text-[#16A34A]" : "text-gray-500"}`} title={v.name}>{v.color || v.name}</span>
                       {isActive && (
@@ -263,7 +261,7 @@ export default function ProductDetailPage() {
                       className={`group relative flex flex-col items-center gap-1.5 p-1.5 rounded-xl border-2 transition-all ${isActive ? "border-[#16A34A] bg-[#16A34A]/5" : "border-gray-200 hover:border-gray-300"}`}
                     >
                       <div className="w-14 h-14 rounded-lg overflow-hidden bg-gray-50">
-                        <img src={v.image} alt={v.name} className="w-full h-full object-contain" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                        <ProductImage src={v.image} alt={v.name} sizes="64px" className="object-contain" />
                       </div>
                       <span className={`text-[10px] font-medium text-center leading-tight max-w-[60px] truncate ${isActive ? "text-[#16A34A]" : "text-gray-500"}`}>{vLabel}</span>
                       {isActive && (
@@ -726,7 +724,7 @@ export default function ProductDetailPage() {
             {related.map((p) => (
               <Link key={p.slug} href={"/shop/" + p.slug} className="group bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
                 <div className="aspect-square overflow-hidden bg-gray-50">
-                  <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                  <ProductImage src={p.imageUrl} alt={p.name} sizes="(min-width: 1024px) 300px, 45vw" className="object-cover group-hover:scale-105 transition-transform duration-500" />
                 </div>
                 <div className="p-3">
                   <h3 className="text-xs font-medium text-gray-800 line-clamp-2 group-hover:text-[#16A34A] transition-colors">{p.name}</h3>
@@ -745,7 +743,7 @@ export default function ProductDetailPage() {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             {recentlyViewed.map((p) => (
               <Link key={p.slug} href={"/shop/" + p.slug} className="group bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-200">
-                <div className="aspect-square overflow-hidden bg-gray-50"><img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" loading="lazy" /></div>
+                <div className="relative aspect-square overflow-hidden bg-gray-50"><ProductImage src={p.imageUrl} alt={p.name} sizes="(min-width: 1024px) 300px, 45vw" /></div>
                 <div className="p-3"><h3 className="text-xs font-medium text-gray-800 line-clamp-2">{p.name}</h3><p className="text-sm font-bold text-gray-900 mt-1">{formatPrice(p.price)}</p></div>
               </Link>
             ))}

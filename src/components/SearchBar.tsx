@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo } from "react";
+import ProductImage from "@/components/ProductImage";
 import { useRouter } from "next/navigation";
 import { products as enrichedProducts } from "@/lib/product-filters";
 import { categories, formatPrice } from "@/lib/products";
@@ -223,28 +224,12 @@ export default function SearchBar({ variant = "header", onClose, autoFocus }: Se
                     onClick={() => navigateTo(`/shop/${product.slug}`)}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-colors ${selectedIndex === globalIdx ? "bg-[#16A34A]/5" : "hover:bg-gray-50"}`}
                   >
-                    <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                      <img
-                        src={product.imageUrl}
-                        alt={product.name}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                        onError={(e) => {
-                          const t = e.target as HTMLImageElement;
-                          t.style.display = "none";
-                          const p = t.parentElement;
-                          if (p) {
-                            p.style.backgroundColor = product.imagePlaceholder.bg;
-                            p.style.display = "flex";
-                            p.style.alignItems = "center";
-                            p.style.justifyContent = "center";
-                            const s = document.createElement("span");
-                            s.className = "text-xs font-bold opacity-60";
-                            s.textContent = product.imagePlaceholder.initials;
-                            p.appendChild(s);
-                          }
-                        }}
-                      />
+                    <div
+                      className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center"
+                      style={{ backgroundColor: product.imagePlaceholder.bg }}
+                    >
+                      <span className="text-xs font-bold opacity-60">{product.imagePlaceholder.initials}</span>
+                      <ProductImage src={product.imageUrl} alt={product.name} sizes="48px" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-800 truncate">{highlightMatch(product.name, query)}</p>

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import ProductImage from "@/components/ProductImage";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useCart } from "@/lib/cart-context";
@@ -36,29 +37,26 @@ const sortOptions = [
 
 /* ─── Category Showcase ─── */
 function CategoryShowcase() {
-  const topCategories = categories.slice(0, 8);
-  const categoryImages: Record<string, string> = {
-    "MDF Cutouts": "https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=200&h=200&fit=crop",
-    "DIY Kits": "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=200&h=200&fit=crop",
-    "Kids Toys": "https://images.unsplash.com/photo-1576495199011-eb94736d05d6?w=200&h=200&fit=crop",
-    "Home Decor": "https://images.unsplash.com/photo-1616486029423-aaa4789e8c9a?w=200&h=200&fit=crop",
-    "Fashion & Accessories": "https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=200&h=200&fit=crop",
-    "Pet Supplies": "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=200&h=200&fit=crop",
-    Jewelry: "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=200&h=200&fit=crop",
-    "Kitchen & Dining": "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=200&h=200&fit=crop",
-    "Beauty & Grooming": "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=200&h=200&fit=crop",
-    "Home Storage": "https://images.unsplash.com/photo-1631679706909-1844bbd07221?w=200&h=200&fit=crop",
-    "Bags & Travel": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=200&h=200&fit=crop",
-  };
+  // Same fix as the homepage category strip. This was a hardcoded map of
+  // Unsplash URLs keyed on dropship categories (MDF Cutouts, Jewelry, Pet
+  // Supplies) that no longer exist, so every circle fell through to the emoji
+  // and the page hotlinked eleven stock photos it never used. Reading the
+  // catalogue means it cannot drift again, and the picture is a real puzzle.
+  const topCategories = categories.filter((c) => !c.hidden && c.name !== CLEARANCE_CATEGORY).slice(0, 8);
+  const categoryImages: Record<string, string> = Object.fromEntries(
+    topCategories
+      .map((c) => [c.name, products.find((p) => p.category === c.name)?.imageUrl])
+      .filter(([, url]) => Boolean(url))
+  );
   return (
     <section className="bg-white border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-5">
           {topCategories.map((cat) => (
             <Link key={cat.name} href={"/shop?category=" + encodeURIComponent(cat.name)} className="group flex flex-col items-center gap-2 text-center">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden bg-gray-100 border-2 border-transparent group-hover:border-[#16A34A] transition-colors duration-200">
+              <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden bg-gray-100 border-2 border-transparent group-hover:border-[#16A34A] transition-colors duration-200">
                 {categoryImages[cat.name] ? (
-                  <img src={categoryImages[cat.name]} alt={cat.name} className="w-full h-full object-cover" loading="lazy" />
+                  <ProductImage src={categoryImages[cat.name]} alt={cat.name} sizes="80px" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-gray-100 text-xl">{cat.icon}</div>
                 )}
@@ -101,28 +99,23 @@ function ProductCard({ product, onAdd }: { product: EnrichedProduct; onAdd: () =
 
       {/* Image */}
       <Link href={"/shop/" + product.slug} className="block">
-        <div className="aspect-square overflow-hidden bg-gray-50">
-          <img
+        {/* Placeholder initials sit beneath; ProductImage renders nothing if the
+            file 404s, which replaces the imperative DOM-poking onError. */}
+        <div
+          className="relative aspect-square overflow-hidden flex items-center justify-center"
+          style={{ backgroundColor: product.imagePlaceholder.bg }}
+        >
+          <span
+            className="font-bold text-2xl opacity-60"
+            style={{ color: ["#C9A96E", "#D4BA85"].includes(product.imagePlaceholder.bg) ? "#2D2D2D" : "#FAF8F5" }}
+          >
+            {product.imagePlaceholder.initials}
+          </span>
+          <ProductImage
             src={product.imageUrl}
             alt={product.name}
-            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
-            loading="lazy"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.style.display = "none";
-              const parent = target.parentElement;
-              if (parent) {
-                parent.style.backgroundColor = product.imagePlaceholder.bg;
-                parent.style.display = "flex";
-                parent.style.alignItems = "center";
-                parent.style.justifyContent = "center";
-                const span = document.createElement("span");
-                span.className = "font-bold text-2xl opacity-60";
-                span.style.color = product.imagePlaceholder.bg === "#C9A96E" || product.imagePlaceholder.bg === "#D4BA85" ? "#2D2D2D" : "#FAF8F5";
-                span.textContent = product.imagePlaceholder.initials;
-                parent.appendChild(span);
-              }
-            }}
+            sizes="(min-width: 1024px) 320px, (min-width: 640px) 45vw, 90vw"
+            className="object-contain group-hover:scale-105 transition-transform duration-500"
           />
         </div>
       </Link>

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import ProductImage from "@/components/ProductImage";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useCart } from "@/lib/cart-context";
@@ -235,8 +236,8 @@ export default function Header() {
                         const globalIdx = categoryMatches.length + i;
                         return (
                           <button key={product.slug} onClick={() => navigateTo(`/shop/${product.slug}`)} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-colors ${selectedIndex === globalIdx ? "bg-[#16A34A]/5" : "hover:bg-gray-50"}`}>
-                            <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                              <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" loading="lazy" onError={(e) => { const t = e.target as HTMLImageElement; t.style.display = "none"; }} />
+                            <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                              <ProductImage src={product.imageUrl} alt={product.name} sizes="48px" />
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium text-gray-800 truncate">{highlightMatch(product.name, query)}</p>
@@ -419,7 +420,7 @@ export default function Header() {
                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Products</p>
                     {results.map((product) => (
                       <button key={product.slug} onClick={() => { router.push(`/shop/${product.slug}`); setSearchOverlay(false); setQuery(""); }} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left hover:bg-gray-50">
-                        <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0"><img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" /></div>
+                        <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0"><ProductImage src={product.imageUrl} alt={product.name} sizes="48px" /></div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-gray-800 truncate">{highlightMatch(product.name, query)}</p>
                           <span className="text-sm font-bold text-[#16A34A]">{formatPrice(product.price)}</span>
