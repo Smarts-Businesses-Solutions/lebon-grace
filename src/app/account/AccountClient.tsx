@@ -192,13 +192,22 @@ export default function AccountClient() {
                       <span className="text-xs text-gray-400">{formatDate(order.created_at)}</span>
                     </div>
                     <div className="flex items-center justify-between">
+                      {/* Orders are paid in full at checkout, so cod_amount is
+                          always 0. This used to render "Paid: AED 15.00 + COD:
+                          AED 0.00" on every row, left over from the 50/50
+                          deposit model that was removed. The balance is only
+                          worth showing on old orders that actually have one. */}
                       <div className="text-sm">
                         <span className="text-gray-500">Total: </span>
                         <span className="font-semibold text-gray-900">{formatPrice(order.total)}</span>
-                        <span className="text-gray-400 mx-2">|</span>
-                        <span className="text-[#16A34A]">Paid: {formatPrice(order.deposit_amount)}</span>
-                        <span className="text-gray-400 mx-1">+</span>
-                        <span className="text-[#C9A96E]">COD: {formatPrice(order.cod_amount)}</span>
+                        {order.cod_amount > 0 && (
+                          <>
+                            <span className="text-gray-400 mx-2">|</span>
+                            <span className="text-[#C9A96E]">
+                              Balance due: {formatPrice(order.cod_amount)}
+                            </span>
+                          </>
+                        )}
                       </div>
                       <div className="flex items-center gap-2">
                         <span className={`px-2 py-0.5 rounded text-xs ${order.delivery_method === "pickup" ? "bg-blue-50 text-blue-700" : "bg-gray-100 text-gray-600"}`}>

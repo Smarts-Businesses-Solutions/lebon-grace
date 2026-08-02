@@ -3,6 +3,7 @@ import { orders as orderStore } from "@/lib/store";
 import { sendOrderEmail } from "@/lib/email";
 import { notifyWhatsApp } from "@/lib/whatsapp";
 import { requireAdmin } from "@/lib/admin-auth";
+import { rateLimit } from "@/lib/rate-limit";
 
 // GET: List all orders, or lookup by id + phone (for tracking), or email + phone (for account)
 export async function GET(request: NextRequest) {
@@ -11,10 +12,27 @@ export async function GET(request: NextRequest) {
   const phone = searchParams.get("phone");
   const email = searchParams.get("email");
 
+  // Both guest branches below treat "email + phone" or "order id + phone" as the
+  // credential and return a full customer record on a hit: name, email, phone,
+  // address, totals, tracking. Neither was rate limited, so an attacker could
+  // grind guesses indefinitely. UAE mobile numbers follow a fixed national
+  // format, which makes that pairing far more guessable than it looks.
+  //
+  // A real customer knows their own details and succeeds on the first or second
+  // try, so a low ceiling costs them nothing. It is applied before either lookup
+  // runs so that failures and hits are counted alike, and it deliberately does
+  // not distinguish the two branches: an enumerator must not be able to reset
+  // their budget by switching from one to the other.
+  if ((email && phone) || (id && phone)) {
+    const limited = rateLimit(request, { key: "order-lookup", limit: 10, windowMs: 60 * 60 * 1000 });
+    if (limited) return limited;
+  }
+
   // Account lookup: email + phone
   if (email && phone) {
     const matchingOrders = await orderStore.getByEmailPhone(email, phone);
     if (matchingOrders.length === 0) {
+      // Deliberately ambiguous: it must not reveal whether the email exists.
       return NextResponse.json({ error: "No orders found with this email and phone." }, { status: 404 });
     }
     return NextResponse.json({ orders: matchingOrders });

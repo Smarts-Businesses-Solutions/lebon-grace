@@ -215,4 +215,20 @@ export const subscribers = {
     if (error) throw error;
     return true;
   },
+
+  /**
+   * Removes an address from the list.
+   *
+   * The privacy policy has always promised subscribers could opt out, so the
+   * mechanism has to exist. It deletes the row outright rather than flagging it,
+   * because keeping the address of someone who asked to be forgotten is the
+   * opposite of what they asked for.
+   */
+  async remove(email: string): Promise<void> {
+    const { error } = await db()
+      .from("newsletter_subscribers")
+      .delete()
+      .eq("email", email.trim().toLowerCase());
+    if (error) throw error;
+  },
 };
