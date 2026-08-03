@@ -1,7 +1,7 @@
 [
   {
     "slug": "mdf-heart-cutout",
-    "name": "MDF Heart Cutout – 3mm Laser Cut",
+    "name": "MDF Heart Cutout \u2013 3mm Laser Cut",
     "price": 1,
     "category": "MDF Cutouts",
     "stock": 100,
@@ -11,13 +11,13 @@
       "weight": "30g",
       "dimensions": "8cm x 8cm"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-heart-cutout.png",
     "cjPid": "MDF-001",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-star-cutout",
-    "name": "MDF Star Cutout – 3mm Laser Cut",
+    "name": "MDF Star Cutout \u2013 3mm Laser Cut",
     "price": 1,
     "category": "MDF Cutouts",
     "stock": 100,
@@ -27,13 +27,13 @@
       "weight": "25g",
       "dimensions": "7cm x 7cm"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-star-cutout.png",
     "cjPid": "MDF-002",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-butterfly-cutout",
-    "name": "MDF Butterfly Cutout – 3mm Laser Cut",
+    "name": "MDF Butterfly Cutout \u2013 3mm Laser Cut",
     "price": 2,
     "category": "MDF Cutouts",
     "stock": 100,
@@ -43,29 +43,29 @@
       "weight": "35g",
       "dimensions": "10cm x 8cm"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-butterfly-cutout.png",
     "cjPid": "MDF-003",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-elephant-cutout",
     "name": "MDF Elephant Cutout – 3mm Laser Cut",
-    "price": 2,
+    "price": 1,
     "category": "MDF Cutouts",
     "stock": 100,
-    "description": "Charming elephant silhouette precision-cut from 3mm MDF. This cute animal cutout is perfect for nursery decor, kids' craft projects, and personalized gifts. Laser-cut edges ensure a smooth, professional finish. Approximate size: 12cm x 10cm.",
+    "description": "Charming 2D flat elephant cutout silhouette precision-cut from premium 3mm MDF, offered in two finishes: Raw MDF (ready for paint, markers, and DIY craft kits) and White Finish (Bright White Coloring Canvas, perfect for standard crayons and markers). This design is highly optimized and easy to cut on any CO2 laser machine and is ideal for nursery decor, children's educational play, DIY craft projects, wedding themes, and personalized gifts. The clean laser-cut edges ensure a smooth, professional finish. Available in two sizes: 4.8cm x 4.8cm and 9.6cm x 9.6cm, 3mm thickness.",
     "details": {
-      "material": "3mm MDF",
+      "material": "Premium MDF / Pre-bonded Matte Paper Layer",
       "weight": "40g",
-      "dimensions": "12cm x 10cm"
+      "dimensions": "4.8cm x 4.8cm or 9.6cm x 9.6cm"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-elephant-cutout-hero.png",
     "cjPid": "MDF-004",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-circle-cutout",
-    "name": "MDF Circle Cutout – 3mm Laser Cut",
+    "name": "MDF Circle Cutout \u2013 3mm Laser Cut",
     "price": 1,
     "category": "MDF Cutouts",
     "stock": 100,
@@ -75,13 +75,13 @@
       "weight": "35g",
       "dimensions": "10cm diameter"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-circle-cutout.png",
     "cjPid": "MDF-005",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-cat-cutout",
-    "name": "MDF Cat Cutout – 3mm Laser Cut",
+    "name": "MDF Cat Cutout \u2013 3mm Laser Cut",
     "price": 2,
     "category": "MDF Cutouts",
     "stock": 100,
@@ -91,13 +91,13 @@
       "weight": "35g",
       "dimensions": "9cm x 11cm"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-cat-cutout.png",
     "cjPid": "MDF-006",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-diamond-cutout",
-    "name": "MDF Diamond Cutout – 3mm Laser Cut",
+    "name": "MDF Diamond Cutout \u2013 3mm Laser Cut",
     "price": 1,
     "category": "MDF Cutouts",
     "stock": 100,
@@ -107,13 +107,13 @@
       "weight": "28g",
       "dimensions": "7cm x 10cm"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-diamond-cutout.png",
     "cjPid": "MDF-007",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-bunny-cutout",
-    "name": "MDF Bunny Cutout – 3mm Laser Cut",
+    "name": "MDF Bunny Cutout \u2013 3mm Laser Cut",
     "price": 2,
     "category": "MDF Cutouts",
     "stock": 100,
@@ -123,13 +123,13 @@
       "weight": "32g",
       "dimensions": "8cm x 12cm"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-bunny-cutout.png",
     "cjPid": "MDF-008",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-hexagon-cutout",
-    "name": "MDF Hexagon Cutout – 3mm Laser Cut",
+    "name": "MDF Hexagon Cutout \u2013 3mm Laser Cut",
     "price": 1,
     "category": "MDF Cutouts",
     "stock": 100,
@@ -139,13 +139,13 @@
       "weight": "30g",
       "dimensions": "8cm per side"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-hexagon-cutout.png",
     "cjPid": "MDF-009",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-dog-cutout",
-    "name": "MDF Dog Cutout – 3mm Laser Cut",
+    "name": "MDF Dog Cutout \u2013 3mm Laser Cut",
     "price": 2,
     "category": "MDF Cutouts",
     "stock": 100,
@@ -155,13 +155,13 @@
       "weight": "35g",
       "dimensions": "10cm x 10cm"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-dog-cutout.png",
     "cjPid": "MDF-010",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-oval-cutout",
-    "name": "MDF Oval Cutout – 3mm Laser Cut",
+    "name": "MDF Oval Cutout \u2013 3mm Laser Cut",
     "price": 1,
     "category": "MDF Cutouts",
     "stock": 100,
@@ -171,13 +171,13 @@
       "weight": "35g",
       "dimensions": "12cm x 8cm"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-oval-cutout.png",
     "cjPid": "MDF-011",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-fish-cutout",
-    "name": "MDF Fish Cutout – 3mm Laser Cut",
+    "name": "MDF Fish Cutout \u2013 3mm Laser Cut",
     "price": 2,
     "category": "MDF Cutouts",
     "stock": 100,
@@ -187,13 +187,13 @@
       "weight": "28g",
       "dimensions": "11cm x 7cm"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-fish-cutout.png",
     "cjPid": "MDF-012",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-triangle-cutout",
-    "name": "MDF Triangle Cutout – 3mm Laser Cut",
+    "name": "MDF Triangle Cutout \u2013 3mm Laser Cut",
     "price": 1,
     "category": "MDF Cutouts",
     "stock": 100,
@@ -203,13 +203,13 @@
       "weight": "25g",
       "dimensions": "8cm per side"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-triangle-cutout.png",
     "cjPid": "MDF-013",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-owl-cutout",
-    "name": "MDF Owl Cutout – 3mm Laser Cut",
+    "name": "MDF Owl Cutout \u2013 3mm Laser Cut",
     "price": 2,
     "category": "MDF Cutouts",
     "stock": 100,
@@ -219,13 +219,13 @@
       "weight": "38g",
       "dimensions": "9cm x 12cm"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-owl-cutout.png",
     "cjPid": "MDF-014",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-cross-cutout",
-    "name": "MDF Cross Cutout – 3mm Laser Cut",
+    "name": "MDF Cross Cutout \u2013 3mm Laser Cut",
     "price": 1,
     "category": "MDF Cutouts",
     "stock": 100,
@@ -235,13 +235,13 @@
       "weight": "30g",
       "dimensions": "10cm x 10cm"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-cross-cutout.png",
     "cjPid": "MDF-015",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-bird-cutout",
-    "name": "MDF Bird Cutout – 3mm Laser Cut",
+    "name": "MDF Bird Cutout \u2013 3mm Laser Cut",
     "price": 2,
     "category": "MDF Cutouts",
     "stock": 100,
@@ -251,13 +251,13 @@
       "weight": "22g",
       "dimensions": "10cm x 6cm"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-bird-cutout.png",
     "cjPid": "MDF-016",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-crescent-moon-cutout",
-    "name": "MDF Crescent Moon Cutout – 3mm Laser Cut",
+    "name": "MDF Crescent Moon Cutout \u2013 3mm Laser Cut",
     "price": 1,
     "category": "MDF Cutouts",
     "stock": 100,
@@ -267,13 +267,13 @@
       "weight": "25g",
       "dimensions": "9cm x 7cm"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-crescent-moon-cutout.png",
     "cjPid": "MDF-017",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-turtle-cutout",
-    "name": "MDF Turtle Cutout – 3mm Laser Cut",
+    "name": "MDF Turtle Cutout \u2013 3mm Laser Cut",
     "price": 2,
     "category": "MDF Cutouts",
     "stock": 100,
@@ -283,13 +283,13 @@
       "weight": "30g",
       "dimensions": "10cm x 8cm"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-turtle-cutout.png",
     "cjPid": "MDF-018",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-square-cutout",
-    "name": "MDF Square Cutout – 3mm Laser Cut",
+    "name": "MDF Square Cutout \u2013 3mm Laser Cut",
     "price": 1,
     "category": "MDF Cutouts",
     "stock": 100,
@@ -299,13 +299,13 @@
       "weight": "35g",
       "dimensions": "10cm x 10cm"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-square-cutout.png",
     "cjPid": "MDF-019",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-lion-cutout",
-    "name": "MDF Lion Cutout – 3mm Laser Cut",
+    "name": "MDF Lion Cutout \u2013 3mm Laser Cut",
     "price": 2,
     "category": "MDF Cutouts",
     "stock": 100,
@@ -315,13 +315,13 @@
       "weight": "38g",
       "dimensions": "11cm x 11cm"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-lion-cutout.png",
     "cjPid": "MDF-020",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-heart-puzzle-5-piece",
-    "name": "MDF Heart Puzzle Kit – 5 Piece Set",
+    "name": "MDF Heart Puzzle Kit \u2013 5 Piece Set",
     "price": 5,
     "category": "DIY Kits",
     "stock": 100,
@@ -331,13 +331,13 @@
       "weight": "120g",
       "dimensions": "15cm x 15cm assembled"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-heart-puzzle-5-piece.png",
     "cjPid": "MDF-021",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-animal-face-paint-kit",
-    "name": "Paint Your Own Animal Faces – MDF Kit",
+    "name": "Paint Your Own Animal Faces \u2013 MDF Kit",
     "price": 8,
     "category": "DIY Kits",
     "stock": 100,
@@ -347,13 +347,13 @@
       "weight": "200g",
       "dimensions": "10cm each face"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-animal-face-paint-kit.png",
     "cjPid": "MDF-022",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-star-matching-puzzle",
-    "name": "MDF Star Matching Puzzle – 8 Piece Educational Kit",
+    "name": "MDF Star Matching Puzzle \u2013 8 Piece Educational Kit",
     "price": 5,
     "category": "DIY Kits",
     "stock": 100,
@@ -363,13 +363,13 @@
       "weight": "150g",
       "dimensions": "stars from 3cm to 12cm"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-star-matching-puzzle.png",
     "cjPid": "MDF-023",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-flower-garden-puzzle",
-    "name": "MDF Flower Garden Puzzle – 10 Piece Set",
+    "name": "MDF Flower Garden Puzzle \u2013 10 Piece Set",
     "price": 6,
     "category": "DIY Kits",
     "stock": 100,
@@ -379,13 +379,13 @@
       "weight": "180g",
       "dimensions": "base board 20cm x 15cm"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-flower-garden-puzzle.png",
     "cjPid": "MDF-024",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-dinosaur-paint-set",
-    "name": "Paint Your Own Dinosaurs – MDF Kit",
+    "name": "Paint Your Own Dinosaurs \u2013 MDF Kit",
     "price": 10,
     "category": "DIY Kits",
     "stock": 100,
@@ -395,13 +395,13 @@
       "weight": "280g",
       "dimensions": "dinosaurs 12cm each"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-dinosaur-paint-set.png",
     "cjPid": "MDF-025",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-alphabet-puzzle-board",
-    "name": "MDF Alphabet Puzzle Board – 26 Letter Set",
+    "name": "MDF Alphabet Puzzle Board \u2013 26 Letter Set",
     "price": 12,
     "category": "DIY Kits",
     "stock": 100,
@@ -411,13 +411,13 @@
       "weight": "350g",
       "dimensions": "board 30cm x 20cm"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-alphabet-puzzle-board.png",
     "cjPid": "MDF-026",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-unicorn-paint-your-own",
-    "name": "Paint Your Own Unicorn – MDF Craft Kit",
+    "name": "Paint Your Own Unicorn \u2013 MDF Craft Kit",
     "price": 8,
     "category": "DIY Kits",
     "stock": 100,
@@ -427,13 +427,13 @@
       "weight": "180g",
       "dimensions": "20cm x 25cm"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-unicorn-paint-your-own.png",
     "cjPid": "MDF-027",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-geometric-pattern-puzzle",
-    "name": "MDF Geometric Pattern Puzzle – 12 Piece Set",
+    "name": "MDF Geometric Pattern Puzzle \u2013 12 Piece Set",
     "price": 7,
     "category": "DIY Kits",
     "stock": 100,
@@ -443,13 +443,13 @@
       "weight": "200g",
       "dimensions": "grid board 20cm x 20cm"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-geometric-pattern-puzzle.png",
     "cjPid": "MDF-028",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-ocean-animals-paint-kit",
-    "name": "Paint Your Own Ocean Animals – MDF Kit",
+    "name": "Paint Your Own Ocean Animals \u2013 MDF Kit",
     "price": 10,
     "category": "DIY Kits",
     "stock": 100,
@@ -459,13 +459,13 @@
       "weight": "250g",
       "dimensions": "animals 8-12cm each"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-ocean-animals-paint-kit.png",
     "cjPid": "MDF-029",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-space-explorer-puzzle",
-    "name": "MDF Space Explorer Puzzle – 10 Piece Set",
+    "name": "MDF Space Explorer Puzzle \u2013 10 Piece Set",
     "price": 7,
     "category": "DIY Kits",
     "stock": 100,
@@ -475,13 +475,13 @@
       "weight": "220g",
       "dimensions": "base board 25cm x 20cm"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-space-explorer-puzzle.png",
     "cjPid": "MDF-030",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-rainbow-color-sorting",
-    "name": "MDF Rainbow Color Sorting Kit – 7 Piece Educational Set",
+    "name": "MDF Rainbow Color Sorting Kit \u2013 7 Piece Educational Set",
     "price": 5,
     "category": "DIY Kits",
     "stock": 100,
@@ -491,13 +491,13 @@
       "weight": "140g",
       "dimensions": "largest arch 15cm x 8cm"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-rainbow-color-sorting.png",
     "cjPid": "MDF-031",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-butterfly-garden-puzzle",
-    "name": "MDF Butterfly Garden Puzzle – 8 Piece Set",
+    "name": "MDF Butterfly Garden Puzzle \u2013 8 Piece Set",
     "price": 6,
     "category": "DIY Kits",
     "stock": 100,
@@ -507,13 +507,13 @@
       "weight": "160g",
       "dimensions": "butterflies 10cm each"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-butterfly-garden-puzzle.png",
     "cjPid": "MDF-032",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-vehicle-paint-set",
-    "name": "Paint Your Own Vehicles – MDF Kit",
+    "name": "Paint Your Own Vehicles \u2013 MDF Kit",
     "price": 10,
     "category": "DIY Kits",
     "stock": 100,
@@ -523,13 +523,13 @@
       "weight": "250g",
       "dimensions": "vehicles 10-14cm each"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-vehicle-paint-set.png",
     "cjPid": "MDF-033",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-3d-butterfly-building-kit",
-    "name": "MDF 3D Butterfly Building Kit – Premium Set",
+    "name": "MDF 3D Butterfly Building Kit \u2013 Premium Set",
     "price": 15,
     "category": "DIY Kits",
     "stock": 100,
@@ -539,13 +539,13 @@
       "weight": "200g",
       "dimensions": "finished butterflies 8-15cm wingspan"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-3d-butterfly-building-kit.png",
     "cjPid": "MDF-034",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-3d-dinosaur-building-kit",
-    "name": "MDF 3D Dinosaur Building Kit – Premium Set",
+    "name": "MDF 3D Dinosaur Building Kit \u2013 Premium Set",
     "price": 15,
     "category": "DIY Kits",
     "stock": 100,
@@ -555,13 +555,13 @@
       "weight": "250g",
       "dimensions": "assembled T-Rex 20cm tall"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-3d-dinosaur-building-kit.png",
     "cjPid": "MDF-035",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-forest-animal-wall-art",
-    "name": "MDF Forest Animal Wall Art – 5 Piece Set",
+    "name": "MDF Forest Animal Wall Art \u2013 5 Piece Set",
     "price": 12,
     "category": "Home Decor",
     "stock": 100,
@@ -571,13 +571,13 @@
       "weight": "200g",
       "dimensions": "animals 8-12cm each"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-forest-animal-wall-art.png",
     "cjPid": "MDF-036",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-mandala-coaster-set",
-    "name": "MDF Mandala Coaster Set – 4 Piece",
+    "name": "MDF Mandala Coaster Set \u2013 4 Piece",
     "price": 10,
     "category": "Home Decor",
     "stock": 100,
@@ -587,13 +587,13 @@
       "weight": "160g",
       "dimensions": "10cm diameter each"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-mandala-coaster-set.png",
     "cjPid": "MDF-037",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-botanical-wall-art",
-    "name": "MDF Botanical Wall Art – 3 Piece Leaf Set",
+    "name": "MDF Botanical Wall Art \u2013 3 Piece Leaf Set",
     "price": 10,
     "category": "Home Decor",
     "stock": 100,
@@ -603,13 +603,13 @@
       "weight": "180g",
       "dimensions": "20-30cm height"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-botanical-wall-art.png",
     "cjPid": "MDF-038",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-geometric-ornament-set",
-    "name": "MDF Geometric Ornament Set – 6 Piece Holiday Collection",
+    "name": "MDF Geometric Ornament Set \u2013 6 Piece Holiday Collection",
     "price": 12,
     "category": "Home Decor",
     "stock": 100,
@@ -619,13 +619,13 @@
       "weight": "120g",
       "dimensions": "5-8cm each"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-geometric-ornament-set.png",
     "cjPid": "MDF-039",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-arabic-calligraphy-art",
-    "name": "MDF Arabic Calligraphy Wall Art – Bismillah",
+    "name": "MDF Arabic Calligraphy Wall Art \u2013 Bismillah",
     "price": 15,
     "category": "Home Decor",
     "stock": 100,
@@ -635,13 +635,13 @@
       "weight": "150g",
       "dimensions": "25cm x 15cm"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-arabic-calligraphy-art.png",
     "cjPid": "MDF-040",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-honeycomb-shelf-set",
-    "name": "MDF Honeycomb Shelf Set – 3 Piece Wall Display",
+    "name": "MDF Honeycomb Shelf Set \u2013 3 Piece Wall Display",
     "price": 18,
     "category": "Home Decor",
     "stock": 100,
@@ -651,13 +651,13 @@
       "weight": "250g",
       "dimensions": "15cm per hexagon"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-honeycomb-shelf-set.png",
     "cjPid": "MDF-041",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-leaf-coaster-set",
-    "name": "MDF Leaf Coaster Set – 6 Piece Botanical",
+    "name": "MDF Leaf Coaster Set \u2013 6 Piece Botanical",
     "price": 10,
     "category": "Home Decor",
     "stock": 100,
@@ -667,13 +667,13 @@
       "weight": "120g",
       "dimensions": "8-12cm each"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-leaf-coaster-set.png",
     "cjPid": "MDF-042",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-moon-phase-wall-hanging",
-    "name": "MDF Moon Phase Wall Hanging – 7 Piece Set",
+    "name": "MDF Moon Phase Wall Hanging \u2013 7 Piece Set",
     "price": 15,
     "category": "Home Decor",
     "stock": 100,
@@ -683,13 +683,13 @@
       "weight": "200g",
       "dimensions": "60cm wide x 25cm tall"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-moon-phase-wall-hanging.png",
     "cjPid": "MDF-043",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-personalized-name-ornament",
-    "name": "MDF Personalized Name Ornament – Custom Cut",
+    "name": "MDF Personalized Name Ornament \u2013 Custom Cut",
     "price": 8,
     "category": "Home Decor",
     "stock": 100,
@@ -699,13 +699,13 @@
       "weight": "60g",
       "dimensions": "15cm x variable width"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-personalized-name-ornament.png",
     "cjPid": "MDF-044",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-spice-jar-labels",
-    "name": "MDF Spice Jar Label Set – 30 Piece Kitchen Organizer",
+    "name": "MDF Spice Jar Label Set \u2013 30 Piece Kitchen Organizer",
     "price": 8,
     "category": "Home Decor",
     "stock": 100,
@@ -715,13 +715,13 @@
       "weight": "100g",
       "dimensions": "4cm x 2cm each"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-spice-jar-labels.png",
     "cjPid": "MDF-045",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-counting-abc-board",
-    "name": "MDF Counting & ABC Learning Board – Educational Toy",
+    "name": "MDF Counting & ABC Learning Board \u2013 Educational Toy",
     "price": 20,
     "category": "Kids Toys",
     "stock": 100,
@@ -731,13 +731,13 @@
       "weight": "500g",
       "dimensions": "board 35cm x 25cm"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-counting-abc-board.png",
     "cjPid": "MDF-046",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-3d-city-building-set",
-    "name": "MDF 3D City Building Set – Premium Construction Kit",
+    "name": "MDF 3D City Building Set \u2013 Premium Construction Kit",
     "price": 25,
     "category": "Kids Toys",
     "stock": 100,
@@ -747,13 +747,13 @@
       "weight": "600g",
       "dimensions": "assembled city 30cm x 30cm"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-3d-city-building-set.png",
     "cjPid": "MDF-047",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-shape-sorter-puzzle",
-    "name": "MDF Shape Sorter Puzzle – Toddler Educational Toy",
+    "name": "MDF Shape Sorter Puzzle \u2013 Toddler Educational Toy",
     "price": 15,
     "category": "Kids Toys",
     "stock": 100,
@@ -763,13 +763,13 @@
       "weight": "350g",
       "dimensions": "board 20cm x 20cm"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-shape-sorter-puzzle.png",
     "cjPid": "MDF-048",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-marble-run-contraption",
-    "name": "MDF Marble Run Contraption – STEM Building Set",
+    "name": "MDF Marble Run Contraption \u2013 STEM Building Set",
     "price": 25,
     "category": "Kids Toys",
     "stock": 100,
@@ -779,13 +779,13 @@
       "weight": "450g",
       "dimensions": "builds up to 40cm tall"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-marble-run-contraption.png",
     "cjPid": "MDF-049",
     "cjPrice": "0"
   },
   {
     "slug": "mdf-tangram-puzzle-set",
-    "name": "MDF Tangram Puzzle Set – Classic Brain Teaser",
+    "name": "MDF Tangram Puzzle Set \u2013 Classic Brain Teaser",
     "price": 15,
     "category": "Kids Toys",
     "stock": 100,
@@ -795,8 +795,72 @@
       "weight": "200g",
       "dimensions": "tray 15cm x 15cm"
     },
-    "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
+    "imageUrl": "/images/mdf/mdf-tangram-puzzle-set.png",
     "cjPid": "MDF-050",
+    "cjPrice": "0"
+  },
+  {
+    "slug": "mdf-geometric-shape-cards",
+    "name": "Geometric Shape Learning Cards \u2013 MDF Educational Set",
+    "price": 12,
+    "category": "Kids Toys",
+    "stock": 100,
+    "description": "Hands-on geometry learning set with 10 laser-cut 3mm MDF shape cards and matching wooden pieces. Children explore shapes like star, rectangle, trapezoid, polygon, hexagon, triangle, circle, heart, square, and octagon through play. Perfect for Montessori classrooms and homeschooling.",
+    "details": {
+      "material": "3mm MDF",
+      "weight": "280g",
+      "dimensions": "set 16cm x 14cm"
+    },
+    "imageUrl": "/images/mdf/mdf-geometric-shape-cards.png",
+    "cjPid": "MDF-051",
+    "cjPrice": "0"
+  },
+  {
+    "slug": "mdf-fish-number-puzzle",
+    "name": "MDF Fish Number Puzzle \u2013 12 Piece Educational Toy",
+    "price": 15,
+    "category": "Kids Toys",
+    "stock": 100,
+    "description": "Engaging fish-shaped number puzzle with 12 laser-cut 3mm MDF pieces numbered 0-10. Children learn counting and number sequencing while developing fine motor skills. Each piece has a unique jigsaw interlock. Natural wood finish ready for painting. Assembled size: 25cm x 12cm.",
+    "details": {
+      "material": "3mm MDF",
+      "weight": "180g",
+      "dimensions": "25cm x 12cm assembled"
+    },
+    "imageUrl": "/images/mdf/mdf-fish-number-puzzle.png",
+    "cjPid": "MDF-052",
+    "cjPrice": "0"
+  },
+  {
+    "slug": "mdf-tree-of-life",
+    "name": "MDF Tree of Life Wall Art \u2013 3mm Laser Cut",
+    "price": 20,
+    "category": "Home Decor",
+    "stock": 100,
+    "description": "Elegant laser-cut 3mm MDF Tree of Life wall art featuring an intricate silhouette of branches, trunk, and roots. A timeless decorative piece for living rooms, bedrooms, or meditation spaces. Natural wood finish ready for painting, staining, or leaving as-is. Size: 30cm x 40cm.",
+    "details": {
+      "material": "3mm MDF",
+      "weight": "320g",
+      "dimensions": "30cm x 40cm"
+    },
+    "imageUrl": "/images/mdf/mdf-tree-of-life.png",
+    "cjPid": "MDF-053",
+    "cjPrice": "0"
+  },
+  {
+    "slug": "mdf-alphabet-puzzle",
+    "name": "MDF Alphabet Puzzle – Educational Learning Toy",
+    "price": 18,
+    "category": "Kids Toys",
+    "stock": 100,
+    "description": "Classic alphabet learning set with 26 laser-cut 3mm MDF letter pieces (A-Z). Each uppercase letter is a simple flat cutout made from natural MDF. Perfect for teaching letter recognition, phonics, and early literacy. Ideal for classrooms, homeschooling, and preschool play. Natural wood finish ready for painting.",
+    "details": {
+      "material": "3mm MDF",
+      "weight": "340g",
+      "dimensions": "30cm x 22cm set"
+    },
+    "imageUrl": "/images/mdf/mdf-alphabet-puzzle.png",
+    "cjPid": "MDF-054",
     "cjPrice": "0"
   }
 ]
