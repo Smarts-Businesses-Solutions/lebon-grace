@@ -108,7 +108,7 @@ export default function TrackClient() {
                 value={orderId}
                 onChange={(e) => setOrderId(e.target.value)}
                 placeholder="e.g. abc12345"
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-[#16A34A] focus:ring-2 focus:ring-[#16A34A]/20 outline-none transition-all"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-[#A8874D] focus:ring-2 focus:ring-[#A8874D]/20 outline-none transition-all"
               />
             </div>
             <div>
@@ -118,7 +118,7 @@ export default function TrackClient() {
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="WhatsApp us"
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-[#16A34A] focus:ring-2 focus:ring-[#16A34A]/20 outline-none transition-all"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-[#A8874D] focus:ring-2 focus:ring-[#A8874D]/20 outline-none transition-all"
               />
             </div>
           </div>
@@ -160,7 +160,7 @@ export default function TrackClient() {
               <div className="relative mb-8">
                 <div className="absolute top-5 left-0 right-0 h-1 bg-gray-200 rounded">
                   <div
-                    className="h-1 bg-[#16A34A] rounded transition-all duration-500"
+                    className="h-1 bg-[#23201C] rounded transition-all duration-500"
                     style={{ width: `${currentStep >= 0 ? ((currentStep + 1) / STATUS_STEPS.length) * 100 : 0}%` }}
                   />
                 </div>
@@ -173,8 +173,8 @@ export default function TrackClient() {
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${
                           isActive
                             ? isCurrent
-                              ? "bg-[#16A34A] text-white ring-4 ring-[#16A34A]/20"
-                              : "bg-[#16A34A] text-white"
+                              ? "bg-[#23201C] text-white ring-4 ring-[#A8874D]/20"
+                              : "bg-[#23201C] text-white"
                             : "bg-gray-200 text-gray-400"
                         }`}>
                           {step.icon}
@@ -209,7 +209,7 @@ export default function TrackClient() {
                 <div className="flex justify-between"><span className="text-gray-500">Ordered</span><span className="text-gray-900">{formatDate(order.created_at)}</span></div>
                 <hr className="border-gray-100" />
                 <div className="flex justify-between"><span className="text-gray-500">Total</span><span className="font-semibold text-gray-900">{formatPrice(order.total)}</span></div>
-                <div className="flex justify-between"><span className="text-[#16A34A]">✓ Paid (card)</span><span className="font-semibold text-[#16A34A]">{formatPrice(order.deposit_amount)}</span></div>
+                <div className="flex justify-between"><span className="text-[#5F7355]">✓ Paid (card)</span><span className="font-semibold text-[#5F7355]">{formatPrice(order.deposit_amount)}</span></div>
                 <div className="flex justify-between"><span className="text-[#C9A96E]">● Pay on delivery</span><span className="font-semibold text-[#C9A96E]">{formatPrice(order.cod_amount)}</span></div>
               </div>
             </div>

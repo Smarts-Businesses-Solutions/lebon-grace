@@ -178,10 +178,10 @@ export default function AdminPage() {
             <p className="text-gray-400 text-sm mt-1">Admin Dashboard</p>
           </div>
           <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter admin password"
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm mb-4 focus:border-[#16A34A] focus:ring-2 focus:ring-[#16A34A]/20 outline-none transition-all" autoFocus />
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm mb-4 focus:border-[#A8874D] focus:ring-2 focus:ring-[#A8874D]/20 outline-none transition-all" autoFocus />
           {message.text && <p className="text-red-500 text-sm mb-3">{message.text}</p>}
           <button type="submit" className="w-full py-3 bg-gray-900 text-white rounded-xl text-sm font-semibold hover:bg-gray-800 transition-colors">Sign In</button>
-          <p className="text-center text-gray-400 text-xs mt-6"><Link href="/" className="text-[#16A34A] hover:underline">← Back to store</Link></p>
+          <p className="text-center text-gray-400 text-xs mt-6"><Link href="/" className="text-[#A8874D] hover:underline">← Back to store</Link></p>
         </form>
       </div>
     );
@@ -195,10 +195,10 @@ export default function AdminPage() {
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 bg-gradient-to-br from-[#C9A96E] to-[#B89A5E] rounded-lg flex items-center justify-center"><span className="text-white text-sm font-bold">LG</span></div>
             <h1 className="text-lg font-bold text-white">Lebon Grace</h1>
-            <span className="px-2 py-0.5 bg-[#16A34A]/20 text-[#16A34A] rounded text-[10px] font-semibold uppercase tracking-wider">Admin</span>
+            <span className="px-2 py-0.5 bg-[#23201C]/20 text-[#A8874D] rounded text-[10px] font-semibold uppercase tracking-wider">Admin</span>
           </div>
           <div className="flex items-center gap-4">
-            {message.text && <span className={`text-sm font-medium ${message.type === "error" ? "text-red-400" : "text-[#16A34A]"}`}>{message.text}</span>}
+            {message.text && <span className={`text-sm font-medium ${message.type === "error" ? "text-red-400" : "text-[#A8874D]"}`}>{message.text}</span>}
             <Link href="/" className="text-sm text-gray-400 hover:text-white transition-colors">Store</Link>
             <button onClick={handleLogout} className="text-sm text-gray-400 hover:text-white transition-colors">Log out</button>
           </div>
@@ -229,7 +229,7 @@ export default function AdminPage() {
                   <button key={cat} onClick={() => setProductFilter(cat)} className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${productFilter === cat ? "bg-gray-900 text-white" : "bg-white text-gray-600 border border-gray-200"}`}>{cat} ({catCounts[cat] || 0})</button>
                 ))}
               </div>
-              <input type="text" value={productSearch} onChange={(e) => setProductSearch(e.target.value)} placeholder="Search products..." className="px-4 py-2 border border-gray-200 rounded-xl text-sm w-full sm:w-64 focus:border-[#16A34A] outline-none" />
+              <input type="text" value={productSearch} onChange={(e) => setProductSearch(e.target.value)} placeholder="Search products..." className="px-4 py-2 border border-gray-200 rounded-xl text-sm w-full sm:w-64 focus:border-[#A8874D] outline-none" />
             </div>
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
@@ -253,7 +253,7 @@ export default function AdminPage() {
                           <div className="relative w-10 h-10 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
                             <ProductImage src={p.imageUrl} alt={p.name} sizes="40px" />
                           </div>
-                          {editSlug === p.slug ? <input value={editName} onChange={(e) => setEditName(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm w-full focus:border-[#16A34A] outline-none" /> : <span className="text-gray-800 font-medium text-sm">{p.name}</span>}
+                          {editSlug === p.slug ? <input value={editName} onChange={(e) => setEditName(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm w-full focus:border-[#A8874D] outline-none" /> : <span className="text-gray-800 font-medium text-sm">{p.name}</span>}
                         </div></td>
                         <td className="px-5 py-3">{editSlug === p.slug ? (
                           <select value={editCategory} onChange={(e) => setEditCategory(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm outline-none">{CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}</select>
@@ -264,7 +264,7 @@ export default function AdminPage() {
                         )}</td>
                         <td className="px-5 py-3 text-right">{editSlug === p.slug ? (
                           <div className="flex gap-2 justify-end">
-                            <button onClick={() => saveProduct(p.slug, { name: editName, category: editCategory, price: editPrice, stock: editStock })} className="px-4 py-1.5 bg-[#16A34A] text-white text-xs font-semibold rounded-lg hover:bg-[#15803D] transition-colors" disabled={saving}>{saving ? "..." : "Save"}</button>
+                            <button onClick={() => saveProduct(p.slug, { name: editName, category: editCategory, price: editPrice, stock: editStock })} className="px-4 py-1.5 bg-[#23201C] text-white text-xs font-semibold rounded-lg hover:bg-[#A8874D] transition-colors" disabled={saving}>{saving ? "..." : "Save"}</button>
                             <button onClick={() => setEditSlug(null)} className="px-4 py-1.5 bg-gray-100 text-gray-600 text-xs font-medium rounded-lg hover:bg-gray-200">Cancel</button>
                           </div>
                         ) : (
@@ -294,7 +294,7 @@ export default function AdminPage() {
                   return (<button key={s} onClick={() => setOrderStatusFilter(s)} className={`px-3 py-1.5 text-xs font-medium rounded-full capitalize ${orderStatusFilter === s ? "bg-gray-900 text-white" : `${sc.bg} ${sc.text} border border-gray-200`}`}>{s.replace(/_/g, " ")} ({orderStatusCounts[s]})</button>);
                 })}
               </div>
-              <input type="text" value={orderSearch} onChange={(e) => setOrderSearch(e.target.value)} placeholder="Search by name or phone..." className="px-4 py-2 border border-gray-200 rounded-xl text-sm w-full sm:w-64 focus:border-[#16A34A] outline-none" />
+              <input type="text" value={orderSearch} onChange={(e) => setOrderSearch(e.target.value)} placeholder="Search by name or phone..." className="px-4 py-2 border border-gray-200 rounded-xl text-sm w-full sm:w-64 focus:border-[#A8874D] outline-none" />
             </div>
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
@@ -319,7 +319,7 @@ export default function AdminPage() {
                         <td className="px-5 py-3 font-mono text-xs text-gray-600">{String(o.id).slice(0, 8)}</td>
                         <td className="px-5 py-3"><p className="font-medium text-gray-900">{o.customer_name}</p><p className="text-gray-400 text-xs">{o.customer_phone}</p></td>
                         <td className="px-5 py-3 font-semibold text-gray-900">AED {o.total}</td>
-                        <td className="px-5 py-3 text-[#16A34A] font-medium">AED {o.deposit_amount}</td>
+                        <td className="px-5 py-3 text-[#A8874D] font-medium">AED {o.deposit_amount}</td>
                         <td className="px-5 py-3 text-[#C9A96E] font-medium">AED {o.cod_amount}</td>
                         <td className="px-5 py-3"><span className={`px-2 py-0.5 rounded text-xs font-medium ${o.delivery_method === 'pickup' ? 'bg-blue-50 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>{o.delivery_method === 'pickup' ? 'Pickup' : 'Delivery'}</span></td>
                         <td className="px-5 py-3"><select value={o.status} onChange={(e) => updateOrderStatus(o.id, e.target.value)} disabled={updatingOrderId === o.id}
@@ -355,7 +355,7 @@ export default function AdminPage() {
                   <div key={cat} className="flex items-center gap-3">
                     <span className="text-sm text-gray-600 w-40 truncate">{cat}</span>
                     <div className="flex-1 bg-gray-100 rounded-full h-2.5">
-                      <div className="bg-[#16A34A] h-2.5 rounded-full" style={{ width: `${(count / products.length) * 100}%` }} />
+                      <div className="bg-[#23201C] h-2.5 rounded-full" style={{ width: `${(count / products.length) * 100}%` }} />
                     </div>
                     <span className="text-sm font-medium text-gray-900 w-8 text-right">{count}</span>
                   </div>

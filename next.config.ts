@@ -25,6 +25,25 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
+    // Cap the srcset ladder at the real ceiling of our own photography.
+    //
+    // Chromium selects the LARGEST srcset candidate for `loading="lazy"`
+    // images that are still offscreen, ignoring `sizes` entirely — a
+    // long-standing browser behaviour, not a markup fault. On the homepage
+    // that made all eight cards in the second product grid request w=3840
+    // (98 KB each) for a 384px box that needs w=640 (42 KB each), and the
+    // eight cold transforms were slow enough to leave visible empty cards
+    // on a first visit.
+    //
+    // We cannot change the browser's choice, so we bound what it can choose.
+    // The widest source photo in public/images/lasercut is 1600px (123 files,
+    // median 1254), so every rung above that returned the same pixels in a
+    // bigger file — Next never upscales past the source. Removing 1920/2048/
+    // 3840 costs no visible quality at any viewport and makes the worst case
+    // the same image the layout actually wanted.
+    //
+    // If genuinely larger artwork is ever added, raise this to match it.
+    deviceSizes: [640, 750, 828, 1080, 1200, 1600],
     remotePatterns: [
       {
         protocol: "https",

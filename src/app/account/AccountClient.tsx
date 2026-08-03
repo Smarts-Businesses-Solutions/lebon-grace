@@ -154,7 +154,7 @@ export default function AccountClient() {
             <p className="text-xs text-gray-400 uppercase tracking-wider mt-1">Orders</p>
           </div>
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 text-center">
-            <p className="text-2xl font-bold text-[#16A34A]">{formatPrice(orders.reduce((s, o) => s + o.total, 0))}</p>
+            <p className="text-2xl font-bold text-[#A8874D]">{formatPrice(orders.reduce((s, o) => s + o.total, 0))}</p>
             <p className="text-xs text-gray-400 uppercase tracking-wider mt-1">Total Spent</p>
           </div>
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 text-center">
@@ -172,7 +172,7 @@ export default function AccountClient() {
           {orders.length === 0 ? (
             <div className="px-6 py-12 text-center">
               <p className="text-gray-400 text-sm">No orders yet.</p>
-              <Link href="/shop" className="mt-4 inline-block px-6 py-2 bg-[#16A34A] text-white rounded-lg text-sm font-medium hover:bg-[#15803D] transition-colors">
+              <Link href="/shop" className="mt-4 inline-block px-6 py-2 bg-[#23201C] text-white rounded-lg text-sm font-medium hover:bg-[#A8874D] transition-colors">
                 Start Shopping
               </Link>
             </div>
@@ -230,7 +230,7 @@ export default function AccountClient() {
           <Link href="/track" className="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-200 transition-colors">
             Track an Order
           </Link>
-          <Link href="/shop" className="px-5 py-2.5 bg-[#16A34A] text-white rounded-xl text-sm font-medium hover:bg-[#15803D] transition-colors">
+          <Link href="/shop" className="px-5 py-2.5 bg-[#23201C] text-white rounded-xl text-sm font-medium hover:bg-[#A8874D] transition-colors">
             Continue Shopping
           </Link>
           <button

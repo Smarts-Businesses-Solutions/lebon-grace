@@ -17,7 +17,7 @@ export default function CartPage() {
         </svg>
         <h1 className="mt-6 text-2xl font-semibold tracking-tight">Your Cart is Empty</h1>
         <p className="mt-3 text-gray-400 text-sm">Browse our collection of affordable essentials.</p>
-        <Link href="/shop" className="mt-6 inline-flex items-center px-6 py-3 bg-[#16A34A] text-white text-sm font-semibold rounded-lg hover:bg-[#15803D] transition-colors">
+        <Link href="/shop" className="mt-6 inline-flex items-center px-6 py-3 bg-[#23201C] text-white text-sm font-semibold rounded-lg hover:bg-[#A8874D] transition-colors">
           Shop Now
         </Link>
       </section>
@@ -34,21 +34,21 @@ export default function CartPage() {
           basket charged on FREE_DELIVERY_OVER, so the bar asked for twice the
           spend that actually earns free delivery. */}
       {deliveryMethod === "delivery" && subtotal < FREE_DELIVERY_OVER && subtotal > 0 && (
-        <div className="mb-6 p-4 bg-[#16A34A]/5 border border-[#16A34A]/10 rounded-xl">
+        <div className="mb-6 p-4 bg-[#23201C]/5 border border-[#A8874D]/10 rounded-xl">
           <div className="flex items-center justify-between mb-2">
             <p className="text-sm text-gray-600">
-              Add <strong className="text-[#16A34A]">{formatPrice(FREE_DELIVERY_OVER - subtotal)}</strong> more for <strong>free delivery</strong> 🚚
+              Add <strong className="text-[#5F7355]">{formatPrice(FREE_DELIVERY_OVER - subtotal)}</strong> more for <strong>free delivery</strong> 🚚
             </p>
             <span className="text-xs text-gray-400">{Math.round((subtotal / FREE_DELIVERY_OVER) * 100)}%</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
-            <div className="bg-[#16A34A] h-2 rounded-full transition-all" style={{ width: `${Math.min((subtotal / FREE_DELIVERY_OVER) * 100, 100)}%` }} />
+            <div className="bg-[#23201C] h-2 rounded-full transition-all" style={{ width: `${Math.min((subtotal / FREE_DELIVERY_OVER) * 100, 100)}%` }} />
           </div>
         </div>
       )}
       {deliveryMethod === "delivery" && subtotal >= FREE_DELIVERY_OVER && (
-        <div className="mb-6 p-3 bg-[#16A34A]/10 border border-[#16A34A]/20 rounded-xl text-center">
-          <p className="text-sm font-medium text-[#16A34A]">🎉 Your delivery is free</p>
+        <div className="mb-6 p-3 bg-[#23201C]/10 border border-[#A8874D]/20 rounded-xl text-center">
+          <p className="text-sm font-medium text-[#5F7355]">🎉 Your delivery is free</p>
         </div>
       )}
 
@@ -64,7 +64,7 @@ export default function CartPage() {
               </Link>
               <div className="flex-1 min-w-0">
                 <Link href={"/shop/" + item.product.slug}>
-                  <h3 className="text-sm font-medium tracking-tight hover:text-[#16A34A] transition-colors truncate">{item.product.name}</h3>
+                  <h3 className="text-sm font-medium tracking-tight hover:text-[#A8874D] transition-colors truncate">{item.product.name}</h3>
                 </Link>
                 <p className="text-gray-400 text-xs mt-0.5">{item.product.variant}</p>
                 <p className="text-gray-900 text-sm font-semibold mt-2">{formatPrice(item.product.price)}</p>
@@ -94,7 +94,7 @@ export default function CartPage() {
                   onClick={() => setDeliveryMethod("delivery")}
                   className={`p-3 rounded-xl border-2 text-center transition-all ${
                     deliveryMethod === "delivery"
-                      ? "border-[#16A34A] bg-[#16A34A]/5 text-[#16A34A]"
+                      ? "border-[#A8874D] bg-[#23201C]/5 text-[#A8874D]"
                       : "border-gray-200 text-gray-500 hover:border-gray-300"
                   }`}
                 >
@@ -106,7 +106,7 @@ export default function CartPage() {
                   onClick={() => setDeliveryMethod("pickup")}
                   className={`p-3 rounded-xl border-2 text-center transition-all ${
                     deliveryMethod === "pickup"
-                      ? "border-[#16A34A] bg-[#16A34A]/5 text-[#16A34A]"
+                      ? "border-[#A8874D] bg-[#23201C]/5 text-[#A8874D]"
                       : "border-gray-200 text-gray-500 hover:border-gray-300"
                   }`}
                 >
@@ -124,7 +124,7 @@ export default function CartPage() {
                 </p>
               )}
               {deliveryMethod === "pickup" && (
-                <p className="text-[#16A34A] text-xs mt-2">✓ Free pickup — no shipping fee</p>
+                <p className="text-[#5F7355] text-xs mt-2">✓ Free pickup — no shipping fee</p>
               )}
             </div>
 
@@ -135,7 +135,7 @@ export default function CartPage() {
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-400">{deliveryMethod === "pickup" ? "Pickup" : "Shipping"}</span>
-                <span className={shipping === 0 ? "text-[#16A34A] font-medium" : "text-gray-900"}>
+                <span className={shipping === 0 ? "text-[#A8874D] font-medium" : "text-gray-900"}>
                   {shipping === 0 ? "Free" : formatPrice(shipping)}
                 </span>
               </div>
@@ -160,7 +160,7 @@ export default function CartPage() {
 
             <Link
               href="/checkout"
-              className="mt-6 block w-full py-3.5 bg-[#16A34A] text-white text-sm font-semibold text-center rounded-xl hover:bg-[#15803D] transition-colors"
+              className="mt-6 block w-full py-3.5 bg-[#23201C] text-white text-sm font-semibold text-center rounded-xl hover:bg-[#A8874D] transition-colors"
             >
               Proceed to Checkout
             </Link>

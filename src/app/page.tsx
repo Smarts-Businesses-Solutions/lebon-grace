@@ -31,19 +31,24 @@ function ProductCard({ product, onAdd }: { product: typeof products[0]; onAdd: (
   const ph = product.imagePlaceholder;
   const isLight = ph.bg === "#C9A96E" || ph.bg === "#D4BA85";
 
+  // Card, not tile. The previous version was a white rounded box with a border,
+  // a bold price and a filled "Add" button — the shape every marketplace uses.
+  // Here the photograph sits directly on the paper with no frame, the title is
+  // set in the display serif, and the add control only appears on hover so a
+  // grid of sixteen reads as a catalogue rather than a checkout queue.
   return (
-    <div className="group bg-white rounded-xl overflow-hidden border border-gray-100 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
+    <div className="group">
       <Link href={"/shop/" + product.slug} className="block">
         {/* relative is required: ProductImage fills its nearest positioned
-            ancestor. The initials sit underneath and are revealed only if the
-            image fails to load, which replaces the old imperative fallback. */}
+            ancestor. The initials sit underneath and show only if the image
+            fails, replacing the old imperative onError handler. */}
         <div
-          className="relative aspect-square overflow-hidden flex items-center justify-center"
+          className="relative aspect-square overflow-hidden flex items-center justify-center lift"
           style={{ backgroundColor: ph.bg }}
         >
           <span
-            className="font-bold text-2xl opacity-60"
-            style={{ color: isLight ? "#2D2D2D" : "#FAF8F5" }}
+            className="font-heading text-3xl opacity-50"
+            style={{ color: isLight ? "#23201C" : "#F7F3EC" }}
           >
             {ph.initials}
           </span>
@@ -51,22 +56,34 @@ function ProductCard({ product, onAdd }: { product: typeof products[0]; onAdd: (
             src={product.imageUrl}
             alt={product.name}
             sizes="(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw"
-            className="object-cover group-hover:scale-105 transition-transform duration-500"
+            className="object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.04]"
           />
-        </div>
-      </Link>
-      <div className="p-3">
-        <Link href={"/shop/" + product.slug}>
-          <h3 className="text-[13px] font-medium text-gray-800 leading-snug line-clamp-2 hover:text-[#16A34A] transition-colors mb-1">{product.name}</h3>
-        </Link>
-        <div className="flex items-center justify-between mt-2">
-          <span className="text-gray-900 font-bold text-base">{formatPrice(product.price)}</span>
-          <button onClick={onAdd}
-            className="flex items-center gap-1 px-3 py-1.5 bg-[#16A34A] text-white text-xs font-semibold rounded-lg hover:bg-[#15803D] active:scale-95 transition-all">
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
-            Add
+
+          {/* Add control, revealed on hover. On touch, where there is no hover,
+              the whole card is still a link to the product page, so nothing is
+              unreachable. */}
+          <button
+            onClick={(e) => { e.preventDefault(); onAdd(); }}
+            aria-label={`Add ${product.name} to cart`}
+            className="absolute bottom-3 right-3 bg-bone/95 backdrop-blur-sm text-ink text-xs tracking-wide px-4 py-2.5
+                       opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0
+                       focus-visible:opacity-100 focus-visible:translate-y-0
+                       transition-all duration-300 hover:bg-ink hover:text-paper"
+          >
+            Add to cart
           </button>
         </div>
+      </Link>
+
+      <div className="pt-4">
+        <Link href={"/shop/" + product.slug}>
+          <h3 className="font-heading text-[15px] leading-snug line-clamp-2 group-hover:text-sand-dark transition-colors">
+            {product.name}
+          </h3>
+        </Link>
+        {/* Price set quietly. Every piece is AED 15, so shouting it on each of
+            sixteen cards just adds noise; the hero states it once. */}
+        <p className="mt-1.5 text-sm text-ink-muted tabular-nums">{formatPrice(product.price)}</p>
       </div>
     </div>
   );
@@ -128,37 +145,97 @@ export default function HomePage() {
 
   return (
     <>
-      {/* Hero */}
-      <section className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#C9A96E] rounded-full blur-3xl"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-[#16A34A] rounded-full blur-3xl"></div>
-        </div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-28">
-          <div className="max-w-2xl">
-            <p className="text-[#C9A96E] text-xs sm:text-sm tracking-[0.3em] uppercase mb-4 font-medium">Cut To Order &bull; Free Name Engraving &bull; Ready In 2 To 3 Days</p>
-            <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight tracking-tight">
-              Wooden puzzles,<br />
-              <span className="text-[#C9A96E]">made one at a time</span>
-            </h1>
-            <p className="mt-6 text-gray-300 text-base sm:text-lg leading-relaxed max-w-lg">
-              Alphabet boards, number puzzles and Montessori shapes, cut and sanded by hand after you order. Ready in two to three days. Add a child’s name at no extra cost.
-            </p>
-            <div className="flex flex-wrap gap-3 mt-8">
-              <Link href="/shop" className="inline-flex items-center gap-2 bg-[#16A34A] text-white px-8 py-3.5 rounded-lg text-sm font-semibold hover:bg-[#15803D] transition-colors">
-                Shop All Puzzles
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
-              </Link>
-              <Link href="/about" className="inline-flex items-center border border-white/30 text-white px-6 py-3.5 rounded-lg text-sm font-medium hover:bg-white/10 transition-colors">
-                How We Make Them
-              </Link>
+      {/* ── Hero ──────────────────────────────────────────────────────────────
+          Replaces a dark gradient with two blurred colour blobs and no product
+          in it. The photography is the strongest asset this shop has and the
+          first screen showed none of it.
+
+          Asymmetric on purpose: type occupies five columns, the photograph
+          seven and bleeds past the container to the right edge, so the page
+          reads as a spread rather than a centred landing page. The overlap of
+          the price medallion onto the image is the one grid-breaking element,
+          and it carries the offer that actually wins against Amazon. */}
+      <section className="relative overflow-hidden bg-paper">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-12 gap-10 lg:gap-16 items-center pt-14 pb-16 lg:pt-24 lg:pb-28">
+
+            <div className="lg:col-span-5 relative z-10">
+              <p className="eyebrow rise" style={{ animationDelay: "80ms" }}>
+                Cut to order · Dubai workshop
+              </p>
+
+              {/* Fraunces at display size with its optical axis pushed further:
+                  large type can carry more warmth than body text without
+                  becoming decorative. */}
+              <h1
+                className="mt-5 text-[2.75rem] sm:text-6xl lg:text-[4.2rem] font-semibold rise"
+                style={{ animationDelay: "160ms", fontVariationSettings: '"SOFT" 45, "WONK" 1, "opsz" 120' }}
+              >
+                Wooden puzzles,
+                <span className="block italic text-sand-dark">made one at a time.</span>
+              </h1>
+
+              <p className="mt-7 text-ink-soft text-lg leading-relaxed max-w-md rise" style={{ animationDelay: "240ms" }}>
+                Alphabet boards, number trays and Montessori shapes. Drawn as a cutting
+                file, cut from MDF on our own laser, sanded by hand. Yours does not exist
+                until you order it.
+              </p>
+
+              <div className="flex flex-wrap items-center gap-3 mt-9 rise" style={{ animationDelay: "320ms" }}>
+                <Link
+                  href="/shop"
+                  className="group inline-flex items-center gap-2.5 bg-ink text-paper px-8 py-4 text-sm tracking-wide hover:bg-sand-dark transition-colors"
+                >
+                  Browse the range
+                  <svg className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                </Link>
+                {/* The rule belongs to the words, not to the link box: with the
+                    underline on the <Link> its px-6/py-4 padding pushed it a
+                    finger's width past the text on both sides and well below the
+                    baseline, which read as a stray line once it wrapped on
+                    mobile. Moving it to an inner span keeps it hugging the text
+                    at every width. */}
+                <Link
+                  href="/about"
+                  className="group inline-flex items-center px-6 py-4 text-sm tracking-wide text-ink"
+                >
+                  <span className="border-b border-ink/25 pb-0.5 transition-colors group-hover:border-ink">
+                    How they are made
+                  </span>
+                </Link>
+              </div>
+            </div>
+
+            <div className="lg:col-span-7 relative">
+              {/* Bleeds past the container on large screens so the image runs to
+                  the edge of the viewport. */}
+              <div className="relative aspect-[5/4] lg:aspect-[4/3] overflow-hidden lg:-mr-[8vw] rise" style={{ animationDelay: "120ms" }}>
+                <ProductImage
+                  src="/images/lasercut/abc-jigsaw-board-0.png"
+                  alt="An alphabet jigsaw board, cut and sanded by hand"
+                  sizes="(min-width: 1024px) 60vw, 100vw"
+                  className="object-cover"
+                  priority
+                />
+              </div>
+
+              {/* The offer, set as an object rather than a badge. AED 15 with
+                  free engraving is the strongest thing this shop can say and it
+                  was previously buried in a line of small caps. */}
+              <div className="absolute -bottom-7 left-4 sm:left-8 bg-bone px-7 py-5 lift rise" style={{ animationDelay: "420ms" }}>
+                <p className="eyebrow">Every puzzle</p>
+                <p className="font-heading text-3xl mt-1">AED 15</p>
+                <p className="text-xs text-ink-muted mt-1">Name engraved free · ready in 2–3 days</p>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Promotional Banner */}
-      <section className="bg-[#16A34A]">
+      <section className="bg-[#23201C]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex flex-wrap items-center justify-center gap-6 text-white text-sm font-medium">
             {/* These three must match the cart. They previously said AED 300 and
@@ -197,23 +274,27 @@ export default function HomePage() {
               const count = products.filter(p => p.category === cat.name).length;
               return (
                 <Link key={cat.name} href={"/shop?category=" + encodeURIComponent(cat.name)} className="group flex flex-col items-center gap-3 text-center">
-                  <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden bg-gray-100 border-2 border-gray-100 group-hover:border-[#16A34A] group-hover:shadow-md transition-all duration-200">
+                  {/* An arch, not a circle. These photos are landscape objects on
+                      cloth: a circle crops harder than any other shape and lopped
+                      the ends off every puzzle. The arch keeps the full width and
+                      reads as a display niche rather than an avatar. */}
+                  <div className="relative w-full aspect-4/5 overflow-hidden rounded-t-full rounded-b-md bg-paper-deep ring-1 ring-rule transition-all duration-300 group-hover:ring-sand group-hover:-translate-y-1">
                     {categoryImage ? (
-                      <ProductImage src={categoryImage} alt={cat.name} sizes="96px" />
+                      <ProductImage src={categoryImage} alt={cat.name} sizes="(max-width: 640px) 30vw, (max-width: 1024px) 30vw, 160px" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gray-100 text-2xl">{cat.icon}</div>
+                      <div className="w-full h-full flex items-center justify-center text-2xl">{cat.icon}</div>
                     )}
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-800 group-hover:text-[#16A34A] transition-colors">{cat.name}</p>
-                    <p className="text-[11px] text-gray-400 mt-0.5">{count} {count === 1 ? "item" : "items"}</p>
+                    <p className="font-heading text-sm text-ink transition-colors group-hover:text-sand-dark">{cat.name}</p>
+                    <p className="text-[11px] text-ink-muted mt-0.5 tabular-nums">{count} {count === 1 ? "piece" : "pieces"}</p>
                   </div>
                 </Link>
               );
             })}
           </div>
           <div className="text-center mt-8">
-            <Link href="/shop" className="inline-flex items-center gap-1 text-[#16A34A] text-sm font-medium hover:underline">
+            <Link href="/shop" className="inline-flex items-center gap-1 text-[#A8874D] text-sm font-medium hover:underline">
               View all categories
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
             </Link>
@@ -229,7 +310,7 @@ export default function HomePage() {
               <h2 className="font-heading text-2xl lg:text-3xl font-semibold tracking-tight">Popular Shapes</h2>
               <p className="mt-1 text-gray-400 text-sm">Alphabet boards, animals and Montessori trays</p>
             </div>
-            <Link href="/shop" className="text-[#16A34A] text-sm font-medium hover:underline hidden sm:block">
+            <Link href="/shop" className="text-[#A8874D] text-sm font-medium hover:underline hidden sm:block">
               View all →
             </Link>
           </div>
@@ -241,43 +322,25 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Value Proposition Banner */}
-      <section className="bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="flex items-start gap-4 p-6 bg-gray-50 rounded-xl">
-              <div className="w-12 h-12 bg-[#16A34A]/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                <svg className="w-6 h-6 text-[#16A34A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375c-.621 0-1.125-.504-1.125-1.125V14.25m17.25 4.5v-3.375c0-.621-.504-1.125-1.125-1.125H17.25m0 0V6.375c0-.621-.504-1.125-1.125-1.125H7.875c-.621 0-1.125.504-1.125 1.125v5.25" />
-                </svg>
+      {/* How the workshop works. Three plain statements, set as ruled editorial
+          columns rather than boxed cards with icon chips — the icons were
+          generic stroke glyphs that said nothing the sentence underneath did
+          not already say, and the grey rounded boxes were the last piece of
+          stock-template furniture on the page. */}
+      <section className="bg-bone">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-x-12 gap-y-12">
+            {[
+              { n: "01", title: "Collection or delivery", body: "Collect from the workshop free, or AED 20 anywhere in the UAE. Delivery is free over AED 150." },
+              { n: "02", title: "Made to order", body: "Nothing sits in a warehouse. Your puzzle is cut, sanded and finished once you order it, then it is yours." },
+              { n: "03", title: "Secure & trusted", body: "Payment through Stripe, and a real person on WhatsApp for every order. If a piece arrives faulty we replace it free within 7 days." },
+            ].map((item) => (
+              <div key={item.n} className="border-t border-ink pt-5">
+                <span className="eyebrow text-ink-muted tabular-nums">{item.n}</span>
+                <h3 className="font-heading text-xl text-ink mt-3">{item.title}</h3>
+                <p className="text-ink-soft/80 text-sm leading-relaxed mt-2 max-w-xs">{item.body}</p>
               </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-1">Collection or Delivery</h3>
-                <p className="text-gray-500 text-sm leading-relaxed">Collect from the workshop free, or AED 20 anywhere in the UAE. Delivery is free over AED 150.</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-4 p-6 bg-gray-50 rounded-xl">
-              <div className="w-12 h-12 bg-[#C9A96E]/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                <svg className="w-6 h-6 text-[#C9A96E]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-1">Made to Order</h3>
-                <p className="text-gray-500 text-sm leading-relaxed">Nothing sits in a warehouse. Your puzzle is cut, sanded and finished once you order it, then it is yours.</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-4 p-6 bg-gray-50 rounded-xl">
-              <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                <svg className="w-6 h-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-1">Secure & Trusted</h3>
-                <p className="text-gray-500 text-sm leading-relaxed">Payment through Stripe, and a real person on WhatsApp for every order. If a piece arrives faulty we replace it free within 7 days.</p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
@@ -291,7 +354,7 @@ export default function HomePage() {
               <h2 className="font-heading text-2xl lg:text-3xl font-semibold tracking-tight">More From The Workshop</h2>
               <p className="mt-1 text-gray-400 text-sm">Numbers, vehicles and build-it-yourself kits</p>
             </div>
-            <Link href="/shop" className="text-[#16A34A] text-sm font-medium hover:underline hidden sm:block">
+            <Link href="/shop" className="text-[#A8874D] text-sm font-medium hover:underline hidden sm:block">
               View all →
             </Link>
           </div>
@@ -303,18 +366,30 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Newsletter */}
-      <section className="bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="max-w-xl mx-auto text-center">
-            <h2 className="font-heading text-2xl lg:text-3xl font-semibold tracking-tight mb-3">Stay in the Loop</h2>
-            <p className="text-gray-400 text-sm mb-8">New designs and workshop news, now and then. No offers you have not asked for.</p>
+      {/* Newsletter.
+          Set as an asymmetric editorial block rather than a centred card: the
+          type sits left, the form right, and the field is a ruled line instead
+          of a bordered box so it reads as part of the page rather than a widget
+          dropped onto it. */}
+      <section className="bg-paper-deep border-t border-rule">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-end">
+            <div className="lg:col-span-5">
+              <span className="eyebrow text-ink-muted">From the workshop</span>
+              <h2 className="font-heading text-3xl lg:text-4xl text-ink mt-3 leading-[1.1]">
+                New designs, <em className="text-sand-dark not-italic font-normal">now and then</em>
+              </h2>
+              <p className="text-ink-soft/80 text-sm mt-4 max-w-sm leading-relaxed">
+                Workshop news and new shapes as they come off the laser. No offers you have not asked for.
+              </p>
+            </div>
+            <div className="lg:col-span-6 lg:col-start-7">
             {subscribed ? (
-              <div className="bg-[#16A34A]/10 text-[#16A34A] p-4 rounded-lg font-medium">
-                ✓ You are on the list. We will email you when there is something new.
-              </div>
+              <p className="font-heading text-lg text-sage border-t border-sage pt-5">
+                You are on the list. We will email you when there is something new.
+              </p>
             ) : (
-              <form onSubmit={handleSubscribe} className="flex gap-2">
+              <form onSubmit={handleSubscribe} className="flex gap-3 items-end">
                 {/* Honeypot. Hidden from people, filled by bots. */}
                 <input
                   type="text"
@@ -330,20 +405,21 @@ export default function HomePage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email address"
-                  className="flex-1 px-4 py-3 border border-gray-200 rounded-lg text-sm focus:border-[#16A34A] focus:ring-1 focus:ring-[#16A34A] outline-none"
+                  placeholder="your@email.com"
+                  className="flex-1 min-w-0 bg-transparent border-0 border-b border-ink/30 px-0 py-3 text-base text-ink placeholder:text-ink-muted/60 focus:border-ink focus:ring-0 outline-none transition-colors"
                   required
                 />
                 <button
                   type="submit"
                   disabled={sending}
-                  className="px-6 py-3 bg-[#16A34A] text-white rounded-lg text-sm font-semibold hover:bg-[#15803D] transition-colors whitespace-nowrap disabled:opacity-60"
+                  className="shrink-0 px-7 py-3 bg-ink text-paper text-sm tracking-wide hover:bg-sand-dark transition-colors whitespace-nowrap disabled:opacity-60"
                 >
                   {sending ? "Saving…" : "Subscribe"}
                 </button>
               </form>
             )}
-            {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+            {error && <p className="mt-3 text-sm text-red-700">{error}</p>}
+            </div>
           </div>
         </div>
       </section>

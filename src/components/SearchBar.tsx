@@ -143,7 +143,7 @@ export default function SearchBar({ variant = "header", onClose, autoFocus }: Se
     return (
       <>
         {text.slice(0, idx)}
-        <span className="font-semibold text-[#16A34A]">{text.slice(idx, idx + q.length)}</span>
+        <span className="font-semibold text-[#A8874D]">{text.slice(idx, idx + q.length)}</span>
         {text.slice(idx + q.length)}
       </>
     );
@@ -199,7 +199,7 @@ export default function SearchBar({ variant = "header", onClose, autoFocus }: Se
                   <button
                     key={cat.name}
                     onClick={() => navigateTo(`/shop?category=${encodeURIComponent(cat.name)}`)}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-colors ${selectedIndex === globalIdx ? "bg-[#16A34A]/5" : "hover:bg-gray-50"}`}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-colors ${selectedIndex === globalIdx ? "bg-[#23201C]/5" : "hover:bg-gray-50"}`}
                   >
                     <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center text-sm">{cat.icon}</div>
                     <div>
@@ -222,7 +222,7 @@ export default function SearchBar({ variant = "header", onClose, autoFocus }: Se
                   <button
                     key={product.slug}
                     onClick={() => navigateTo(`/shop/${product.slug}`)}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-colors ${selectedIndex === globalIdx ? "bg-[#16A34A]/5" : "hover:bg-gray-50"}`}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-colors ${selectedIndex === globalIdx ? "bg-[#23201C]/5" : "hover:bg-gray-50"}`}
                   >
                     <div
                       className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center"
@@ -234,7 +234,7 @@ export default function SearchBar({ variant = "header", onClose, autoFocus }: Se
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-800 truncate">{highlightMatch(product.name, query)}</p>
                       <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-sm font-bold text-[#16A34A]">{formatPrice(product.price)}</span>
+                        <span className="text-sm font-bold text-[#A8874D]">{formatPrice(product.price)}</span>
                         <span className="text-[11px] text-gray-400">{product.category}</span>
                       </div>
                     </div>

@@ -253,14 +253,14 @@ export default function CheckoutPage() {
             </div>
             <div className="border-t border-border pt-3 space-y-2 text-sm">
               <div className="flex justify-between"><span className="text-warm-gray">Subtotal</span><span>{formatPrice(subtotal)}</span></div>
-              <div className="flex justify-between"><span className="text-warm-gray">{deliveryMethod === "pickup" ? "Pickup (Free)" : "Shipping"}</span><span className={shipping === 0 ? "text-[#16A34A] font-medium" : ""}>{shipping === 0 ? "Free" : formatPrice(shipping)}</span></div>
+              <div className="flex justify-between"><span className="text-warm-gray">{deliveryMethod === "pickup" ? "Pickup (Free)" : "Shipping"}</span><span className={shipping === 0 ? "text-[#5F7355] font-medium" : ""}>{shipping === 0 ? "Free" : formatPrice(shipping)}</span></div>
               <div className="flex justify-between font-medium border-t border-border pt-2"><span>Total</span><span>{formatPrice(total)}</span></div>
             </div>
             <div className="mt-4 p-3 bg-offwhite rounded-sm">
               <p className="text-xs text-charcoal font-medium mb-1">Payment Split</p>
               <p className="text-xs text-warm-gray">Now (card): {formatPrice(depositNow)} | On delivery: {formatPrice(payOnDelivery)}</p>
               {deliveryMethod === "pickup" && (
-                <p className="text-xs text-[#16A34A] mt-1">✓ Free pickup — no shipping fee</p>
+                <p className="text-xs text-[#5F7355] mt-1">✓ Free pickup — no shipping fee</p>
               )}
             </div>
           </div>

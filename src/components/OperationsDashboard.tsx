@@ -62,7 +62,7 @@ function KpiCard({ icon, label, value, sub, color }: { icon: string; label: stri
   );
 }
 
-function MiniBarChart({ data, label, color = "bg-[#16A34A]" }: { data: { label: string; value: number }[]; label: string; color?: string }) {
+function MiniBarChart({ data, label, color = "bg-[#23201C]" }: { data: { label: string; value: number }[]; label: string; color?: string }) {
   const max = Math.max(...data.map((d) => d.value), 1);
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-5">
@@ -96,7 +96,7 @@ export default function OperationsDashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="animate-spin w-8 h-8 border-2 border-gray-300 border-t-[#16A34A] rounded-full" />
+        <div className="animate-spin w-8 h-8 border-2 border-gray-300 border-t-[#A8874D] rounded-full" />
       </div>
     );
   }
@@ -138,9 +138,9 @@ export default function OperationsDashboard() {
       {/* ─── KPI Cards ─── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-3">
         <KpiCard icon="💰" label="Revenue (Month)" value={fmt(fin.revenueMonth)} sub={`${fin.ordersMonth} orders`} />
-        <KpiCard icon="💳" label="Deposits Collected" value={fmt(fin.depositsCollected)} color="text-[#16A34A]" />
+        <KpiCard icon="💳" label="Deposits Collected" value={fmt(fin.depositsCollected)} color="text-[#A8874D]" />
         <KpiCard icon="🟡" label="COD Pending" value={fmt(fin.codPending)} sub={`${cod.outstandingCount} orders`} color="text-[#C9A96E]" />
-        <KpiCard icon="✅" label="COD Collected" value={fmt(fin.codCollected)} sub={`${cod.collectionRate}% rate`} color="text-[#16A34A]" />
+        <KpiCard icon="✅" label="COD Collected" value={fmt(fin.codCollected)} sub={`${cod.collectionRate}% rate`} color="text-[#A8874D]" />
         <KpiCard icon="📊" label="Avg Order Value" value={fmt(fin.avgOrderValue)} sub={`${fin.ordersTotal} total`} />
         <KpiCard icon="📈" label="Today" value={String(fin.ordersToday)} sub={fmt(fin.revenueToday)} />
       </div>
@@ -176,7 +176,7 @@ export default function OperationsDashboard() {
               const h = Math.max((d.amount / chartMax) * 100, 2);
               return (
                 <div key={i} className="flex-1 flex flex-col items-center gap-1" title={`${d.date}: ${fmt(d.amount)}`}>
-                  <div className="w-full bg-[#16A34A] rounded-t transition-all" style={{ height: `${h}%` }} />
+                  <div className="w-full bg-[#23201C] rounded-t transition-all" style={{ height: `${h}%` }} />
                   <span className="text-[8px] text-gray-400 -rotate-45 origin-left">{d.date.slice(5)}</span>
                 </div>
               );
@@ -237,7 +237,7 @@ export default function OperationsDashboard() {
           <h3 className="text-sm font-semibold text-gray-800 mb-3">📦 Fulfillment</h3>
           <div className="space-y-3">
             <div className="flex justify-between"><span className="text-xs text-gray-500">Avg Delivery Time</span><span className="text-sm font-bold">{fulf.avgDays} days</span></div>
-            <div className="flex justify-between"><span className="text-xs text-gray-500">Success Rate</span><span className="text-sm font-bold text-[#16A34A]">{fulf.deliverySuccessRate}%</span></div>
+            <div className="flex justify-between"><span className="text-xs text-gray-500">Success Rate</span><span className="text-sm font-bold text-[#A8874D]">{fulf.deliverySuccessRate}%</span></div>
             <div className="flex justify-between"><span className="text-xs text-gray-500">Pickup Orders</span><span className="text-sm font-bold">{fulf.pickupOrders}</span></div>
             <div className="flex justify-between"><span className="text-xs text-gray-500">Delivery Orders</span><span className="text-sm font-bold">{fulf.deliveryOrders}</span></div>
           </div>
@@ -303,7 +303,7 @@ export default function OperationsDashboard() {
               {prod.bestSellers.slice(0, 5).map((p, i) => (
                 <div key={i} className="flex items-center justify-between px-3 py-2 hover:bg-gray-50 rounded-lg">
                   <div className="flex items-center gap-3">
-                    <span className="w-6 h-6 bg-[#16A34A]/10 rounded-full flex items-center justify-center text-[10px] font-bold text-[#16A34A]">{i + 1}</span>
+                    <span className="w-6 h-6 bg-[#23201C]/10 rounded-full flex items-center justify-center text-[10px] font-bold text-[#A8874D]">{i + 1}</span>
                     <span className="text-xs text-gray-800 line-clamp-1">{p.name}</span>
                   </div>
                   <div className="text-right">

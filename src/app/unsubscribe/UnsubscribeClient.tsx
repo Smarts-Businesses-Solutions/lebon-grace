@@ -44,7 +44,7 @@ export default function UnsubscribeClient() {
           </p>
           <Link
             href="/"
-            className="mt-8 inline-flex items-center px-6 py-3 bg-[#16A34A] text-white text-sm font-semibold rounded-lg hover:bg-[#15803D] transition-colors"
+            className="mt-8 inline-flex items-center px-6 py-3 bg-[#23201C] text-white text-sm font-semibold rounded-lg hover:bg-[#A8874D] transition-colors"
           >
             Back to Home
           </Link>
@@ -62,7 +62,7 @@ export default function UnsubscribeClient() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
               required
-              className="flex-1 px-4 py-3 border border-gray-200 rounded-lg text-sm focus:border-[#16A34A] focus:ring-1 focus:ring-[#16A34A] outline-none"
+              className="flex-1 px-4 py-3 border border-gray-200 rounded-lg text-sm focus:border-[#A8874D] focus:ring-1 focus:ring-[#A8874D] outline-none"
             />
             <button
               type="submit"

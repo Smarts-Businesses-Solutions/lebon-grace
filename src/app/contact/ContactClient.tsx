@@ -60,8 +60,8 @@ export default function ContactClient() {
   if (sent) {
     return (
       <section className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
-        <div className="w-16 h-16 mx-auto rounded-full bg-[#16A34A]/10 flex items-center justify-center">
-          <svg className="w-8 h-8 text-[#16A34A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <div className="w-16 h-16 mx-auto rounded-full bg-[#23201C]/10 flex items-center justify-center">
+          <svg className="w-8 h-8 text-[#A8874D]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
@@ -69,7 +69,7 @@ export default function ContactClient() {
         <p className="mt-4 text-gray-500 text-sm max-w-md mx-auto">
           Thank you for reaching out. We typically respond within 24 hours during business days (Monday–Saturday).
         </p>
-        <Link href="/" className="mt-8 inline-flex items-center px-6 py-3 bg-[#16A34A] text-white text-sm font-semibold rounded-lg hover:bg-[#15803D] transition-colors">
+        <Link href="/" className="mt-8 inline-flex items-center px-6 py-3 bg-[#23201C] text-white text-sm font-semibold rounded-lg hover:bg-[#A8874D] transition-colors">
           Back to Home
         </Link>
       </section>
@@ -106,13 +106,13 @@ export default function ContactClient() {
                 <div>
                   <label className="block text-xs text-gray-600 tracking-wide mb-1.5">Full Name *</label>
                   <input type="text" name="name" value={form.name} onChange={handleChange}
-                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:border-[#16A34A] focus:ring-2 focus:ring-[#16A34A]/20 outline-none transition-all" placeholder="Your name" />
+                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:border-[#A8874D] focus:ring-2 focus:ring-[#A8874D]/20 outline-none transition-all" placeholder="Your name" />
                   {errors.name && <p className="mt-1 text-red-500 text-xs">{errors.name}</p>}
                 </div>
                 <div>
                   <label className="block text-xs text-gray-600 tracking-wide mb-1.5">Email Address *</label>
                   <input type="email" name="email" value={form.email} onChange={handleChange}
-                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:border-[#16A34A] focus:ring-2 focus:ring-[#16A34A]/20 outline-none transition-all" placeholder="you@example.com" />
+                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:border-[#A8874D] focus:ring-2 focus:ring-[#A8874D]/20 outline-none transition-all" placeholder="you@example.com" />
                   {errors.email && <p className="mt-1 text-red-500 text-xs">{errors.email}</p>}
                 </div>
               </div>
@@ -121,12 +121,12 @@ export default function ContactClient() {
                 <div>
                   <label className="block text-xs text-gray-600 tracking-wide mb-1.5">Phone Number</label>
                   <input type="tel" name="phone" value={form.phone} onChange={handleChange}
-                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:border-[#16A34A] focus:ring-2 focus:ring-[#16A34A]/20 outline-none transition-all" placeholder="+971 5X XXX XXXX" />
+                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:border-[#A8874D] focus:ring-2 focus:ring-[#A8874D]/20 outline-none transition-all" placeholder="+971 5X XXX XXXX" />
                 </div>
                 <div>
                   <label className="block text-xs text-gray-600 tracking-wide mb-1.5">Subject</label>
                   <select name="subject" value={form.subject} onChange={handleChange}
-                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:border-[#16A34A] focus:ring-2 focus:ring-[#16A34A]/20 outline-none transition-all cursor-pointer">
+                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:border-[#A8874D] focus:ring-2 focus:ring-[#A8874D]/20 outline-none transition-all cursor-pointer">
                     <option>General Inquiry</option>
                     <option>Order Issue</option>
                     <option>Product Question</option>
@@ -141,7 +141,7 @@ export default function ContactClient() {
               <div>
                 <label className="block text-xs text-gray-600 tracking-wide mb-1.5">Message *</label>
                 <textarea name="message" value={form.message} onChange={handleChange} rows={6}
-                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:border-[#16A34A] focus:ring-2 focus:ring-[#16A34A]/20 outline-none transition-all resize-none" placeholder="Tell us how we can help..." />
+                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:border-[#A8874D] focus:ring-2 focus:ring-[#A8874D]/20 outline-none transition-all resize-none" placeholder="Tell us how we can help..." />
                 {errors.message && <p className="mt-1 text-red-500 text-xs">{errors.message}</p>}
               </div>
 
@@ -153,7 +153,7 @@ export default function ContactClient() {
                 </p>
               )}
               <button type="submit" disabled={sending}
-                className="px-8 py-3.5 bg-[#16A34A] text-white text-sm font-semibold rounded-xl hover:bg-[#15803D] transition-colors disabled:opacity-60">
+                className="px-8 py-3.5 bg-[#23201C] text-white text-sm font-semibold rounded-xl hover:bg-[#A8874D] transition-colors disabled:opacity-60">
                 {sending ? "Sending..." : "Send Message"}
               </button>
             </form>
@@ -166,8 +166,8 @@ export default function ContactClient() {
 
               <div className="space-y-5">
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#16A34A]/10 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-5 h-5 text-[#16A34A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <div className="w-10 h-10 rounded-xl bg-[#23201C]/10 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-5 h-5 text-[#A8874D]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
                     </svg>
                   </div>

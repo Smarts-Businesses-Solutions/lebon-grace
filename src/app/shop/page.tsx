@@ -54,14 +54,14 @@ function CategoryShowcase() {
         <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-5">
           {topCategories.map((cat) => (
             <Link key={cat.name} href={"/shop?category=" + encodeURIComponent(cat.name)} className="group flex flex-col items-center gap-2 text-center">
-              <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden bg-gray-100 border-2 border-transparent group-hover:border-[#16A34A] transition-colors duration-200">
+              <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden bg-gray-100 border-2 border-transparent group-hover:border-[#A8874D] transition-colors duration-200">
                 {categoryImages[cat.name] ? (
                   <ProductImage src={categoryImages[cat.name]} alt={cat.name} sizes="80px" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-gray-100 text-xl">{cat.icon}</div>
                 )}
               </div>
-              <span className="text-xs font-medium text-gray-700 group-hover:text-[#16A34A] transition-colors leading-tight">{cat.name}</span>
+              <span className="text-xs font-medium text-gray-700 group-hover:text-[#A8874D] transition-colors leading-tight">{cat.name}</span>
             </Link>
           ))}
         </div>
@@ -123,11 +123,11 @@ function ProductCard({ product, onAdd }: { product: EnrichedProduct; onAdd: () =
       {/* Info */}
       <div className="p-3">
         <Link href={"/shop/" + product.slug}>
-          <h3 className="text-[13px] font-medium text-gray-800 leading-snug line-clamp-2 hover:text-[#16A34A] transition-colors mb-1">{product.name}</h3>
+          <h3 className="text-[13px] font-medium text-gray-800 leading-snug line-clamp-2 hover:text-[#A8874D] transition-colors mb-1">{product.name}</h3>
         </Link>
         <div className="flex items-center justify-between mt-2.5">
           <span className="text-gray-900 font-bold text-base">{formatPrice(product.price)}</span>
-          <button onClick={onAdd} className="flex items-center gap-1 px-3 py-1.5 bg-[#16A34A] text-white text-xs font-semibold tracking-wide rounded-lg hover:bg-[#15803D] active:scale-95 transition-all">
+          <button onClick={onAdd} className="flex items-center gap-1 px-3 py-1.5 bg-[#23201C] text-white text-xs font-semibold tracking-wide rounded-lg hover:bg-[#A8874D] active:scale-95 transition-all">
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
             </svg>
@@ -296,7 +296,7 @@ function ShopContent() {
                     updateFilter("priceMax", tier.max);
                   }
                 }}
-                className={`block w-full text-left px-3 py-1.5 rounded-lg text-xs transition-colors ${isActive ? "bg-[#16A34A] text-white" : "text-gray-600 hover:bg-gray-50"}`}
+                className={`block w-full text-left px-3 py-1.5 rounded-lg text-xs transition-colors ${isActive ? "bg-[#23201C] text-white" : "text-gray-600 hover:bg-gray-50"}`}
               >
                 {tier.label}
               </button>
@@ -363,7 +363,7 @@ function ShopContent() {
                     type="checkbox"
                     checked={isActive}
                     onChange={() => toggleArrayFilter("materials", mat)}
-                    className="w-3.5 h-3.5 rounded border-gray-300 text-[#16A34A] focus:ring-[#16A34A]"
+                    className="w-3.5 h-3.5 rounded border-gray-300 text-[#A8874D] focus:ring-[#A8874D]"
                   />
                   <span className="text-xs text-gray-600">{mat}</span>
                   <span className="text-[10px] text-gray-400 ml-auto">{count}</span>
@@ -406,7 +406,7 @@ function ShopContent() {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Filters</h2>
                 {activeFilterCount > 0 && (
-                  <button onClick={clearFilters} className="text-xs text-[#16A34A] hover:underline font-medium">
+                  <button onClick={clearFilters} className="text-xs text-[#A8874D] hover:underline font-medium">
                     Clear all
                   </button>
                 )}
@@ -429,7 +429,7 @@ function ShopContent() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                   </svg>
                   Filters
-                  {activeFilterCount > 0 && <span className="w-5 h-5 bg-[#16A34A] text-white rounded-full flex items-center justify-center text-[10px]">{activeFilterCount}</span>}
+                  {activeFilterCount > 0 && <span className="w-5 h-5 bg-[#23201C] text-white rounded-full flex items-center justify-center text-[10px]">{activeFilterCount}</span>}
                 </button>
 
                 {/* Active filter chips */}
@@ -460,7 +460,7 @@ function ShopContent() {
                     value={filters.search}
                     onChange={(e) => updateFilter("search", e.target.value)}
                     placeholder="Search..."
-                    className="pl-8 pr-3 py-1.5 text-xs border border-gray-200 rounded-lg bg-white text-gray-700 focus:border-[#16A34A] focus:ring-1 focus:ring-[#16A34A] outline-none w-36"
+                    className="pl-8 pr-3 py-1.5 text-xs border border-gray-200 rounded-lg bg-white text-gray-700 focus:border-[#A8874D] focus:ring-1 focus:ring-[#A8874D] outline-none w-36"
                   />
                 </div>
                 <span className="text-gray-400 text-xs">
@@ -469,7 +469,7 @@ function ShopContent() {
                 <select
                   value={filters.sortBy}
                   onChange={(e) => updateFilter("sortBy", e.target.value)}
-                  className="border border-gray-200 rounded-lg px-3 py-1.5 text-xs bg-white text-gray-700 focus:border-[#16A34A] focus:ring-1 focus:ring-[#16A34A] outline-none cursor-pointer"
+                  className="border border-gray-200 rounded-lg px-3 py-1.5 text-xs bg-white text-gray-700 focus:border-[#A8874D] focus:ring-1 focus:ring-[#A8874D] outline-none cursor-pointer"
                 >
                   {sortOptions.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -490,7 +490,7 @@ function ShopContent() {
             {filteredProducts.length === 0 && (
               <div className="text-center py-20">
                 <p className="text-gray-400 text-lg">No products match your filters</p>
-                <button onClick={clearFilters} className="mt-4 text-[#16A34A] text-sm font-medium hover:underline">
+                <button onClick={clearFilters} className="mt-4 text-[#A8874D] text-sm font-medium hover:underline">
                   Clear all filters
                 </button>
               </div>

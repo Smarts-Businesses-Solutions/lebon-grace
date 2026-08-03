@@ -124,7 +124,7 @@ export default function Header() {
     if (!q.trim()) return text;
     const idx = text.toLowerCase().indexOf(q.toLowerCase());
     if (idx === -1) return text;
-    return (<>{text.slice(0, idx)}<span className="font-semibold text-[#16A34A]">{text.slice(idx, idx + q.length)}</span>{text.slice(idx + q.length)}</>);
+    return (<>{text.slice(0, idx)}<span className="font-semibold text-[#A8874D]">{text.slice(idx, idx + q.length)}</span>{text.slice(idx + q.length)}</>);
   };
 
   return (
@@ -134,72 +134,50 @@ export default function Header() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-16 lg:h-[70px] gap-3 lg:gap-4">
             {/* Logo */}
-            <Link href="/" className="flex-shrink-0">
-              <img src="/logo.svg" alt="Lebon Grace" className="h-8 lg:h-10 w-auto" />
+            {/* Set as a wordmark rather than the SVG, which was clipping to
+                "LEBON GRACI" at every width. Fraunces at wide tracking does the
+                job the logo file was failing to do. */}
+            <Link href="/" className="flex-shrink-0 group">
+              <span className="font-heading text-[19px] lg:text-[22px] tracking-[0.16em] uppercase text-ink group-hover:text-sand-dark transition-colors">
+                Lebon Grace
+              </span>
             </Link>
 
-            {/* ── Amazon/AliExpress Style Search Bar (desktop) ── */}
-            <div className="hidden md:flex flex-1 items-center">
-              <div className="flex w-full max-w-4xl">
-                {/* Category dropdown */}
-                <div ref={catRef} className="relative flex-shrink-0">
-                  <button
-                    onClick={() => setCatOpen(!catOpen)}
-                    className="flex items-center gap-1.5 h-[46px] px-3 bg-gray-100 border border-r-0 border-gray-300 rounded-l-xl text-xs font-medium text-gray-700 hover:bg-gray-200 transition-colors whitespace-nowrap"
-                  >
-                    {selectedCat === "All" ? "All" : selectedCat.length > 12 ? selectedCat.slice(0, 12) + "…" : selectedCat}
-                    <svg className={`w-3 h-3 transition-transform ${catOpen ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            {/* One quiet field, no category dropdown and no filled search
+                button. The previous rig was the Amazon pattern — a grey "All"
+                selector, a rounded-l input and a coloured submit — which is the
+                single strongest "marketplace" signal a page can carry, and it
+                sat at the very top of every screen. A shop with 41 products does
+                not need scoped search; it needs a way to find a shape by name. */}
+            <div className="hidden md:flex flex-1 items-center justify-center">
+              <div className="relative w-full max-w-md">
+                <form onSubmit={handleSubmit}>
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    value={query}
+                    onChange={(e) => { setQuery(e.target.value); setSelectedIndex(-1); }}
+                    onFocus={() => setFocused(true)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Search puzzles"
+                    className="w-full h-11 bg-transparent border-b border-rule pl-7 pr-8 text-sm
+                               outline-none focus:border-ink transition-colors
+                               placeholder:text-ink-muted/70"
+                    aria-label="Search puzzles"
+                  />
+                </form>
+                <svg className="w-4 h-4 absolute left-0 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none"
+                     fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                </svg>
+                {query && (
+                  <button onClick={() => { setQuery(""); inputRef.current?.focus(); }}
+                          className="absolute right-0 top-1/2 -translate-y-1/2 p-1 text-ink-muted hover:text-ink">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
-                  {catOpen && (
-                    <div className="absolute top-full left-0 mt-1 w-52 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-50 max-h-80 overflow-y-auto">
-                      <button onClick={() => { setSelectedCat("All"); setCatOpen(false); }} className={`w-full text-left px-4 py-2 text-sm ${selectedCat === "All" ? "bg-[#16A34A]/5 text-[#16A34A] font-medium" : "text-gray-700 hover:bg-gray-50"}`}>
-                        All Categories
-                      </button>
-                      {categories.filter((c) => !c.hidden && c.name !== "Clearance").map((cat) => (
-                        <button key={cat.name} onClick={() => { setSelectedCat(cat.name); setCatOpen(false); }} className={`w-full text-left px-4 py-2 text-sm ${selectedCat === cat.name ? "bg-[#16A34A]/5 text-[#16A34A] font-medium" : "text-gray-700 hover:bg-gray-50"}`}>
-                          {cat.name}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Search input */}
-                <div className="relative flex-1">
-                  <form onSubmit={handleSubmit}>
-                    <input
-                      ref={inputRef}
-                      type="text"
-                      value={query}
-                      onChange={(e) => { setQuery(e.target.value); setSelectedIndex(-1); }}
-                      onFocus={() => setFocused(true)}
-                      onKeyDown={handleKeyDown}
-                      placeholder="Search for products, brands, categories..."
-                      className="w-full h-[46px] px-4 text-base bg-white border-y border-gray-300 outline-none focus:border-[#C9A96E] transition-colors placeholder:text-gray-400"
-                      aria-label="Search products"
-                    />
-                  </form>
-                  {query && (
-                    <button onClick={() => { setQuery(""); inputRef.current?.focus(); }} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  )}
-                </div>
-
-                {/* Search button */}
-                <button
-                  onClick={handleSubmit}
-                  className="flex items-center justify-center h-[46px] px-5 bg-[#16A34A] text-white rounded-r-xl hover:bg-[#15803D] transition-colors flex-shrink-0"
-                  aria-label="Search"
-                >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                  </svg>
-                </button>
+                )}
               </div>
 
               {/* Instant results dropdown */}
@@ -216,7 +194,7 @@ export default function Header() {
                       {categoryMatches.map((cat) => {
                         const globalIdx = allItems.findIndex((i) => i.type === "category" && i.value === cat.name);
                         return (
-                          <button key={cat.name} onClick={() => navigateTo(`/shop?category=${encodeURIComponent(cat.name)}`)} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-colors ${selectedIndex === globalIdx ? "bg-[#16A34A]/5" : "hover:bg-gray-50"}`}>
+                          <button key={cat.name} onClick={() => navigateTo(`/shop?category=${encodeURIComponent(cat.name)}`)} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-colors ${selectedIndex === globalIdx ? "bg-[#23201C]/5" : "hover:bg-gray-50"}`}>
                             <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center text-sm">{cat.icon}</div>
                             <div>
                               <p className="text-sm font-medium text-gray-800">{highlightMatch(cat.name, query)}</p>
@@ -235,14 +213,14 @@ export default function Header() {
                       {results.map((product, i) => {
                         const globalIdx = categoryMatches.length + i;
                         return (
-                          <button key={product.slug} onClick={() => navigateTo(`/shop/${product.slug}`)} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-colors ${selectedIndex === globalIdx ? "bg-[#16A34A]/5" : "hover:bg-gray-50"}`}>
+                          <button key={product.slug} onClick={() => navigateTo(`/shop/${product.slug}`)} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-colors ${selectedIndex === globalIdx ? "bg-[#23201C]/5" : "hover:bg-gray-50"}`}>
                             <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
                               <ProductImage src={product.imageUrl} alt={product.name} sizes="48px" />
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium text-gray-800 truncate">{highlightMatch(product.name, query)}</p>
                               <div className="flex items-center gap-2 mt-0.5">
-                                <span className="text-sm font-bold text-[#16A34A]">{formatPrice(product.price)}</span>
+                                <span className="text-sm font-bold text-[#A8874D]">{formatPrice(product.price)}</span>
                                 <span className="text-[11px] text-gray-400">{product.category}</span>
                               </div>
                             </div>
@@ -423,7 +401,7 @@ export default function Header() {
                         <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0"><ProductImage src={product.imageUrl} alt={product.name} sizes="48px" /></div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-gray-800 truncate">{highlightMatch(product.name, query)}</p>
-                          <span className="text-sm font-bold text-[#16A34A]">{formatPrice(product.price)}</span>
+                          <span className="text-sm font-bold text-[#A8874D]">{formatPrice(product.price)}</span>
                         </div>
                       </button>
                     ))}

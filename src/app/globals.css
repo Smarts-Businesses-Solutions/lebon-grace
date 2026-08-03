@@ -1,57 +1,164 @@
 @import "tailwindcss";
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   LEBON GRACE — editorial workshop
+   ─────────────────────────────────────────────────────────────────────────────
+   The shop sells MDF puzzles cut by hand, one at a time, photographed on pale
+   linen in daylight. The previous design fought that: a dark gradient hero with
+   blurred colour blobs, marketplace-green buttons, Inter for everything. It read
+   as a template that happened to contain wood.
+
+   The direction is a workshop that happens to have a shop. Warm paper ground,
+   one characterful serif, and the photography carrying the weight.
+
+   COLOUR is taken from the photographs rather than a palette generator: bone and
+   oat from the linen, ink from the engraving, sand from the MDF. The #16A34A
+   green is gone; it said "e-commerce", and it appeared 175 times.
+
+   Primary actions are INK, not a bright accent. On a warm paper ground a dark
+   button reads as considered where a saturated one reads as a sale. Sand is kept
+   for emphasis and hover, where it behaves like wood catching light.
+   ────────────────────────────────────────────────────────────────────────── */
+
 @theme inline {
-  --color-sand: #C9A96E;
-  --color-sand-light: #D4BA85;
-  --color-sand-dark: #B89A5E;
-  --color-charcoal: #2D2D2D;
-  --color-charcoal-light: #3D3D3D;
-  --color-offwhite: #FAF8F5;
-  --color-dark: #1A1A1A;
-  --color-dark-lighter: #2A2A2A;
-  --color-warm-gray: #8A8580;
-  --color-border: #E8E4DF;
-  --font-heading: var(--font-inter);
-  --font-body: var(--font-inter);
+  /* Grounds — warm, low-chroma, from the linen in the product shots */
+  --color-paper: #f7f3ec;
+  --color-paper-deep: #efe8dc;
+  --color-bone: #fdfbf7;
+
+  /* Ink — warm near-black. Pure black is too hard against paper */
+  --color-ink: #23201c;
+  --color-ink-soft: #3a352e;
+  --color-ink-muted: #7d766c;
+
+  /* Sand — the MDF itself */
+  --color-sand: #c9a96e;
+  --color-sand-light: #ddc79b;
+  --color-sand-dark: #a8874d;
+
+  /* One quiet positive, for "free" and "in stock": a muted sage, not a
+     notification green */
+  --color-sage: #5f7355;
+  --color-sage-soft: #eef1ea;
+
+  --color-rule: #e3dcd1;
+
+  /* Legacy aliases. Thirteen files still use these names; mapping them means the
+     redesign lands without a 175-site find-and-replace in a single commit. */
+  --color-charcoal: var(--color-ink);
+  --color-charcoal-light: var(--color-ink-soft);
+  --color-offwhite: var(--color-paper);
+  --color-dark: var(--color-ink);
+  --color-dark-lighter: var(--color-ink-soft);
+  --color-warm-gray: var(--color-ink-muted);
+  --color-border: var(--color-rule);
+
+  --font-heading: var(--font-display);
+  --font-body: var(--font-text);
+}
+
+:root {
+  /* Fraunces carries optical SOFT and WONK axes. Dialled part-way up: enough
+     warmth for a children's brand, held back from novelty. */
+  --display-settings: "SOFT" 30, "WONK" 1, "opsz" 40;
 }
 
 html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   scroll-behavior: smooth;
 }
 
 body {
-  font-family: var(--font-body), system-ui, -apple-system, sans-serif;
-  color: var(--color-dark);
-  background-color: var(--color-offwhite);
+  font-family: var(--font-text), Georgia, serif;
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  line-height: 1.65;
+
+  /* Paper grain: SVG turbulence at very low opacity, fixed so it reads as a
+     surface the page rests on rather than a texture that scrolls. Flat colour is
+     what makes a screen look like a screen. */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  background-attachment: fixed;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-heading), system-ui, -apple-system, sans-serif;
+h1, h2, h3, h4, h5, h6, .font-heading {
+  font-family: var(--font-display), Georgia, serif;
+  font-variation-settings: var(--display-settings);
+  letter-spacing: -0.015em;
+  line-height: 1.1;
+  color: var(--color-ink);
 }
+
+h1 { letter-spacing: -0.03em; line-height: 1.02; }
 
 ::selection {
-  background-color: var(--color-sand);
-  color: white;
+  background: var(--color-sand);
+  color: var(--color-ink);
 }
 
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--color-offwhite);
-}
-
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { background: var(--color-paper-deep); }
 ::-webkit-scrollbar-thumb {
   background: var(--color-sand);
-  border-radius: 3px;
-}
-
-button, a {
-  transition: all 0.2s ease;
+  border-radius: 999px;
+  border: 3px solid var(--color-paper-deep);
 }
 
 *:focus-visible {
-  outline: 2px solid var(--color-sand);
-  outline-offset: 2px;
+  outline: 2px solid var(--color-sand-dark);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* ── Editorial details ──────────────────────────────────────────────────── */
+
+/* A hairline that fades at both ends, for breaks that should not shout. */
+.rule-soft {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-rule) 15%, var(--color-rule) 85%, transparent);
+}
+
+/* Small label above a heading. The wide tracking is the whole effect, so the
+   size has to stay small for it to work. */
+.eyebrow {
+  font-family: var(--font-text), sans-serif;
+  font-size: 0.6875rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+  font-weight: 500;
+}
+
+/* Warm layered shadow. A single grey box-shadow on paper looks like dirt;
+   a tight contact shadow under a soft ambient one reads as an object resting on
+   a surface. */
+.lift {
+  box-shadow:
+    0 1px 2px rgba(35, 32, 28, 0.04),
+    0 8px 24px -12px rgba(35, 32, 28, 0.10);
+  transition: box-shadow 400ms cubic-bezier(0.22, 1, 0.36, 1),
+              transform 400ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.lift:hover {
+  box-shadow:
+    0 1px 2px rgba(35, 32, 28, 0.05),
+    0 20px 40px -20px rgba(35, 32, 28, 0.18);
+  transform: translateY(-3px);
+}
+
+/* One orchestrated page load beats a dozen scattered micro-interactions, so
+   this is the only entrance animation. */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+.rise { animation: rise 800ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+button, a { transition: color 200ms ease, background-color 200ms ease, border-color 200ms ease; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .rise { animation: none; }
+  .lift, .lift:hover { transition: none; transform: none; }
 }
