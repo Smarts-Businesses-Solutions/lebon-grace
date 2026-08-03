@@ -30,6 +30,11 @@ const WHSEC = process.env.STRIPE_WEBHOOK_SECRET || "";
 
 let failures = 0;
 let warnings = 0;
+// Separate from `failures`. A pending capability is not a misconfiguration to
+// fix, so it is not a failure, but it absolutely still means "do not switch".
+// Counting only failures made the summary print "Ready to take live payments"
+// while card_payments was under review.
+let notReady = false;
 const ok = (m) => console.log(`  PASS  ${m}`);
 const bad = (m) => { failures++; console.log(`  FAIL  ${m}`); };
 const warn = (m) => { warnings++; console.log(`  WARN  ${m}`); };
@@ -68,21 +73,41 @@ if (mode === "live") {
     // card_payments was past_due on an expired trade licence. Reporting only
     // the account level sends you hunting through the Dashboard for a reason
     // the API already knows.
-    let detail = "";
+    let cap = null;
     try {
-      const cap = await stripe.accounts.retrieveCapability(account.id, "card_payments");
+      cap = await stripe.accounts.retrieveCapability(account.id, "card_payments");
+    } catch {
+      bad("Account cannot accept charges yet, and card_payments could not be read for detail.");
+    }
+
+    if (cap) {
       const r = cap.requirements || {};
       const due = [...new Set([...(r.past_due || []), ...(r.currently_due || [])])];
+      const pending = r.pending_verification || [];
       const errs = (r.errors || []).map((e) => `${e.requirement}: ${e.reason}`);
-      detail =
-        `\n        capability card_payments = ${cap.status}` +
-        (r.disabled_reason ? `\n        disabled_reason: ${r.disabled_reason}` : "") +
-        (due.length ? `\n        needed: ${due.join(", ")}` : "") +
-        (errs.length ? `\n        ${errs.join("\n        ")}` : "");
-    } catch {
-      detail = "\n        (could not read card_payments capability for detail)";
+
+      // "pending" with nothing due is Stripe reviewing documents already
+      // submitted. That is a wait, not a task, and calling it a failure sends
+      // someone hunting for an action that does not exist. It is still not
+      // ready for live traffic, so it is a warning rather than a pass.
+      if (cap.status === "pending" && due.length === 0 && errs.length === 0) {
+        notReady = true;
+        warn(
+          "card_payments is PENDING: Stripe is reviewing documents already submitted." +
+            (pending.length ? `\n        in review: ${pending.join(", ")}` : "") +
+            "\n        Nothing to do but wait. Re-run this when Stripe emails, usually about a business day."
+        );
+      } else {
+        bad(
+          "Account cannot accept charges yet." +
+            `\n        capability card_payments = ${cap.status}` +
+            (r.disabled_reason ? `\n        disabled_reason: ${r.disabled_reason}` : "") +
+            (due.length ? `\n        needed from you: ${due.join(", ")}` : "") +
+            (pending.length ? `\n        awaiting Stripe review: ${pending.join(", ")}` : "") +
+            (errs.length ? `\n        ${errs.join("\n        ")}` : "")
+        );
+      }
     }
-    bad("Account cannot accept charges yet." + detail);
   }
 
   if (account.payouts_enabled) ok("Payouts enabled, so money can reach the bank.");
@@ -181,12 +206,18 @@ try {
   warn("Could not read recent events.");
 }
 
-console.log(
-  `\n  ${failures} failing, ${warnings} warning${warnings === 1 ? "" : "s"}.` +
-    (failures
-      ? "\n  Do NOT switch to live until the failures above are resolved.\n"
-      : mode === "live"
-        ? "\n  Ready to take live payments.\n"
-        : "\n  Test mode is healthy. Re-run with the live key before switching.\n")
-);
-process.exit(failures ? 1 : 0);
+// The verdict must consider notReady, not just the failure count. Downgrading a
+// pending capability to a warning made this print "Ready to take live payments"
+// while Stripe was still reviewing the documents, which is a worse lie than
+// having no preflight at all.
+const verdict = failures
+  ? "\n  Do NOT switch to live until the failures above are resolved.\n"
+  : notReady
+    ? "\n  NOT ready: nothing is misconfigured, but the account cannot charge\n" +
+      "  until Stripe finishes reviewing. Re-run when they confirm.\n"
+    : mode === "live"
+      ? "\n  Ready to take live payments.\n"
+      : "\n  Test mode is healthy. Re-run with the live key before switching.\n";
+
+console.log(`\n  ${failures} failing, ${warnings} warning${warnings === 1 ? "" : "s"}.` + verdict);
+process.exit(failures || notReady ? 1 : 0);
