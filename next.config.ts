@@ -5,6 +5,25 @@ const nextConfig: NextConfig = {
   // Version-skew protection — see ops/selfhost/scripts/gen-app-container.py
   deploymentId: process.env.DEPLOYMENT_ID,
   output: "standalone",
+
+  // Proxy the Umami tracker through this domain.
+  //
+  // Umami listens on loopback and on the internal docker network only, so it has
+  // no public hostname and never needs one. The browser asks this site for
+  // /stats/script.js and /stats/api/send, and Next forwards both to the umami
+  // container over sh-apps.
+  //
+  // Serving analytics first-party also means content blockers, which reject
+  // requests to anything that looks like an analytics domain, do not silently
+  // drop the traffic and leave the dashboard reading zero.
+  async rewrites() {
+    return [
+      {
+        source: "/stats/:path*",
+        destination: "http://sh-umami-umami-1:3000/:path*",
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {
