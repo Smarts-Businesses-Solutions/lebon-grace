@@ -151,36 +151,39 @@ export default function ProductDetailPage() {
       </nav>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
-        {/* ─── Image Gallery ─── */}
-        <div className="lg:col-span-5">
+        {/* ─── Image Gallery ───
+            Seven columns of twelve, up from five. The photograph is the whole
+            reason this page exists and it was rendering about 510px wide on a
+            1280px container while a sidebar repeated the tabs below it.
+
+            The frame stays square with object-contain deliberately: the
+            photographs are not one shape (39 square, 20 at 5:4, 12 at 4:3, some
+            portrait), so any fixed non-square frame crops or letterboxes a
+            different part of the range. Square never crops. The mat is bone
+            rather than the sand placeholder colour, so the inevitable bands on
+            a non-square photo read as a mount rather than a dark stripe. */}
+        <div className="lg:col-span-7">
           {/* Main image */}
           {/* Placeholder initials sit beneath the image rather than being
               appended to the DOM by an onError handler. */}
-          <div
-            className="relative aspect-square rounded-2xl overflow-hidden border border-gray-100 flex items-center justify-center"
-            style={{ backgroundColor: product.imagePlaceholder.bg }}
-          >
-            <span
-              className="text-7xl font-bold opacity-60"
-              style={{ color: ["#C9A96E", "#D4BA85"].includes(product.imagePlaceholder.bg) ? "#2D2D2D" : "#FAF8F5" }}
-            >
+          <div className="relative aspect-square overflow-hidden bg-bone flex items-center justify-center">
+            <span className="font-heading text-7xl text-ink/15">
               {product.imagePlaceholder.initials}
             </span>
             <ProductImage
               src={images[selectedImage]}
               alt={product.name}
-              sizes="(min-width: 1024px) 560px, 100vw"
+              sizes="(min-width: 1024px) 740px, 100vw"
               className="object-contain"
               priority
-             
             />
           </div>
           {/* Thumbnail strip */}
           {images.length > 1 && (
             <div className="flex gap-2 mt-3">
               {images.map((img, i) => (
-                <button key={i} onClick={() => setSelectedImage(i)} className={`relative w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors ${selectedImage === i ? "border-[#A8874D]" : "border-gray-200 hover:border-gray-300"}`}>
-                  <ProductImage src={img} alt={`View ${i + 1}`} sizes="64px" className="object-contain" />
+                <button key={i} onClick={() => setSelectedImage(i)} className={`relative w-20 h-20 overflow-hidden bg-bone transition-colors ${selectedImage === i ? "ring-2 ring-sand-dark" : "ring-1 ring-rule hover:ring-sand"}`}>
+                  <ProductImage src={img} alt={`View ${i + 1}`} sizes="80px" className="object-contain" />
                 </button>
               ))}
             </div>
@@ -188,7 +191,7 @@ export default function ProductDetailPage() {
         </div>
 
         {/* ─── Product Info ─── */}
-        <div className="lg:col-span-4 flex flex-col">
+        <div className="lg:col-span-5 flex flex-col">
           {/* Badge. Set as an eyebrow rather than two coloured pills — the grey
               and green capsules were marketplace furniture, and "In Stock" on a
               made-to-order shop is a statement about the workshop, not a
@@ -448,79 +451,14 @@ export default function ProductDetailPage() {
               </p>
             ))}
           </div>
-        </div>
 
-        {/* ─── Product Details Sidebar ─── */}
-        <div className="lg:col-span-3">
-          {/* Specifications Card */}
-          <div className="bg-transparent border-t border-ink pt-4 mb-7">
-            <h3 className="eyebrow text-ink-muted mb-4 block">Specifications</h3>
-            <dl className="space-y-2.5">
-              <div className="flex justify-between"><dt className="text-xs text-gray-400">Material</dt><dd className="text-xs font-medium text-gray-700">{product.enrichedMaterial}</dd></div>
-              {product.color && <div className="flex justify-between"><dt className="text-xs text-gray-400">Color</dt><dd className="text-xs font-medium text-gray-700">{product.color}</dd></div>}
-              {product.size && <div className="flex justify-between"><dt className="text-xs text-gray-400">Size</dt><dd className="text-xs font-medium text-gray-700">{product.size}</dd></div>}
-              {product.details?.weight && <div className="flex justify-between"><dt className="text-xs text-gray-400">Weight</dt><dd className="text-xs font-medium text-gray-700">{product.details.weight}</dd></div>}
-              {product.details?.dimensions && <div className="flex justify-between"><dt className="text-xs text-gray-400">Dimensions</dt><dd className="text-xs font-medium text-gray-700">{product.details.dimensions}</dd></div>}
-              <div className="flex justify-between"><dt className="text-xs text-gray-400">SKU</dt><dd className="text-xs font-mono text-gray-500">{product.cjPid?.slice(-8) || slug.slice(0, 8)}</dd></div>
-            </dl>
-          </div>
-
-          {/* Age and the small-parts warning. Placed directly under the
-              specifications and above shipping: a parent deciding whether a
-              piece suits their child should not have to scroll past delivery
-              terms to find out. */}
+          {/* Age and the small-parts warning. Lives in the buying column
+              rather than a sidebar: it is the one thing here that the tabs
+              below do not repeat, and a parent judging suitability should
+              meet it beside the price, not off to one side. */}
           <SafetyNotice age={product.details?.age} />
-
-          {/* Shipping & Returns Card */}
-          <div className="bg-transparent border-t border-ink pt-4 mb-7">
-            <h3 className="eyebrow text-ink-muted mb-4 block">Shipping & Returns</h3>
-            <div className="space-y-3">
-              <div className="flex items-start gap-2.5">
-                <svg className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" /></svg>
-                <div><p className="text-xs font-medium text-gray-700">Ready in 2 to 3 days</p><p className="text-[11px] text-gray-400">Cut and finished after you order</p></div>
-              </div>
-              <div className="flex items-start gap-2.5">
-                <svg className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg>
-                <div><p className="text-xs font-medium text-gray-700">Pickup: Free</p><p className="text-[11px] text-gray-400">Dubai. We send the exact location on WhatsApp or email when your piece is ready.</p></div>
-              </div>
-              {/* The card previously listed pickup only, so a customer who could
-                  not collect had no idea what delivery cost until the cart. All
-                  three options are shown here. */}
-              <div className="flex items-start gap-2.5">
-                <svg className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375c-.621 0-1.125-.504-1.125-1.125V14.25m17.25 4.5v-3.375c0-.621-.504-1.125-1.125-1.125H17.25m0 0V6.375c0-.621-.504-1.125-1.125-1.125H7.875c-.621 0-1.125.504-1.125 1.125v5.25" /></svg>
-                <div><p className="text-xs font-medium text-gray-700">UAE delivery: AED 20</p><p className="text-[11px] text-gray-400">Free on orders over AED 150. Arrives 1 to 2 days after your piece is finished.</p></div>
-              </div>
-              <div className="flex items-start gap-2.5">
-                <svg className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9 9 0 100-18 9 9 0 000 18zm0 0c2.5-2.5 3.75-5.5 3.75-9S14.5 5.5 12 3m0 18c-2.5-2.5-3.75-5.5-3.75-9S9.5 5.5 12 3M3.6 9h16.8M3.6 15h16.8" /></svg>
-                <div>
-                  <p className="text-xs font-medium text-gray-700">International: quoted</p>
-                  <p className="text-[11px] text-gray-400">
-                    We ship worldwide.{" "}
-                    <Link href="/contact" className="text-[#A8874D] hover:underline">Ask for a quote</Link>{" "}
-                    with your country before ordering. Any customs or import charges are yours to pay.
-                  </p>
-                </div>
-              </div>
-              <hr className="border-gray-100" />
-              <div className="flex items-start gap-2.5">
-                <svg className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>
-                <div><p className="text-xs font-medium text-gray-700">Faulty? Replaced free</p><p className="text-[11px] text-gray-400">Send a photo within 7 days. Nothing to send back.</p></div>
-              </div>
-            </div>
-          </div>
-
-          {/* Trust row. Four emoji in a grey rounded panel was the last piece of
-              template furniture on this page — and 🛡️ ✅ 📦 💬 are four
-              unrelated illustration styles sitting next to a single serif. Set
-              as plain ruled labels instead; they say the same thing. */}
-          <div className="grid grid-cols-2 gap-x-4">
-            {["Secure payment", "Quality checked", "Made to order", "WhatsApp support"].map((label) => (
-              <span key={label} className="text-[11px] text-ink-soft/80 border-t border-rule py-2.5">
-                {label}
-              </span>
-            ))}
-          </div>
         </div>
+
       </div>
 
       {/* ─── Tabs: Description / Reviews ─── */}
