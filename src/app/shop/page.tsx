@@ -89,11 +89,14 @@ function FilterSection({ title, children, defaultOpen = true }: { title: string;
 /* ─── Product Card ─── */
 function ProductCard({ product, onAdd }: { product: EnrichedProduct; onAdd: () => void }) {
   return (
-    <div className="group relative bg-white rounded-xl overflow-hidden border border-gray-100 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
+    // Frameless, matching the homepage grid: the white card and its border were
+    // drawing a box around photography that already has its own edge, and forty
+    // of them tiled read as a spreadsheet. The photograph is the card.
+    <div className="group relative">
       {/* Color badge */}
       {product.color && (
         <div className="absolute top-2 left-2 z-10">
-          <span className="px-2 py-0.5 bg-white/90 text-gray-600 text-[10px] font-medium rounded-full border border-gray-200 backdrop-blur-sm">{product.color}</span>
+          <span className="px-2 py-0.5 bg-bone/90 text-ink-soft text-[10px] tracking-wide rounded-full backdrop-blur-sm">{product.color}</span>
         </div>
       )}
 
@@ -121,17 +124,19 @@ function ProductCard({ product, onAdd }: { product: EnrichedProduct; onAdd: () =
       </Link>
 
       {/* Info */}
-      <div className="p-3">
+      <div className="pt-3">
         <Link href={"/shop/" + product.slug}>
-          <h3 className="text-[13px] font-medium text-gray-800 leading-snug line-clamp-2 hover:text-[#A8874D] transition-colors mb-1">{product.name}</h3>
+          <h3 className="font-heading text-sm text-ink leading-snug line-clamp-2 group-hover:text-sand-dark transition-colors">{product.name}</h3>
         </Link>
-        <div className="flex items-center justify-between mt-2.5">
-          <span className="text-gray-900 font-bold text-base">{formatPrice(product.price)}</span>
-          <button onClick={onAdd} className="flex items-center gap-1 px-3 py-1.5 bg-[#23201C] text-white text-xs font-semibold tracking-wide rounded-lg hover:bg-[#A8874D] active:scale-95 transition-all">
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
-            Add
+        <div className="flex items-center justify-between mt-1.5 min-h-8">
+          <span className="text-sm text-ink-soft tabular-nums">{formatPrice(product.price)}</span>
+          {/* Revealed on hover, as on the homepage. Kept reachable by keyboard
+              and on touch — opacity alone would hide it from neither. */}
+          <button
+            onClick={onAdd}
+            className="px-3 py-1.5 bg-ink text-paper text-xs tracking-wide opacity-0 group-hover:opacity-100 focus-visible:opacity-100 max-sm:opacity-100 hover:bg-sand-dark active:scale-95 transition-all"
+          >
+            Add to cart
           </button>
         </div>
       </div>
@@ -385,20 +390,25 @@ function ShopContent() {
 
   return (
     <>
-      {/* Hero Banner */}
-      <section className="bg-gradient-to-r from-gray-900 to-gray-800 text-white overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-14">
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
-            <div className="text-center lg:text-left">
-              <h1 className="text-3xl lg:text-4xl font-bold tracking-tight">Shop All Products</h1>
-              <p className="mt-2 text-gray-300 text-sm lg:text-base max-w-lg">
-                Wooden puzzles, cut and finished by hand in our workshop. Every one made to order.
+      {/* Page head.
+          Was a dark grey gradient with three emoji chips — the last stretch of
+          the old marketplace template, and it fought the paper ground the rest
+          of the site sits on. Set as type on paper instead, with the three
+          promises as a plain ruled line rather than pills. */}
+      <section className="bg-paper border-b border-rule overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
+            <div>
+              <span className="eyebrow text-ink-muted">The full range</span>
+              <h1 className="font-heading text-4xl lg:text-5xl text-ink mt-3">Everything we make</h1>
+              <p className="mt-3 text-ink-soft/80 text-sm max-w-md leading-relaxed">
+                Cut and finished by hand in our Dubai workshop. Every piece is made to order.
               </p>
             </div>
-            <div className="flex flex-wrap items-center justify-center gap-2 lg:gap-3">
-              <span className="px-3 py-1.5 bg-white/10 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap">🚚 Free Collection</span>
-              <span className="px-3 py-1.5 bg-white/10 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap">💳 Made to Order</span>
-              <span className="px-3 py-1.5 bg-white/10 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap">📦 Ready in 2 to 3 Days</span>
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 lg:justify-end">
+              {["Free collection", "Made to order", "Ready in 2–3 days"].map((t) => (
+                <span key={t} className="text-xs tracking-wide text-ink-soft border-t border-ink pt-2">{t}</span>
+              ))}
             </div>
           </div>
         </div>

@@ -87,7 +87,16 @@ h1, h2, h3, h4, h5, h6, .font-heading {
   font-variation-settings: var(--display-settings);
   letter-spacing: -0.015em;
   line-height: 1.1;
-  color: var(--color-ink);
+
+  /* `inherit`, not the ink token.
+     Hard-coding the colour here made every heading inside a dark section
+     invisible: an element selector beats a colour inherited from a parent, so
+     `<section class="text-white"><h1>` rendered near-black on near-black. The
+     shop banner's "Shop All Products" and the about page's "Our Mission" were
+     both effectively unreadable. Inheriting picks up ink from body on a normal
+     page and white inside a dark block, which is what every one of these call
+     sites already asks for. */
+  color: inherit;
 }
 
 h1 { letter-spacing: -0.03em; line-height: 1.02; }
