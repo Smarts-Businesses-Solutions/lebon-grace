@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import ProductImage from "@/components/ProductImage";
+import SafetyNotice from "@/components/SafetyNotice";
 import WhatsAppLink from "@/components/WhatsAppLink";
 import { useParams } from "next/navigation";
 import { useState, useEffect, useMemo } from "react";
@@ -451,6 +452,12 @@ export default function ProductDetailPage() {
               <div className="flex justify-between"><dt className="text-xs text-gray-400">SKU</dt><dd className="text-xs font-mono text-gray-500">{product.cjPid?.slice(-8) || slug.slice(0, 8)}</dd></div>
             </dl>
           </div>
+
+          {/* Age and the small-parts warning. Placed directly under the
+              specifications and above shipping: a parent deciding whether a
+              piece suits their child should not have to scroll past delivery
+              terms to find out. */}
+          <SafetyNotice age={product.details?.age} />
 
           {/* Shipping & Returns Card */}
           <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-4">
