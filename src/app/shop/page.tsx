@@ -279,10 +279,17 @@ function ShopContent() {
         </div>
       </FilterSection>
 
-      {/* Price */}
+      {/* Price.
+          Tiers that match nothing are not rendered. PRICE_TIERS is hand-written
+          so it drifts behind the catalogue — "AED 35+" sat here long after the
+          most expensive item was AED 25, offering a filter that could only ever
+          return an empty grid. Counting against the same half-open predicate
+          applyFilters uses means the option disappears instead. */}
       <FilterSection title="Price">
         <div className="space-y-1">
-          {PRICE_TIERS.map((tier) => {
+          {PRICE_TIERS.filter((tier) =>
+            products.some((p) => p.price >= tier.min && p.price < tier.max)
+          ).map((tier) => {
             const isActive = filters.priceMin === tier.min && filters.priceMax === tier.max;
             return (
               <button

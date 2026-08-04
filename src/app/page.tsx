@@ -223,11 +223,20 @@ export default function HomePage() {
 
               {/* The offer, set as an object rather than a badge. AED 15 with
                   free engraving is the strongest thing this shop can say and it
-                  was previously buried in a line of small caps. */}
+                  was previously buried in a line of small caps.
+
+                  Scoped to "hand-cut puzzle" rather than the flat "Every puzzle"
+                  it used to read. Once the MDF range landed, seven visible
+                  products with "puzzle" in the name sold between AED 5 and 12,
+                  so the unqualified claim was simply untrue. The qualified one
+                  still is true — all 41 hand-cut pieces are AED 15 — and naming
+                  the cheaper entry point costs nothing and gains a browser who
+                  came for a one-dirham blank. */}
               <div className="absolute -bottom-7 left-4 sm:left-8 bg-bone px-7 py-5 lift rise" style={{ animationDelay: "420ms" }}>
-                <p className="eyebrow">Every puzzle</p>
+                <p className="eyebrow">Every hand-cut puzzle</p>
                 <p className="font-heading text-3xl mt-1">AED 15</p>
                 <p className="text-xs text-ink-muted mt-1">Name engraved free · ready in 2–3 days</p>
+                <p className="text-xs text-ink-muted mt-2 pt-2 border-t border-rule">Craft blanks &amp; kits from AED 1</p>
               </div>
             </div>
           </div>

@@ -129,11 +129,18 @@ export const COLORS = Array.from(new Set(enrichedProducts.map((p) => p.color).fi
 export const SIZES = Array.from(new Set(enrichedProducts.map((p) => p.size).filter(Boolean))).sort();
 export const MATERIALS = Array.from(new Set(enrichedProducts.map((p) => p.material).filter(Boolean))).sort();
 export const BRANDS = Array.from(new Set(enrichedProducts.map((p) => p.brand).filter(Boolean))).sort();
+// Tiers track the real catalogue, which runs AED 1–25 since the MDF range
+// landed. The previous set topped out at "AED 35+", a bucket nothing has ever
+// fallen into — it rendered as a filter that always returned an empty grid.
+//
+// These are still hand-written because the labels want to read well, so they
+// can drift again. The shop sidebar therefore hides any tier that matches no
+// products, which makes a stale entry invisible rather than broken.
 export const PRICE_TIERS = [
-  { label: "Under AED 10", min: 0, max: 10 },
+  { label: "Under AED 5", min: 0, max: 5 },
+  { label: "AED 5 – 10", min: 5, max: 10 },
   { label: "AED 10 – 20", min: 10, max: 20 },
-  { label: "AED 20 – 35", min: 20, max: 35 },
-  { label: "AED 35+", min: 35, max: Infinity },
+  { label: "AED 20+", min: 20, max: Infinity },
 ];
 
 // --- Filter state type ---
@@ -215,8 +222,15 @@ export function applyFilters(products: EnrichedProduct[], filters: FilterState):
     result = result.filter((p) => filters.materials.includes(p.material));
   }
 
-  // Price range
-  result = result.filter((p) => p.price >= filters.priceMin && p.price <= filters.priceMax);
+  // Price range, half-open: [min, max).
+  //
+  // This used to be inclusive at both ends, which made the tiers overlap at
+  // every boundary — a AED 5 product matched both "Under AED 5" and
+  // "AED 5 – 10", so the two tiers returned overlapping grids and the counts
+  // summed to more than the catalogue. Half-open makes PRICE_TIERS an actual
+  // partition. Infinity still works as the open upper bound, since every finite
+  // price is < Infinity.
+  result = result.filter((p) => p.price >= filters.priceMin && p.price < filters.priceMax);
 
   // Search
   if (filters.search) {
