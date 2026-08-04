@@ -79,41 +79,41 @@ export default function AccountClient() {
   if (!loggedIn) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 py-16 px-4">
+        <div className="bg-paper border-b border-rule py-16 px-4">
           <div className="max-w-md mx-auto text-center">
-            <h1 className="text-3xl font-bold text-white mb-3">My Account</h1>
-            <p className="text-gray-400 text-sm">Sign in with your email and phone to view your orders.</p>
+            <h1 className="font-heading text-4xl text-ink mb-3">My account</h1>
+            <p className="text-ink-muted/80 text-sm">Sign in with your email and phone to view your orders.</p>
           </div>
         </div>
 
         <div className="max-w-md mx-auto px-4 -mt-8">
-          <form onSubmit={handleLogin} className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+          <form onSubmit={handleLogin} className="bg-bone p-6">
             <div className="space-y-4 mb-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <label className="block text-sm font-medium text-ink-soft mb-1">Email</label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-[#C9A96E] focus:ring-2 focus:ring-[#C9A96E]/20 outline-none transition-all"
+                  className="w-full px-4 py-3 border border-rule text-sm focus:border-[#C9A96E] focus:ring-2 focus:ring-[#C9A96E]/20 outline-none transition-all"
                   autoFocus
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                <label className="block text-sm font-medium text-ink-soft mb-1">Phone Number</label>
                 <input
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="WhatsApp us"
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-[#C9A96E] focus:ring-2 focus:ring-[#C9A96E]/20 outline-none transition-all"
+                  className="w-full px-4 py-3 border border-rule text-sm focus:border-[#C9A96E] focus:ring-2 focus:ring-[#C9A96E]/20 outline-none transition-all"
                 />
               </div>
             </div>
 
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm mb-4">
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm mb-4">
                 {error}
               </div>
             )}
@@ -121,12 +121,12 @@ export default function AccountClient() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-gray-900 text-white rounded-xl text-sm font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50"
+              className="w-full py-3.5 bg-ink text-paper text-sm tracking-wide hover:bg-sand-dark transition-colors disabled:opacity-50"
             >
               {loading ? "Searching..." : "View My Orders"}
             </button>
 
-            <p className="text-center text-gray-400 text-xs mt-4">
+            <p className="text-center text-ink-muted/80 text-xs mt-4">
               No account needed — just use the email and phone from your order.
             </p>
           </form>
@@ -139,40 +139,40 @@ export default function AccountClient() {
   // Account dashboard
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 py-12 px-4">
+      <div className="bg-paper border-b border-rule py-12 px-4">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-2xl font-bold text-white">Welcome back, {customerName}!</h1>
-          <p className="text-gray-400 text-sm mt-1">{email}</p>
+          <h1 className="font-heading text-3xl text-ink">Welcome back, {customerName}</h1>
+          <p className="text-ink-muted/80 text-sm mt-1">{email}</p>
         </div>
       </div>
 
       <div className="max-w-4xl mx-auto px-4 -mt-6">
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4 mb-6">
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 text-center">
-            <p className="text-2xl font-bold text-gray-900">{orders.length}</p>
-            <p className="text-xs text-gray-400 uppercase tracking-wider mt-1">Orders</p>
+          <div className="bg-bone shadow-sm p-4 text-center">
+            <p className="text-2xl font-bold text-ink">{orders.length}</p>
+            <p className="text-xs text-ink-muted/80 uppercase tracking-wider mt-1">Orders</p>
           </div>
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 text-center">
+          <div className="bg-bone shadow-sm p-4 text-center">
             <p className="text-2xl font-bold text-[#A8874D]">{formatPrice(orders.reduce((s, o) => s + o.total, 0))}</p>
-            <p className="text-xs text-gray-400 uppercase tracking-wider mt-1">Total Spent</p>
+            <p className="text-xs text-ink-muted/80 uppercase tracking-wider mt-1">Total Spent</p>
           </div>
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 text-center">
+          <div className="bg-bone shadow-sm p-4 text-center">
             <p className="text-2xl font-bold text-[#C9A96E]">{orders.filter(o => ["deposit_paid", "processing", "shipped", "out_for_delivery"].includes(o.status)).length}</p>
-            <p className="text-xs text-gray-400 uppercase tracking-wider mt-1">Active</p>
+            <p className="text-xs text-ink-muted/80 uppercase tracking-wider mt-1">Active</p>
           </div>
         </div>
 
         {/* Orders List */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden mb-6">
-          <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="font-semibold text-gray-900">Order History</h2>
+        <div className="bg-bone overflow-hidden mb-6">
+          <div className="px-6 py-4 border-b border-rule">
+            <h2 className="font-semibold text-ink">Order History</h2>
           </div>
 
           {orders.length === 0 ? (
             <div className="px-6 py-12 text-center">
-              <p className="text-gray-400 text-sm">No orders yet.</p>
-              <Link href="/shop" className="mt-4 inline-block px-6 py-2 bg-[#23201C] text-white rounded-lg text-sm font-medium hover:bg-[#A8874D] transition-colors">
+              <p className="text-ink-muted/80 text-sm">No orders yet.</p>
+              <Link href="/shop" className="mt-4 inline-block px-6 py-3 bg-ink text-paper text-sm tracking-wide hover:bg-sand-dark transition-colors">
                 Start Shopping
               </Link>
             </div>
@@ -184,12 +184,12 @@ export default function AccountClient() {
                   <div key={order.id} className="px-6 py-4 hover:bg-gray-50/50 transition-colors">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-3">
-                        <span className="font-mono text-xs text-gray-500">#{String(order.id).slice(0, 8)}</span>
+                        <span className="font-mono text-xs text-ink-muted">#{String(order.id).slice(0, 8)}</span>
                         <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${sc}`}>
                           {order.status.replace(/_/g, " ")}
                         </span>
                       </div>
-                      <span className="text-xs text-gray-400">{formatDate(order.created_at)}</span>
+                      <span className="text-xs text-ink-muted/80">{formatDate(order.created_at)}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       {/* Orders are paid in full at checkout, so cod_amount is
@@ -198,11 +198,11 @@ export default function AccountClient() {
                           deposit model that was removed. The balance is only
                           worth showing on old orders that actually have one. */}
                       <div className="text-sm">
-                        <span className="text-gray-500">Total: </span>
-                        <span className="font-semibold text-gray-900">{formatPrice(order.total)}</span>
+                        <span className="text-ink-muted">Total: </span>
+                        <span className="font-semibold text-ink">{formatPrice(order.total)}</span>
                         {order.cod_amount > 0 && (
                           <>
-                            <span className="text-gray-400 mx-2">|</span>
+                            <span className="text-ink-muted/80 mx-2">|</span>
                             <span className="text-[#C9A96E]">
                               Balance due: {formatPrice(order.cod_amount)}
                             </span>
@@ -210,11 +210,11 @@ export default function AccountClient() {
                         )}
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className={`px-2 py-0.5 rounded text-xs ${order.delivery_method === "pickup" ? "bg-blue-50 text-blue-700" : "bg-gray-100 text-gray-600"}`}>
+                        <span className={`px-2 py-0.5 rounded text-xs ${order.delivery_method === "pickup" ? "bg-blue-50 text-blue-700" : "bg-paper-deep text-ink-soft/85"}`}>
                           {order.delivery_method === "pickup" ? "Pickup" : "Delivery"}
                         </span>
                         {order.tracking_number && (
-                          <span className="text-xs text-gray-400 font-mono">{order.tracking_number}</span>
+                          <span className="text-xs text-ink-muted/80 font-mono">{order.tracking_number}</span>
                         )}
                       </div>
                     </div>
@@ -227,15 +227,15 @@ export default function AccountClient() {
 
         {/* Quick Actions */}
         <div className="flex gap-3 justify-center mb-8">
-          <Link href="/track" className="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-200 transition-colors">
+          <Link href="/track" className="px-5 py-2.5 bg-paper-deep text-ink-soft text-sm font-medium hover:bg-paper-deep transition-colors">
             Track an Order
           </Link>
-          <Link href="/shop" className="px-5 py-2.5 bg-[#23201C] text-white rounded-xl text-sm font-medium hover:bg-[#A8874D] transition-colors">
+          <Link href="/shop" className="px-5 py-2.5 bg-[#23201C] text-white text-sm font-medium hover:bg-[#A8874D] transition-colors">
             Continue Shopping
           </Link>
           <button
             onClick={() => { setLoggedIn(false); setOrders([]); }}
-            className="px-5 py-2.5 border border-gray-200 text-gray-500 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
+            className="px-5 py-2.5 border border-rule text-ink-muted text-sm font-medium hover:bg-gray-50 transition-colors"
           >
             Sign Out
           </button>

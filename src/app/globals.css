@@ -82,24 +82,29 @@ body {
   background-attachment: fixed;
 }
 
-h1, h2, h3, h4, h5, h6, .font-heading {
-  font-family: var(--font-display), Georgia, serif;
-  font-variation-settings: var(--display-settings);
-  letter-spacing: -0.015em;
-  line-height: 1.1;
+/* These MUST sit inside @layer base.
+ *
+ * `@import "tailwindcss"` puts every utility into a cascade layer, and in the
+ * CSS cascade an UNLAYERED rule beats every layered one regardless of
+ * specificity. So while this block sat outside a layer it silently overrode
+ * `text-white` on the elements that asked for it: `<h1 class="text-white">` on
+ * the track-order and account banners rendered near-black on near-black navy.
+ *
+ * Colour is `inherit` rather than the ink token so a heading inside a dark
+ * section picks the section's colour up, and layering means a heading that
+ * names its own colour still wins. Both routes to a readable heading now work;
+ * previously neither did. */
+@layer base {
+  h1, h2, h3, h4, h5, h6, .font-heading {
+    font-family: var(--font-display), Georgia, serif;
+    font-variation-settings: var(--display-settings);
+    letter-spacing: -0.015em;
+    line-height: 1.1;
+    color: inherit;
+  }
 
-  /* `inherit`, not the ink token.
-     Hard-coding the colour here made every heading inside a dark section
-     invisible: an element selector beats a colour inherited from a parent, so
-     `<section class="text-white"><h1>` rendered near-black on near-black. The
-     shop banner's "Shop All Products" and the about page's "Our Mission" were
-     both effectively unreadable. Inheriting picks up ink from body on a normal
-     page and white inside a dark block, which is what every one of these call
-     sites already asks for. */
-  color: inherit;
+  h1 { letter-spacing: -0.03em; line-height: 1.02; }
 }
-
-h1 { letter-spacing: -0.03em; line-height: 1.02; }
 
 ::selection {
   background: var(--color-sand);

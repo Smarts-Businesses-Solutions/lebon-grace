@@ -88,44 +88,44 @@ export default function TrackClient() {
   const currentStep = order ? (STATUS_INDEX[order.status] ?? -1) : -1;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-paper">
       {/* Hero */}
-      <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 py-16 px-4">
+      <div className="bg-paper border-b border-rule py-16 px-4">
         <div className="max-w-2xl mx-auto text-center">
-          <h1 className="text-3xl sm:text-4xl font-bold text-white mb-3">Track Your Order</h1>
-          <p className="text-gray-400 text-sm">Enter your order ID and phone number to check your order status.</p>
+          <h1 className="font-heading text-4xl sm:text-5xl text-ink mb-3">Track your order</h1>
+          <p className="text-ink-soft/80 text-sm">Enter your order ID and the phone number you ordered with.</p>
         </div>
       </div>
 
       <div className="max-w-2xl mx-auto px-4 -mt-8">
         {/* Search Form */}
-        <form onSubmit={handleSearch} className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-6">
+        <form onSubmit={handleSearch} className="bg-bone p-6 mb-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Order ID</label>
+              <label className="block text-sm font-medium text-ink-soft mb-1">Order ID</label>
               <input
                 type="text"
                 value={orderId}
                 onChange={(e) => setOrderId(e.target.value)}
                 placeholder="e.g. abc12345"
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-[#A8874D] focus:ring-2 focus:ring-[#A8874D]/20 outline-none transition-all"
+                className="w-full px-4 py-3 border border-rule text-sm focus:border-[#A8874D] focus:ring-2 focus:ring-[#A8874D]/20 outline-none transition-all"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+              <label className="block text-sm font-medium text-ink-soft mb-1">Phone Number</label>
               <input
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="WhatsApp us"
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-[#A8874D] focus:ring-2 focus:ring-[#A8874D]/20 outline-none transition-all"
+                placeholder="+971 5X XXX XXXX"
+                className="w-full px-4 py-3 border border-rule text-sm focus:border-[#A8874D] focus:ring-2 focus:ring-[#A8874D]/20 outline-none transition-all"
               />
             </div>
           </div>
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-gray-900 text-white rounded-xl text-sm font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50"
+            className="w-full py-3.5 bg-ink text-paper text-sm tracking-wide hover:bg-sand-dark transition-colors disabled:opacity-50"
           >
             {loading ? "Searching..." : "Track Order"}
           </button>
@@ -133,7 +133,7 @@ export default function TrackClient() {
 
         {/* Error */}
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm mb-6">
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm mb-6">
             {error}
           </div>
         )}
@@ -142,9 +142,9 @@ export default function TrackClient() {
         {order && (
           <div className="space-y-6">
             {/* Status Progress */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+            <div className="bg-bone p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="font-semibold text-gray-900">Order Status</h2>
+                <h2 className="font-semibold text-ink">Order Status</h2>
                 <span className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${
                   order.status === "delivered" || order.status === "completed"
                     ? "bg-green-50 text-green-700"
@@ -158,7 +158,7 @@ export default function TrackClient() {
 
               {/* Progress Bar */}
               <div className="relative mb-8">
-                <div className="absolute top-5 left-0 right-0 h-1 bg-gray-200 rounded">
+                <div className="absolute top-5 left-0 right-0 h-1 bg-paper-deep rounded">
                   <div
                     className="h-1 bg-[#23201C] rounded transition-all duration-500"
                     style={{ width: `${currentStep >= 0 ? ((currentStep + 1) / STATUS_STEPS.length) * 100 : 0}%` }}
@@ -175,11 +175,11 @@ export default function TrackClient() {
                             ? isCurrent
                               ? "bg-[#23201C] text-white ring-4 ring-[#A8874D]/20"
                               : "bg-[#23201C] text-white"
-                            : "bg-gray-200 text-gray-400"
+                            : "bg-paper-deep text-ink-muted/80"
                         }`}>
                           {step.icon}
                         </div>
-                        <span className={`text-[11px] mt-2 text-center font-medium ${isActive ? "text-gray-900" : "text-gray-400"}`}>
+                        <span className={`text-[11px] mt-2 text-center font-medium ${isActive ? "text-ink" : "text-ink-muted/80"}`}>
                           {step.label}
                         </span>
                       </div>
@@ -199,31 +199,31 @@ export default function TrackClient() {
             </div>
 
             {/* Order Details */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-              <h2 className="font-semibold text-gray-900 mb-4">Order Details</h2>
+            <div className="bg-bone p-6">
+              <h2 className="font-semibold text-ink mb-4">Order Details</h2>
               <div className="space-y-3 text-sm">
-                <div className="flex justify-between"><span className="text-gray-500">Order ID</span><span className="font-mono text-gray-900">#{String(order.id).slice(0, 8)}</span></div>
-                <div className="flex justify-between"><span className="text-gray-500">Customer</span><span className="text-gray-900">{order.customer_name}</span></div>
-                <div className="flex justify-between"><span className="text-gray-500">Phone</span><span className="text-gray-900">{order.customer_phone}</span></div>
-                <div className="flex justify-between"><span className="text-gray-500">Delivery</span><span className="text-gray-900">{order.delivery_method === "pickup" ? "Pickup" : "Delivery"}</span></div>
-                <div className="flex justify-between"><span className="text-gray-500">Ordered</span><span className="text-gray-900">{formatDate(order.created_at)}</span></div>
-                <hr className="border-gray-100" />
-                <div className="flex justify-between"><span className="text-gray-500">Total</span><span className="font-semibold text-gray-900">{formatPrice(order.total)}</span></div>
+                <div className="flex justify-between"><span className="text-ink-muted">Order ID</span><span className="font-mono text-ink">#{String(order.id).slice(0, 8)}</span></div>
+                <div className="flex justify-between"><span className="text-ink-muted">Customer</span><span className="text-ink">{order.customer_name}</span></div>
+                <div className="flex justify-between"><span className="text-ink-muted">Phone</span><span className="text-ink">{order.customer_phone}</span></div>
+                <div className="flex justify-between"><span className="text-ink-muted">Delivery</span><span className="text-ink">{order.delivery_method === "pickup" ? "Pickup" : "Delivery"}</span></div>
+                <div className="flex justify-between"><span className="text-ink-muted">Ordered</span><span className="text-ink">{formatDate(order.created_at)}</span></div>
+                <hr className="border-rule" />
+                <div className="flex justify-between"><span className="text-ink-muted">Total</span><span className="font-semibold text-ink">{formatPrice(order.total)}</span></div>
                 <div className="flex justify-between"><span className="text-[#5F7355]">✓ Paid (card)</span><span className="font-semibold text-[#5F7355]">{formatPrice(order.deposit_amount)}</span></div>
                 <div className="flex justify-between"><span className="text-[#C9A96E]">● Pay on delivery</span><span className="font-semibold text-[#C9A96E]">{formatPrice(order.cod_amount)}</span></div>
               </div>
             </div>
 
             {/* Help */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 text-center">
-              <p className="text-sm text-gray-600 mb-3">Need help with your order?</p>
+            <div className="bg-bone p-6 text-center">
+              <p className="text-sm text-ink-soft/85 mb-3">Need help with your order?</p>
               <div className="flex gap-3 justify-center">
-                <Link href="/contact" className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-200 transition-colors">
+                <Link href="/contact" className="px-4 py-2 bg-paper-deep text-ink-soft text-sm font-medium hover:bg-paper-deep transition-colors">
                   Contact Us
                 </Link>
                 <WhatsAppLink
                   message={`Hi, I need help with my order #${String(order.id).slice(0, 8)}`}
-                  className="px-4 py-2 bg-[#25D366] text-white rounded-xl text-sm font-medium hover:bg-[#1DA851] transition-colors"
+                  className="px-4 py-2 bg-[#25D366] text-white text-sm font-medium hover:bg-[#1DA851] transition-colors"
                 >
                   WhatsApp Us
                 </WhatsAppLink>
@@ -234,8 +234,8 @@ export default function TrackClient() {
 
         {/* Not Found after search */}
         {searched && !order && !error && !loading && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 text-center">
-            <p className="text-gray-500 text-sm">Enter your order details above to track your order.</p>
+          <div className="bg-bone p-8 text-center">
+            <p className="text-ink-muted text-sm">Enter your order details above to track your order.</p>
           </div>
         )}
       </div>
