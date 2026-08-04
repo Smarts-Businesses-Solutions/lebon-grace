@@ -41,7 +41,7 @@ export default function AboutPage() {
         <div className="bg-charcoal text-offwhite rounded-sm p-8 lg:p-12">
           <h2 className="font-heading text-2xl font-semibold tracking-tight mb-4">Our Mission</h2>
           <p className="text-warm-gray text-sm leading-relaxed">
-            To make toys that are worth keeping, at a price that does not make you think twice. A wooden alphabet board should not cost a hundred dirhams, and it should not fall apart either. Every hand-cut puzzle we make is AED 15, with the name engraving included, and our craft blanks and DIY kits start at AED 1.
+            To make toys that are worth keeping, at a price that does not make you think twice. A wooden alphabet board should not cost a hundred dirhams, and it should not fall apart either. Every puzzle we make is AED 15, with the name engraving included.
           </p>
         </div>
 
