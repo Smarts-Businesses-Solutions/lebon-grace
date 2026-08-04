@@ -48,16 +48,16 @@ export default function SafetyNotice({ age }: { age?: string }) {
   const soldForUnderThrees = !Number.isNaN(minAge) && minAge < 3;
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-4">
-      <h3 className="text-sm font-semibold text-gray-800 mb-3">Safety &amp; age</h3>
+    <div className="bg-transparent border-t border-ink pt-4 mb-7">
+      <h3 className="eyebrow text-ink-muted mb-4 block">Safety &amp; age</h3>
 
       {readableAge ? (
         <div className="flex justify-between mb-3">
-          <dt className="text-xs text-gray-400">Suitable for</dt>
-          <dd className="text-xs font-medium text-gray-700">{readableAge}</dd>
+          <dt className="text-xs text-ink-muted">Suitable for</dt>
+          <dd className="text-xs font-medium text-ink">{readableAge}</dd>
         </div>
       ) : (
-        <p className="text-xs text-gray-500 mb-3">
+        <p className="text-xs text-ink-muted mb-3">
           We have not assessed an age range for this piece yet.
         </p>
       )}
@@ -78,17 +78,17 @@ export default function SafetyNotice({ age }: { age?: string }) {
           />
         </svg>
         <div>
-          <p className="text-xs font-semibold text-gray-800">
+          <p className="text-xs font-semibold text-ink">
             Choking hazard — contains small parts
           </p>
           {soldForUnderThrees ? (
-            <p className="text-[11px] text-gray-500 leading-relaxed mt-0.5">
+            <p className="text-[11px] text-ink-soft/80 leading-relaxed mt-0.5">
               The pieces and pegs lift out and are small enough to swallow. This
               piece is made for little hands, so please use it with an adult
               nearby and put it away after play.
             </p>
           ) : (
-            <p className="text-[11px] text-gray-500 leading-relaxed mt-0.5">
+            <p className="text-[11px] text-ink-soft/80 leading-relaxed mt-0.5">
               The pieces lift out and are small enough to swallow. Not suitable
               for children under 3 years. Please keep younger children
               supervised.

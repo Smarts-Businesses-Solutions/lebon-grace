@@ -38,7 +38,14 @@ export default function WhatsAppButton() {
       onClick={open}
       aria-label="Contact us on WhatsApp"
       aria-busy={loading}
-      className="fixed bottom-6 right-6 z-50 bg-[#25D366] text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:bg-[#1DA851] transition-colors disabled:opacity-70"
+      // Sits above the sticky add-to-cart bar on small screens.
+      //
+      // The bar is `lg:hidden fixed bottom-0 ... z-40` on every product page and
+      // this button is z-50, so at bottom-6 the green circle landed squarely on
+      // top of "Add to cart" — the one control the page exists to offer, covered
+      // on every phone. Raised clear of the bar below lg, back to bottom-6 above
+      // it where no bar is rendered.
+      className="fixed bottom-24 lg:bottom-6 right-6 z-50 bg-[#25D366] text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:bg-[#1DA851] transition-colors disabled:opacity-70"
       disabled={loading}
     >
       <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor" aria-hidden="true">

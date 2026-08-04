@@ -250,11 +250,11 @@ export default function HomePage() {
             {/* These three must match the cart. They previously said AED 300 and
                 10-14 days, both left over from the dropship catalogue, while the
                 cart charged on a AED 150 threshold. */}
-            <span>🚚 Free UAE delivery over AED 150</span>
+            <span>Free UAE delivery over AED 150</span>
             <span className="hidden sm:inline text-white/40">|</span>
-            <span>💳 Free collection, or AED 20 UAE delivery</span>
+            <span>Free collection, or AED 20 UAE delivery</span>
             <span className="hidden sm:inline text-white/40">|</span>
-            <span>📦 Ready in 2 to 3 days</span>
+            <span>Ready in 2 to 3 days</span>
           </div>
         </div>
       </section>

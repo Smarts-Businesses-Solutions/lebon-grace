@@ -529,22 +529,18 @@ function ShopContent() {
             <div className="mt-12 pt-8 border-t border-gray-100">
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 text-center">
                 <div>
-                  <div className="text-2xl mb-2">🚚</div>
                   <p className="text-sm font-medium text-gray-800">Free Pickup</p>
                   <p className="text-xs text-gray-400 mt-0.5">Or AED 20 UAE delivery, free over AED 150</p>
                 </div>
                 <div>
-                  <div className="text-2xl mb-2">💳</div>
                   <p className="text-sm font-medium text-gray-800">Made to Order</p>
                   <p className="text-xs text-gray-400 mt-0.5">Cut to order in 2 to 3 days</p>
                 </div>
                 <div>
-                  <div className="text-2xl mb-2">🔒</div>
                   <p className="text-sm font-medium text-gray-800">Secure Payment</p>
                   <p className="text-xs text-gray-400 mt-0.5">Via Stripe</p>
                 </div>
                 <div>
-                  <div className="text-2xl mb-2">📦</div>
                   <p className="text-sm font-medium text-gray-800">Faulty? Replaced Free</p>
                   <p className="text-xs text-gray-400 mt-0.5">Send a photo within 7 days</p>
                 </div>
