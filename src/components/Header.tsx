@@ -320,7 +320,7 @@ export default function Header() {
                   </Link>
                 );
               })}
-              <div className="ml-auto flex items-center gap-4 text-xs text-gray-400">
+              <div className="ml-auto flex items-center gap-4 text-xs text-ink-soft">
                 <Link href="/track" className="hover:text-sand">Track Order</Link>
                 <Link href="/account" className="hover:text-sand">My Account</Link>
               </div>

@@ -82,7 +82,7 @@ export default function AccountClient() {
         <div className="bg-paper border-b border-rule py-16 px-4">
           <div className="max-w-md mx-auto text-center">
             <h1 className="font-heading text-4xl text-ink mb-3">My account</h1>
-            <p className="text-ink-muted/80 text-sm">Sign in with your email and phone to view your orders.</p>
+            <p className="text-ink-soft text-sm">Sign in with your email and phone to view your orders.</p>
           </div>
         </div>
 
@@ -126,7 +126,7 @@ export default function AccountClient() {
               {loading ? "Searching..." : "View My Orders"}
             </button>
 
-            <p className="text-center text-ink-muted/80 text-xs mt-4">
+            <p className="text-center text-ink-soft text-xs mt-4">
               No account needed — just use the email and phone from your order.
             </p>
           </form>
@@ -142,7 +142,7 @@ export default function AccountClient() {
       <div className="bg-paper border-b border-rule py-12 px-4">
         <div className="max-w-4xl mx-auto">
           <h1 className="font-heading text-3xl text-ink">Welcome back, {customerName}</h1>
-          <p className="text-ink-muted/80 text-sm mt-1">{email}</p>
+          <p className="text-ink-soft text-sm mt-1">{email}</p>
         </div>
       </div>
 
@@ -171,7 +171,7 @@ export default function AccountClient() {
 
           {orders.length === 0 ? (
             <div className="px-6 py-12 text-center">
-              <p className="text-ink-muted/80 text-sm">No orders yet.</p>
+              <p className="text-ink-soft text-sm">No orders yet.</p>
               <Link href="/shop" className="mt-4 inline-block px-6 py-3 bg-ink text-paper text-sm tracking-wide hover:bg-sand-dark transition-colors">
                 Start Shopping
               </Link>
