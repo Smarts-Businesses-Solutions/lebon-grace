@@ -206,10 +206,10 @@ export default function CheckoutPage() {
                 a card payment page. Card is the only method, so the choice is
                 gone rather than left there as a lie. */}
             <h2 className="text-lg font-semibold tracking-tight mb-4">Payment</h2>
-            <div className="p-4 bg-white border border-border rounded-sm">
+            <div className="p-4 bg-bone border border-rule">
               <p className="text-sm font-medium text-charcoal">Credit or debit card</p>
               <p className="text-xs text-warm-gray mt-0.5">
-                You will pay {formatPrice(depositNow)} on Stripe&apos;s secure page. We never see your card details.
+                You will pay {`${formatPrice(depositNow)} on Stripe's secure page.`} We never see your card details.
               </p>
             </div>
           </div>
@@ -229,13 +229,16 @@ export default function CheckoutPage() {
             {errors.terms && <p className="mt-1 text-red-500 text-xs">{errors.terms}</p>}
           </div>
 
-          <button type="submit" disabled={submitting} className="w-full py-3.5 bg-sand text-white text-sm tracking-wider uppercase font-medium rounded-sm hover:bg-sand-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
+          <button type="submit" disabled={submitting} className="w-full py-4 bg-ink text-paper text-sm tracking-wider uppercase hover:bg-sand-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
             {submitting ? "Processing..." : "Pay " + formatPrice(depositNow) + " & Place Order"}
           </button>
         </form>
 
         <div className="lg:col-span-1">
-          <div className="bg-white border border-border rounded-sm p-6 sticky top-24">
+          {/* Bone panel with no border, matching the cart's summary. A white
+              card outlined on a paper ground was the only thing on either page
+              still drawing a box around itself. */}
+          <div className="bg-bone p-6 sticky top-24">
             <h2 className="font-heading text-lg font-semibold tracking-tight mb-4">Order Summary</h2>
             <div className="space-y-3 mb-4">
               {items.map((item) => (
@@ -260,7 +263,7 @@ export default function CheckoutPage() {
               <p className="text-xs text-charcoal font-medium mb-1">Payment Split</p>
               <p className="text-xs text-warm-gray">Now (card): {formatPrice(depositNow)} | On delivery: {formatPrice(payOnDelivery)}</p>
               {deliveryMethod === "pickup" && (
-                <p className="text-xs text-[#5F7355] mt-1">✓ Free pickup — no shipping fee</p>
+                <p className="text-xs text-[#5F7355] mt-1">Free pickup, no shipping fee.</p>
               )}
             </div>
           </div>

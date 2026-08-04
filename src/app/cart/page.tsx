@@ -17,7 +17,7 @@ export default function CartPage() {
         </svg>
         <h1 className="mt-6 text-2xl font-semibold tracking-tight">Your Cart is Empty</h1>
         <p className="mt-3 text-gray-400 text-sm">Browse our collection of affordable essentials.</p>
-        <Link href="/shop" className="mt-6 inline-flex items-center px-6 py-3 bg-[#23201C] text-white text-sm font-semibold rounded-lg hover:bg-[#A8874D] transition-colors">
+        <Link href="/shop" className="mt-6 inline-flex items-center px-7 py-3.5 bg-ink text-paper text-sm tracking-wide hover:bg-sand-dark transition-colors">
           Shop Now
         </Link>
       </section>
@@ -37,7 +37,7 @@ export default function CartPage() {
         <div className="mb-6 p-4 bg-[#23201C]/5 border border-[#A8874D]/10 rounded-xl">
           <div className="flex items-center justify-between mb-2">
             <p className="text-sm text-gray-600">
-              Add <strong className="text-[#5F7355]">{formatPrice(FREE_DELIVERY_OVER - subtotal)}</strong> more for <strong>free delivery</strong> 🚚
+              Add <strong className="text-sage">{formatPrice(FREE_DELIVERY_OVER - subtotal)}</strong> more for <strong>free delivery</strong>
             </p>
             <span className="text-xs text-gray-400">{Math.round((subtotal / FREE_DELIVERY_OVER) * 100)}%</span>
           </div>
@@ -48,7 +48,7 @@ export default function CartPage() {
       )}
       {deliveryMethod === "delivery" && subtotal >= FREE_DELIVERY_OVER && (
         <div className="mb-6 p-3 bg-[#23201C]/10 border border-[#A8874D]/20 rounded-xl text-center">
-          <p className="text-sm font-medium text-[#5F7355]">🎉 Your delivery is free</p>
+          <p className="text-sm font-medium text-sage">Your delivery is free.</p>
         </div>
       )}
 
@@ -56,9 +56,9 @@ export default function CartPage() {
         {/* Cart Items */}
         <div className="lg:col-span-2 space-y-4">
           {items.map((item) => (
-            <div key={lineId(item)} className="flex gap-4 sm:gap-6 p-4 bg-white border border-gray-100 rounded-xl">
+            <div key={lineId(item)} className="flex gap-4 sm:gap-6 py-6 border-b border-rule">
               <Link href={"/shop/" + item.product.slug} className="flex-shrink-0">
-                <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-lg overflow-hidden bg-gray-100">
+                <div className="relative w-24 h-24 sm:w-28 sm:h-28 overflow-hidden bg-paper-deep">
                   <ProductImage src={item.product.imageUrl} alt={item.product.name} sizes="96px" />
                 </div>
               </Link>
@@ -69,7 +69,7 @@ export default function CartPage() {
                 <p className="text-gray-400 text-xs mt-0.5">{item.product.variant}</p>
                 <p className="text-gray-900 text-sm font-semibold mt-2">{formatPrice(item.product.price)}</p>
                 <div className="mt-2 flex items-center justify-between">
-                  <div className="flex items-center border border-gray-200 rounded-lg">
+                  <div className="flex items-center border border-rule">
                     <button onClick={() => updateQuantity(lineId(item), item.quantity - 1)} className="px-2.5 py-1.5 text-gray-500 hover:text-gray-700 transition-colors text-sm">−</button>
                     <span className="px-3 py-1.5 text-sm font-medium">{item.quantity}</span>
                     <button onClick={() => updateQuantity(lineId(item), item.quantity + 1)} className="px-2.5 py-1.5 text-gray-500 hover:text-gray-700 transition-colors text-sm">+</button>
@@ -83,7 +83,7 @@ export default function CartPage() {
 
         {/* Order Summary */}
         <div className="lg:col-span-1">
-          <div className="bg-white border border-gray-100 rounded-xl p-6 sticky top-24">
+          <div className="bg-bone p-6 sticky top-24">
             <h2 className="text-lg font-semibold tracking-tight mb-4">Order Summary</h2>
 
             {/* Delivery Method Toggle */}
@@ -92,26 +92,24 @@ export default function CartPage() {
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => setDeliveryMethod("delivery")}
-                  className={`p-3 rounded-xl border-2 text-center transition-all ${
+                  className={`p-4 border text-center transition-all ${
                     deliveryMethod === "delivery"
-                      ? "border-[#A8874D] bg-[#23201C]/5 text-[#A8874D]"
-                      : "border-gray-200 text-gray-500 hover:border-gray-300"
+                      ? "border-ink bg-paper-deep text-ink"
+                      : "border-rule text-ink-muted hover:border-sand"
                   }`}
                 >
-                  <div className="text-lg mb-1">🚚</div>
-                  <div className="text-xs font-semibold">Deliver to me</div>
+                  <div className="font-heading text-sm">Deliver to me</div>
                   <div className="text-[10px] mt-0.5">{subtotal >= FREE_DELIVERY_OVER ? "Free" : `AED ${UAE_DELIVERY}`}</div>
                 </button>
                 <button
                   onClick={() => setDeliveryMethod("pickup")}
-                  className={`p-3 rounded-xl border-2 text-center transition-all ${
+                  className={`p-4 border text-center transition-all ${
                     deliveryMethod === "pickup"
-                      ? "border-[#A8874D] bg-[#23201C]/5 text-[#A8874D]"
-                      : "border-gray-200 text-gray-500 hover:border-gray-300"
+                      ? "border-ink bg-paper-deep text-ink"
+                      : "border-rule text-ink-muted hover:border-sand"
                   }`}
                 >
-                  <div className="text-lg mb-1">📍</div>
-                  <div className="text-xs font-semibold">Pick up</div>
+                  <div className="font-heading text-sm">Pick up</div>
                   <div className="text-[10px] mt-0.5">Free</div>
                 </button>
               </div>
@@ -124,7 +122,7 @@ export default function CartPage() {
                 </p>
               )}
               {deliveryMethod === "pickup" && (
-                <p className="text-[#5F7355] text-xs mt-2">✓ Free pickup — no shipping fee</p>
+                <p className="text-sage text-xs mt-2">Free pickup, no shipping fee.</p>
               )}
             </div>
 
@@ -150,7 +148,7 @@ export default function CartPage() {
                 hardcoded to 0 in cart-context, so every basket showed a
                 meaningless "Pay on delivery AED 0" row. Same remnant as the one
                 removed from the account page. */}
-            <div className="mt-4 p-4 bg-gray-50 rounded-xl">
+            <div className="mt-5 pt-4 border-t border-rule">
               <p className="text-xs text-gray-700 font-semibold mb-2">Made to Order</p>
               <p className="text-xs text-gray-500 leading-relaxed">
                 You pay the full {formatPrice(depositNow)} now by card. We start cutting your
