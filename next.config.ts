@@ -20,7 +20,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/stats/:path*",
-        destination: "http://sh-umami-umami-1:3000/:path*",
+        destination: `${process.env.UMAMI_ORIGIN || 'http://sh-umami-umami-1:3000'}/:path*`,
       },
     ];
   },
