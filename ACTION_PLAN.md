@@ -173,9 +173,10 @@ Still held at P1 rather than P0: **A-1** (permissive RLS policy — the database
 | **Expected outcome** | `scripts/` contains active tooling; historical one-shots move to `scripts/archive/` with a README, or are deleted. |
 | **Acceptance criteria** | Every remaining script has an identifiable current purpose. |
 
-### A-11 · Prune dependencies
+### A-11 · Prune dependencies — **DONE** (2026-08-08)
 | | |
 |---|---|
+| **Status** | All four removed from `dependencies`. Build clean, 62 tests pass, tsc clean, 0 vulnerabilities, exact pins (`next` 16.3.0, react 19.2.4) preserved. **Two corrections to P-2.** (1) `playwright` is *not* unused — `scripts/extract-cj-variants.js`, `scripts/scrape-cj-variants.js`, `scripts/test-3axis-img.js` and `check-all-categories.js` all `require("playwright")`. It still resolves after removal because `@playwright/test@1.62.0` (devDependency) depends on `playwright@1.62.0`, so those scripts keep working while it leaves the production manifest. (2) It was **never shipping into the runtime image**: `output: "standalone"` traces only what is imported, and the Dockerfile's runtime stage copies only `.next/standalone` + static + public + `@swc/helpers`. Verified — the standalone bundle carries 12 modules and none of the four are among them. The real gain is an honest manifest and a lighter build stage, not a smaller runtime image. |
 | **Priority** | P2 |
 | **Reason** | P-2 — `playwright`, `posthog-js`, `opentype.js`, `@stripe/stripe-js` are imported in **zero** `src/` files. `playwright` is in **production** dependencies, shipping browser automation into the runtime image. |
 | **Affected area** | `package.json` |
@@ -183,7 +184,7 @@ Still held at P1 rather than P0: **A-1** (permissive RLS policy — the database
 | **Effort** | Trivial |
 | **Risk** | Low — re-add `opentype.js` when name-puzzle work begins |
 | **Expected outcome** | Smaller production image, honest manifest. |
-| **Acceptance criteria** | Build succeeds; image size drops; no runtime import errors. |
+| **Acceptance criteria** | Build succeeds; image size drops; no runtime import errors. *(Runtime image size was already unaffected — see Status.)* |
 
 ### A-12 · Index the `/account` lookup
 | | |
