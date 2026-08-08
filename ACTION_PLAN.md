@@ -288,9 +288,10 @@ estrict` token, which is randomised per invocation. Made repeatable as `scripts/
 
 *Objective: remove the platform as a source of outages. Do not optimise the application — it is not under pressure.*
 
-### A-19 · Decommission the workstation stack *(revised — was "migrate to Hetzner")*
+### A-19 · Decommission the workstation stack — **DONE / already true** (2026-08-08)
 | | |
 |---|---|
+| **Status** | Acceptance verified, no action needed. Both `shop.lebon-grace.com` and `lebon-grace.axiomsynapse.com` return 200 serving `dpl=20260807141549` — the Hetzner build — and `docker ps` on the workstation shows **no** `lebon-grace`, `sh-tunnel` or `cloudflared` containers. Nothing resolves to the workstation and its Docker is already stopped, so the criterion "can be stopped with no public effect" is satisfied by it already being off. |
 | **Priority** | P1 (raised) |
 | **Reason** | C-1 — **the migration already happened.** Hetzner runs the app under Coolify with its own Supabase stack. What remains is a parallel workstation deployment that still answers `shop.lebon-grace.com` and still claims `lebon-grace.axiomsynapse.com` via its Cloudflare tunnel. Every Docker Desktop failure catalogued in R-1 — the stale-socket crashloop, two `Dead`-container 503s, five silent no-op builds — was a failure of **this redundant path**, not of production hosting. |
 | **Affected area** | workstation Docker stack, `sh-tunnel-cloudflared-1`, the SSH tunnel via the Lightsail box, `sh-lebon-grace-*` containers |
@@ -302,9 +303,10 @@ estrict` token, which is randomised per invocation. Made repeatable as `scripts/
 
 > **Correction.** The first draft framed this as a large, budget-gated migration and put it in Phase 4. That was based on observing only the workstation. The work is smaller and more urgent than described: not "move to Hetzner" but "finish moving to Hetzner and turn the old one off."
 
-### A-19b · Rebuild to clear the dead PostHog host
+### A-19b · Rebuild to clear the dead PostHog host — **DONE** (2026-08-08)
 | | |
 |---|---|
+| **Status** | **Three** variables, not one: `NEXT_PUBLIC_POSTHOG_HOST`, `NEXT_PUBLIC_POSTHOG_KEY` and **`POSTHOG_PERSONAL_API_TOKEN`** — a live credential for a service that is no longer used. All three removed from `.env.local` and `ops/selfhost/apps/lebon-grace.runtime.env` (both gitignored; backups kept beside them with gitignored names). **Two corrections.** (1) The built image was *already* clean — the only `posthog` string anywhere in build output is the word `posthog.capture` inside a **sourcemap**, from the explanatory comment in `Analytics.tsx`; the shipped JS has zero, and so does `/app` in the running container. (2) The landmine warning no longer applies to this repo: `src/lib/analytics.ts` does not exist, and `src/components/Analytics.tsx` contains **no PostHog-named symbols at all** — only prose in a comment. There was nothing that could be deleted by mistake. Umami verified untouched: `/stats/script.js` → 200 and `data-website-id` still present on the live page. **Still outstanding, needs Coolify:** the running container's env still carries all three, so they persist until an env edit + redeploy — and `POSTHOG_PERSONAL_API_TOKEN` should be revoked, same class as A-0b. |
 | **Priority** | P2 |
 | **Reason** | C-4 — `NEXT_PUBLIC_POSTHOG_HOST=https://posthog.axiomsynapse.com` is set in both `.env.local` and `ops/selfhost/apps/lebon-grace.runtime.env`. No container and no certificate exist for that host. |
 | **Affected area** | env files + a rebuild |
@@ -326,9 +328,10 @@ estrict` token, which is randomised per invocation. Made repeatable as `scripts/
 | **Effort** | Small |
 | **Acceptance criteria** | A 503 on `shop.lebon-grace.com` alerts within minutes without anyone looking. |
 
-### A-21 · Persistent login throttle
+### A-21 · Persistent login throttle — **DONE** (2026-08-08)
 | | |
 |---|---|
+| **Status** | Migration `0006` adds `login_attempts`; `src/lib/login-throttle.ts` sits **behind** the in-memory limiter rather than replacing it — memory absorbs bursts with no round trip, Postgres remembers across restarts. Only failures count, and a success clears the address so an admin who mistypes and then gets in is not locked out of their own shop. **Acceptance proven end-to-end, with the control that makes it mean something:** five wrong passwords → 401, sixth → 429; the process was then killed and a *new* one started with empty in-memory buckets — the same address still got **429** while a different address still got **401**. Without that second address the result would equally have fitted a blanket block. Fails **open** with a loud log if Postgres is unreachable: failing closed turns a database blip into "nobody can administer the shop", and the in-memory limiter is still in front. |
 | **Priority** | P3 |
 | **Reason** | S-3 — the rate limiter is in-memory, so **every deploy clears every bucket**. With eight deploys in one day, `admin/login` brute-force protection is materially weaker than the configured numbers suggest. |
 | **Effort** | Small |

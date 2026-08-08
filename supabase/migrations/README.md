@@ -70,3 +70,4 @@ failure rolls back. DDL is transactional in Postgres; use it.
 | `0003_index_order_email_lookup.sql` | Generated `customer_email_lc` + index, so `/account` stops seq-scanning (D-3). |
 | `0004_order_items_personalisation.sql` | Engraved name as its own column, for the workshop queue (A-15). |
 | `0005_product_reviews.sql` | Reviews, tied to an order by foreign key so ratings cannot be invented (A-18). |
+| `0006_login_attempts.sql` | Failed admin logins, so brute-force counters survive a deploy (A-21). |
