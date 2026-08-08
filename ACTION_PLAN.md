@@ -206,9 +206,10 @@ estrict` token, which is randomised per invocation. Made repeatable as `scripts/
 | **Expected outcome** | `CREATE INDEX ON orders (lower(customer_email))` with a matching `lower(...) = lower($1)` query, or `citext`; phone comparison pushed into the query. |
 | **Acceptance criteria** | `EXPLAIN` shows an index scan. `/track` and `/account` still return the correct orders and still reject a wrong phone. |
 
-### A-13 · Consolidate the variant modules
+### A-13 · Consolidate the variant modules — **DONE** (2026-08-08)
 | | |
 |---|---|
+| **Status** | Resolved as *"a documented reason for two"*. **The finding was wrong when written:** `src/lib/product-variants.ts` was deleted on 2026-08-02 in `ef23391`, three days *before* the audit snapshot `eefd24f` (2026-08-05) — confirmed with `git merge-base --is-ancestor`. There was no duplicate to consolidate. What remains are two layers of one fallback chain in `api/variants/route.ts`: `productVariants` (store.ts) reads the `product_variants` table — real supplier SKUs with price, image, colour, size, checked **first** and authoritative — and `variants.ts` derives groups from product *names*, used only when the database has nothing. Collapsing them would either discard the authoritative SKU data or make name-parsing authoritative, which it cannot be: it knows no price and no stock level, only what a product is called. Written into the header of `variants.ts` so the next reader does not re-attempt the merge. |
 | **Priority** | P3 |
 | **Reason** | A-2 (audit) — `lib/variants.ts` and `lib/product-variants.ts` cover the same concept. |
 | **Affected area** | `src/lib/` |

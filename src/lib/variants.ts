@@ -1,6 +1,32 @@
 /**
- * Variant grouping system.
- * Groups similar products (same base name, different color/style) into variant sets.
+ * Variant grouping — DERIVED from the catalogue, by name.
+ *
+ * Groups similar products (same base name, different colour/style) into variant
+ * sets by parsing their names. It invents nothing and stores nothing: give it the
+ * same catalogue twice and it returns the same groups.
+ *
+ * ── This is NOT `productVariants` in src/lib/store.ts ──────────────────────
+ *
+ * The names are close enough to invite a merge. They are different things, and
+ * `src/app/api/variants/route.ts` uses both, in a deliberate order:
+ *
+ *   0. `productVariants.getBySlug()` (store.ts) — the `product_variants` table.
+ *      Real supplier SKUs with their own price, image, colour and size.
+ *      **Authoritative.** Checked first.
+ *   1. `getVariantGroup()` (this file) — used only when the database has nothing
+ *      for that slug. A best-effort guess from product names.
+ *   2. the MDF finish × size matrix, then a live CJ API lookup.
+ *
+ * So this module is a FALLBACK for products whose real variants were never
+ * imported. Collapsing the two would either lose the authoritative SKU data or
+ * make name-parsing authoritative — and it is not; it cannot know a price or a
+ * stock level, only what a product happens to be called.
+ *
+ * ACTION_PLAN.md A-13. The audit (finding A-2) recorded this file as duplicating
+ * `src/lib/product-variants.ts`. That file had already been deleted three days
+ * before the audit was written (ef23391, 2026-08-02). There is no duplicate —
+ * there are two layers, and this comment is the "documented reason for two" the
+ * acceptance criterion asks for.
  */
 
 import { products, type Product } from "./products";
