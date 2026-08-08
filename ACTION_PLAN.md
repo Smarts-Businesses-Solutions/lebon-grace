@@ -237,9 +237,10 @@ estrict` token, which is randomised per invocation. Made repeatable as `scripts/
 | **Expected outcome** | Customers stop having to ask where their order is. |
 | **Acceptance criteria** | Moving an order to `shipped` sends exactly one email; moving it twice sends one. |
 
-### A-15 · Production queue in `/admin`
+### A-15 · Production queue in `/admin` — **DONE** (2026-08-08)
 | | |
 |---|---|
+| **Status** | `buildProductionQueue` (`src/lib/production-queue.ts`, pure and 16-tested) plus a `CuttingQueue` panel placed **above** the money cards, because it is the only part of that page that says what to physically do. Ordered started-work-first then strict FIFO; shows the wait in days, reddening at 3+; the engraved name is a high-contrast chip because a missed engraving means recutting the piece. Fed from the orders and items `/api/metrics` already fetches, so it costs no extra query. **Went beyond the stated scope for a reason:** the engraved name existed *only* inside the display string `product_name = 'Board (engraved: Amira)'`, so showing it meant parsing that sentence — which breaks on a name containing a bracket, silently, after the wood is cut. Migration `0004` gives it a real column with a 20-char CHECK matching the checkout cap, the webhook now writes it, and the parse survives only as a fallback for pre-0004 rows. Verified against production: the single queued order has **0** line items, so it renders the "⚠ no items recorded" warning — a paid order with nothing to make is exactly what must not be shown as an empty to-do. |
 | **Priority** | P2 |
 | **Reason** | A made-to-order workshop's core daily question is "what do I cut today, in what order". `OperationsDashboard` already exists. |
 | **Affected area** | `src/components/OperationsDashboard.tsx` |

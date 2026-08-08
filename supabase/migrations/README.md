@@ -68,3 +68,4 @@ failure rolls back. DDL is transactional in Postgres; use it.
 | `0001_restrict_products_write_policy.sql` | Dropped the permissive `anon` write policy (S-1). |
 | `0002_add_constraints.sql` | Status CHECK, `NOT NULL`, non-negative money and stock (D-1, D-2). |
 | `0003_index_order_email_lookup.sql` | Generated `customer_email_lc` + index, so `/account` stops seq-scanning (D-3). |
+| `0004_order_items_personalisation.sql` | Engraved name as its own column, for the workshop queue (A-15). |

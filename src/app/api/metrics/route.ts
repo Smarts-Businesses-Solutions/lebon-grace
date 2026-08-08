@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-auth";
 import { orders as orderStore, orderItems } from "@/lib/store";
+import { buildProductionQueue } from "@/lib/production-queue";
 import { products, categories } from "@/lib/products";
 
 export async function GET(request: NextRequest) {
@@ -154,9 +155,12 @@ export async function GET(request: NextRequest) {
     // ─── Product Metrics (from order_items if available) ───
     let bestSellers: { name: string; quantity: number; revenue: number }[] = [];
     let revenueByCategory: Record<string, number> = {};
+    // Hoisted out of the try below so the production queue can reuse the same
+    // fetch rather than hitting order_items twice per dashboard load.
+    let items: Awaited<ReturnType<typeof orderItems.getAll>> = [];
 
     try {
-      const items = await orderItems.getAll();
+      items = await orderItems.getAll();
 
       if (items && items.length > 0) {
         const productSales = new Map<string, { name: string; quantity: number; revenue: number }>();
@@ -240,6 +244,9 @@ export async function GET(request: NextRequest) {
         ordersTotal: allOrders.length,
       },
       pipeline: statusCounts,
+      // What to cut today, in what order (A-15). Built from the orders and
+      // items already fetched above, so it costs no extra query.
+      queue: buildProductionQueue(allOrders, items),
       fulfillment: {
         avgDays: avgFulfillmentDays,
         awaiting: ordersAwaiting,

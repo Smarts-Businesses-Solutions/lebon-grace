@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import type { QueueEntry } from "@/lib/production-queue";
 
 interface MetricsData {
   financial: {
@@ -9,6 +10,7 @@ interface MetricsData {
     ordersToday: number; ordersWeek: number; ordersMonth: number; ordersTotal: number;
   };
   pipeline: Record<string, { count: number; total: number }>;
+  queue: QueueEntry[];
   fulfillment: {
     avgDays: number; awaiting: number; inTransit: number; deliverySuccessRate: number;
     pickupOrders: number; deliveryOrders: number;
@@ -45,6 +47,100 @@ const PIPELINE_STAGES = [
 
 function fmt(n: number): string {
   return `AED ${n.toLocaleString("en")}`;
+}
+
+/**
+ * What to cut today, in the order to cut it.
+ *
+ * Answers the workshop's daily question without opening the database (A-15).
+ * Deliberately dense: this is a working list read at a bench, not a chart.
+ */
+function CuttingQueue({ queue }: { queue: QueueEntry[] }) {
+  const pieces = queue.reduce((n, e) => n + e.pieces, 0);
+  const engraved = queue.filter((e) => e.engraved).length;
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-5">
+      <div className="flex items-baseline justify-between mb-4 gap-3 flex-wrap">
+        <h3 className="text-sm font-semibold text-gray-800">
+          Cutting Queue
+          <span className="ml-2 font-normal text-gray-400">
+            {queue.length === 0
+              ? "nothing waiting"
+              : `${queue.length} order${queue.length === 1 ? "" : "s"} · ${pieces} piece${pieces === 1 ? "" : "s"}${engraved ? ` · ${engraved} to engrave` : ""}`}
+          </span>
+        </h3>
+        <span className="text-[10px] uppercase tracking-wider text-gray-400">oldest first</span>
+      </div>
+
+      {queue.length === 0 ? (
+        <p className="text-sm text-gray-400 py-6 text-center">
+          Nothing waiting to be cut. Every paid order has shipped.
+        </p>
+      ) : (
+        <ol className="space-y-2">
+          {queue.map((e, i) => (
+            <li
+              key={e.id}
+              className={`flex flex-wrap items-start gap-3 rounded-lg border p-3 ${
+                e.status === "processing"
+                  ? "border-blue-200 bg-blue-50/40"
+                  : "border-gray-200 bg-gray-50/60"
+              }`}
+            >
+              <span className="w-6 shrink-0 text-center text-sm font-bold text-gray-400">{i + 1}</span>
+
+              <div className="min-w-[9rem] flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-mono text-xs text-gray-500">#{e.shortId}</span>
+                  <span className="text-sm font-medium text-gray-900">{e.customer}</span>
+                </div>
+                <div className="mt-0.5 flex items-center gap-2 flex-wrap text-[11px] text-gray-500">
+                  <span
+                    className={`rounded px-1.5 py-0.5 font-medium ${
+                      e.status === "processing" ? "bg-blue-100 text-blue-700" : "bg-yellow-100 text-yellow-800"
+                    }`}
+                  >
+                    {e.status === "processing" ? "in progress" : "not started"}
+                  </span>
+                  {/* Waiting time is the thing that turns into a complaint, so
+                      it is called out once it stops being reasonable. */}
+                  <span className={e.ageDays >= 3 ? "font-semibold text-red-600" : ""}>
+                    {e.ageDays === 0 ? "today" : `${e.ageDays} day${e.ageDays === 1 ? "" : "s"} waiting`}
+                  </span>
+                  <span>{e.deliveryMethod === "pickup" ? "🏠 pickup" : `🚚 ${e.emirate || "delivery"}`}</span>
+                </div>
+              </div>
+
+              <div className="flex-[2] min-w-[12rem] space-y-1">
+                {e.items.length === 0 ? (
+                  // A paid order with no recorded lines is not "nothing to do",
+                  // it is a problem that needs a human before it ships.
+                  <span className="text-[11px] font-medium text-red-600">
+                    ⚠ no items recorded — check this order before cutting
+                  </span>
+                ) : (
+                  e.items.map((it, n) => (
+                    <div key={n} className="flex items-baseline gap-2 text-sm">
+                      <span className="text-gray-400 tabular-nums">{it.quantity}×</span>
+                      <span className="text-gray-800">{it.name}</span>
+                      {it.engraving && (
+                        // The one field that gets cut irreversibly. Loud on
+                        // purpose — a missed engraving means recutting the piece.
+                        <span className="rounded bg-[#23201C] px-1.5 py-0.5 font-mono text-[11px] font-medium text-[#C9A96E]">
+                          ✎ {it.engraving}
+                        </span>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            </li>
+          ))}
+        </ol>
+      )}
+    </div>
+  );
 }
 
 function KpiCard({ icon, label, value, sub, color }: { icon: string; label: string; value: string; sub?: string; color?: string }) {
@@ -105,7 +201,7 @@ export default function OperationsDashboard() {
     return <div className="text-center py-20 text-gray-400">Failed to load metrics</div>;
   }
 
-  const { financial: fin, pipeline, fulfillment: fulf, cod, customers: cust, products: prod, charts, alerts } = data;
+  const { financial: fin, pipeline, queue, fulfillment: fulf, cod, customers: cust, products: prod, charts, alerts } = data;
 
   // Pipeline data for visual
   const pipelineMax = Math.max(...PIPELINE_STAGES.map((s) => pipeline[s.key]?.count || 0), 1);
@@ -134,6 +230,12 @@ export default function OperationsDashboard() {
           ))}
         </div>
       )}
+
+      {/* ─── Cutting Queue ───
+          First, and above the money, because it is the only part of this page
+          that tells the workshop what to physically do today. Ordered by
+          buildProductionQueue: started work first, then strict FIFO. */}
+      <CuttingQueue queue={queue} />
 
       {/* ─── KPI Cards ─── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-3">

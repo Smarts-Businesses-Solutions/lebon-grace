@@ -142,6 +142,11 @@ export async function POST(request: NextRequest) {
             product_name: personalisation
               ? `${li.description || "Product"} (engraved: ${personalisation})`
               : (li.description || "Product"),
+            // Also stored on its own, because this is the string that gets cut
+            // irreversibly into a piece of wood and the workshop queue reads it.
+            // It used to exist only inside product_name above, so showing it
+            // meant parsing that sentence back apart (0004).
+            personalisation: personalisation || null,
             // No doubling: the line item is charged at full price.
             price: (li.amount_total || 0) / 100 / (li.quantity || 1),
             quantity: li.quantity || 1,

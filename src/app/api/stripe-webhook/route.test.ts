@@ -189,6 +189,46 @@ describe("POST /api/stripe-webhook — order contents", () => {
     expect(insert.mock.calls[0][0]).toMatchObject({ status: "deposit_paid" });
   });
 
+  it("stores the engraved name as its own field, not only inside the label", async () => {
+    // The workshop queue reads this to know what to cut into the wood (A-15,
+    // migration 0004). It used to exist only inside product_name as
+    // "Board (engraved: Amira)", so reading it back meant parsing that sentence
+    // — which breaks on a name containing a bracket, silently, after the piece
+    // has been cut.
+    constructEvent.mockReturnValue(completedEvent());
+    m.listLineItems.mockResolvedValue({
+      data: [{
+        description: "ABC Jigsaw Board",
+        quantity: 1,
+        amount_total: 1500,
+        price: { product: { metadata: { slug: "abc-jigsaw-board", personalisation: "Amira" }, images: [] } },
+      }],
+    });
+
+    await POST(post());
+    const rows = m.insertMany.mock.calls[0][0] as Array<Record<string, unknown>>;
+    expect(rows[0]).toMatchObject({
+      personalisation: "Amira",
+      product_name: "ABC Jigsaw Board (engraved: Amira)",
+    });
+  });
+
+  it("stores null, not an empty string, for a plain piece", async () => {
+    constructEvent.mockReturnValue(completedEvent());
+    m.listLineItems.mockResolvedValue({
+      data: [{
+        description: "ABC Jigsaw Board",
+        quantity: 1,
+        amount_total: 1500,
+        price: { product: { metadata: { slug: "abc-jigsaw-board" }, images: [] } },
+      }],
+    });
+
+    await POST(post());
+    const rows = m.insertMany.mock.calls[0][0] as Array<Record<string, unknown>>;
+    expect(rows[0].personalisation).toBeNull();
+  });
+
   it("records the amount actually charged, not a doubled deposit", async () => {
     // Stripe collects the full amount now; the old 50% deposit model doubled
     // amount_total to reconstruct the order value.
