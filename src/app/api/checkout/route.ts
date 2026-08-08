@@ -31,27 +31,47 @@ export async function POST(request: NextRequest) {
   }
 
   // ─── SERVER-SIDE PRICE VALIDATION ───
-  // Look up each product by slug and use the authoritative price from our catalog
-  // Client-sent prices are ignored to prevent price tampering
-  const validatedItems = items.map((item) => {
-    if (!item.slug) return item;
+  // Look up each product by slug and use the authoritative price from our
+  // catalog. Client-sent prices are ignored to prevent price tampering.
+  //
+  // Every item MUST carry a slug. This previously read `if (!item.slug) return
+  // item;`, which meant an item posted without one skipped the catalogue lookup
+  // and its client-supplied price went straight onto the Stripe line item —
+  // i.e. the caller named their own price. Our own checkout page always sends a
+  // slug (src/app/checkout/page.tsx:62), so nothing legitimate is affected; the
+  // hole only existed for requests that did not come from our client, which is
+  // exactly what this validation is here to stop.
+  //
+  // Both failure modes answer 400 rather than throwing. The throw sat outside
+  // the try/catch below, so an unknown slug escaped the handler and Next
+  // answered 500 — reporting a malformed request as a server fault.
+  const validatedItems: typeof items = [];
+  for (const item of items) {
+    if (!item.slug) {
+      return NextResponse.json({ error: "Each item must identify a product" }, { status: 400 });
+    }
     const catalogProduct = products.find((p) => p.slug === item.slug);
     if (!catalogProduct) {
-      throw new Error(`Unknown product: ${item.slug}`);
+      return NextResponse.json({ error: `Unknown product: ${item.slug}` }, { status: 400 });
+    }
+    const qty = Math.floor(Number(item.quantity));
+    if (!Number.isFinite(qty) || qty < 1) {
+      return NextResponse.json({ error: "Quantity must be a positive whole number" }, { status: 400 });
     }
     // Trim and cap the engraved name here too: the client limits it, but the
     // client is not a security boundary and this string ends up on Stripe and
     // in the workshop queue.
     const engraved = String(item.personalisation || "").trim().slice(0, 20);
-    return {
+    validatedItems.push({
       ...item,
       name: catalogProduct.name,
       price: catalogProduct.price,
       image: catalogProduct.imageUrl,
       slug: item.slug,
+      quantity: qty,
       personalisation: engraved || undefined,
-    };
-  });
+    });
+  }
 
   // Recalculate subtotal from validated prices (ignore client subtotal)
   const subtotal = validatedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
