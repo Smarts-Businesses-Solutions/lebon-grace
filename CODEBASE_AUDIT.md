@@ -474,9 +474,19 @@ At 42 products and ~1 order, nothing is under pressure. Projections: **100 order
 **Problem:** None of these were application faults. The application was correct throughout; the platform beneath it was not. This is the single largest reliability risk in the project and no amount of application-level care mitigates it.
 **Recommendation:** Move production to a managed host (the Hetzner plan already discussed). Until then, add a deploy-verification step that compares the served `dpl=` build id against the one just built — that single check would have caught the five silent failures immediately.
 
-### R-2 — No deploy verification
+### R-2 — No deploy verification — **FIXED**
 **Severity:** Medium · **Confidence:** Confirmed · **Effort:** Small
 `build-apps.sh` reports success on building the image; it does not verify the running container is serving it. Recommend asserting the served deployment id post-deploy.
+
+**Correction to this finding (2026-08-08).** As written it named only `build-apps.sh`, which would not have covered production. That script's own header states it is workstation tooling that "does NOT target the Hetzner estate", and `ops/selfhost/PROJECT-CONTEXT.md:236` records that lebon-grace deploys "via Coolify UI / git push (no deploy script)" — so there is no production deploy script to add a check to at all. The root cause is the same on both paths and is structural: `docker compose up -d` exits 0 whether or not it replaced anything, so a build's exit code is never evidence of a deploy. The only evidence is the running site reporting which build it is.
+
+**Fix.** `deploymentId` (next.config.ts:6) stamps every asset URL as `?dpl=<id>`, and this project sets it from a `date +%Y%m%d%H%M%S` value — an identity *and* a sortable build time, readable from outside with no host access.
+- `scripts/verify-deploy.mjs` (`npm run verify:deploy`) polls the public site after a push and exits non-zero if the build never changes. Cache-busted per request and gated on a homepage sentinel, so a CDN hit or a 200-with-error-page cannot be mistaken for either success or failure.
+- `ops/selfhost/scripts/build-apps.sh` now checks `127.0.0.1:<port>` after `up -d` and fails the app if the served `dpl` is not the one just built.
+
+Verified by driving both through every branch against a local server: stale container, replaced container, HTTP 200 without a rendered page, missing `DEPLOYMENT_ID`, and an unreachable host each produce a distinct message and the right exit code.
+
+**Live reading at time of fix:** `shop.lebon-grace.com` serves `dpl=20260807141549` — i.e. production is still on the 2026-08-07 14:15 build and none of the 2026-08-08 commits are deployed.
 
 ### R-3 — Observability exists but is not alerting
 Sentry/GlitchTip is wired (`instrumentation.ts`, `sentry.*.config.ts`) and Umami covers analytics. No uptime monitoring was found — the outages above were noticed by a human looking at the site.

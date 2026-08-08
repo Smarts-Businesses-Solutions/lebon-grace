@@ -92,12 +92,13 @@ Still held at P1 rather than P0: **A-1** (permissive RLS policy — the database
 | **Expected outcome** | Five tests, in priority order: (1) checkout ignores client price; (2) webhook is idempotent on repeat delivery; (3) cart totals/quantity clamps/personalisation; (4) `/track` and `/account` phone matching; (5) price-tier half-open partition. |
 | **Acceptance criteria** | Deliberately reintroducing "trust the client price" fails CI. Delivering the same webhook event twice creates one order. |
 
-### A-5 · Verify deploys actually deployed
+### A-5 · Verify deploys actually deployed — **DONE** (2026-08-08)
 | | |
 |---|---|
+| **Status** | Delivered in two parts, because the stated affected area covered only half the problem. **Correction:** `build-apps.sh` declares itself workstation-only ("This does NOT target the Hetzner estate… Do not point it at production"), and PROJECT-CONTEXT.md:236 records that lebon-grace deploys "via Coolify UI / git push (no deploy script)" — so fixing that script alone would never have verified a production deploy. Added: (1) `scripts/verify-deploy.mjs` in this repo, which polls the public site (`npm run verify:deploy`); (2) a post-`up -d` check in `build-apps.sh` for the workstation path, where the incident actually happened. Both were driven through every branch against a local server: stale container, replaced container, 200-but-not-rendered, missing `DEPLOYMENT_ID`, unreachable host. |
 | **Priority** | P1 |
 | **Reason** | R-2 — on 2026-08-04/05, five consecutive builds reported success while the container kept serving a two-hour-old build. Nothing detected it. |
-| **Affected area** | `ops/selfhost/scripts/build-apps.sh` |
+| **Affected area** | `scripts/verify-deploy.mjs` (new), `package.json`, `ops/selfhost/scripts/build-apps.sh` |
 | **Dependencies** | None |
 | **Effort** | Small |
 | **Risk** | Low |
