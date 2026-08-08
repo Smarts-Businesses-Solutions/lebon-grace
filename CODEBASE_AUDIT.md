@@ -273,6 +273,8 @@ Note the contrast with `orders`/`order_items`, which have RLS enabled and *no* p
 **Problem:** Any origin can use the endpoint as a free caching proxy for the three allowed hosts. Bandwidth abuse only — the allowlist prevents anything worse.
 **Recommendation:** The route is called by **zero** source files. Delete it (see A-1). If kept, drop the wildcard CORS and add `rateLimit`.
 
+**FIXED (2026-08-08)** — deleted, along with `/api/import` and the two stale `data/cj-*.json` files (A-9). Verified first that no image anywhere resolves through it: zero `proxy-image` URLs in `products.generated.ts`, in `data/*.json`, or in `products.image_url` / `product_variants.variant_image` / `order_items.image_url`.
+
 ### S-6 — Order-id lookup accepted LIKE wildcards and one-character prefixes — **FIXED**
 **Category:** Security · **Severity:** High · **Confidence:** Confirmed (reproduced in test) · **Effort:** Small
 **Found:** 2026-08-08, while writing the A-4 phone-matching tests. Not in the original audit pass.

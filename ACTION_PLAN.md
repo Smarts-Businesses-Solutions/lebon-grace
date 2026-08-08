@@ -148,12 +148,13 @@ Still held at P1 rather than P0: **A-1** (permissive RLS policy — the database
 | **Expected outcome** | Baseline stays as origin; numbered forward migrations from here. Schema change becomes reviewable in a diff. |
 | **Acceptance criteria** | Applying baseline + all migrations to an empty database reproduces production exactly (the same check used on 2026-08-04). |
 
-### A-9 · Delete the dead dropship code
+### A-9 · Delete the dead dropship code — **DONE** (2026-08-08)
 | | |
 |---|---|
+| **Status** | Removed `src/app/api/import/`, `src/app/api/proxy-image/`, `data/cj-products.json`, `data/cj-variants-extracted.json`. Build clean, 62 tests pass, both routes gone from the route manifest. **Correction:** the reason line implies `/api/import` is open — it is not, `requireAdmin` gates it (route.ts:39), hardened earlier this session. It was dead code, not an open door; `proxy-image` was the genuinely unauthenticated one. **Dependency not satisfiable:** "confirm no external caller" cannot be verified — neither the app container nor `coolify-proxy` logs requests at all (83 log lines, zero request lines), so there is no telemetry that could answer it. Proceeded on evidence that does exist: zero `proxy-image` URLs in the catalogue, the data files or any of the three DB image columns; `/api/import`'s job is superseded by `scripts/catalog/*.mjs` writing to Postgres; and any external caller of `import` would need the admin credential regardless. |
 | **Priority** | P2 |
 | **Reason** | A-1 (audit) — `api/import/route.ts` (286 lines) and `api/proxy-image/route.ts` are referenced by **zero** source files. `import` can rewrite the catalogue; `proxy-image` is unauthenticated, unrate-limited, and makes outbound fetches with wildcard CORS. |
-| **Affected area** | `src/app/api/import/`, `src/app/api/proxy-image/`, `data/cj-*.json` |
+| **Affected area** | `src/app/api/import/`, `src/app/api/proxy-image/`, `data/cj-*.json` — the scripts that POST to `/api/import` (`import-cj-variants.js`, `import-tabbit-variants.js`, `proxy-image-urls.js`) are cruft slated for A-10 |
 | **Dependencies** | Confirm no external caller (a bookmarked admin tool) relies on `import` |
 | **Effort** | Small |
 | **Risk** | Low — git history retains everything |
