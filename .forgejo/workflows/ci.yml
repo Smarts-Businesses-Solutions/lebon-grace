@@ -1,0 +1,97 @@
+name: CI — Forgejo
+
+# The quality gate for lebon-grace: typecheck + unit tests + build.
+#
+# WHY FORGEJO AND NOT GITHUB ACTIONS
+# GitHub Actions is halted account-wide following a $256.70 bill, so anything
+# under .github/workflows does not run. A CI file there would be worse than no
+# CI: it would look like changes were being checked while nothing executed.
+# Do not add one unless Actions has been confirmed restored.
+#
+# RUNNER LABELS
+# `runs-on: docker` — the estate's act_runner advertises `docker`
+# (node:20-bookworm) and `docker-large` (catthehacker/ubuntu:act-22.04). It does
+# NOT advertise `ubuntu-latest`; a job requesting that label is never scheduled
+# and simply hangs. setup-node then installs the version we actually want.
+#
+# ACTION REFERENCES ARE FULLY QUALIFIED
+# `https://code.forgejo.org/actions/...` rather than bare `actions/...`, matching
+# mirrortales. Bare names depend on the instance's action-resolution mirror.
+#
+# `continue-on-error` IS IGNORED BY FORGEJO — soften a step with `|| true`
+# instead, as the lint step below does.
+
+on:
+  push:
+    # Not just [main]: production currently deploys `fix/email-sender-domain`,
+    # and main sits 54 commits behind it. Gating only main would check a branch
+    # nobody ships.
+    branches: ["**"]
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - ".claude/**"
+      - "LICENSE"
+      - ".gitignore"
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-forgejo-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Typecheck, test, build
+    runs-on: docker
+    timeout-minutes: 20
+    steps:
+      - uses: https://code.forgejo.org/actions/checkout@v4
+
+      - uses: https://code.forgejo.org/actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      # ── Hard gates: both pass today, so a failure is a real regression ──────
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Unit tests
+        run: npm test
+
+      # ── Informational, deliberately ────────────────────────────────────────
+      # `npx eslint` currently exits 1 on 51 problems in src/ (32 errors, 19
+      # warnings). Making that a hard gate would put this pipeline red from its
+      # first run, and a permanently-red pipeline is one people learn to ignore
+      # — which is exactly how the (dead) Vercel check on PR #1 ended up being
+      # scrolled past for days.
+      #
+      # The count is already down from 233: eslint.config.mjs now excludes the
+      # one-shot scripts and the in-repo git worktree under .claude/worktrees/,
+      # which was causing a second full copy of src/ to be linted.
+      #
+      # HARDEN THIS once the 51 are cleared: drop the `|| true`. See
+      # ACTION_PLAN.md A-3. Of them, react-hooks/set-state-in-effect (13) is the
+      # group worth reading first — it usually signals a render loop or state
+      # that should be derived rather than synced.
+      - name: Lint (informational until src/ is clean)
+        run: npx eslint || true
+
+      # `next build` peaks around 3–4 GiB. If the runner's job container is
+      # capped below that this step OOMs rather than failing cleanly.
+      #
+      # The build tolerates placeholder values for server-side secrets — that is
+      # how ops/selfhost/scripts/build-apps.sh has always built it — but the
+      # NEXT_PUBLIC_* pair is inlined into client bundles, so real values are
+      # needed for a build that is meant to be shipped. These are read from
+      # Forgejo repo secrets; if unset, the build still completes and only the
+      # client-side Supabase config is wrong, which CI does not exercise.
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}

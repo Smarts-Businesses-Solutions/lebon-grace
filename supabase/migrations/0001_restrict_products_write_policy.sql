@@ -1,0 +1,27 @@
+-- 0001 — remove the permissive write policy on public.products
+--
+-- The baseline carried:
+--     CREATE POLICY "Allow all write" ON public.products USING (true);
+--
+-- With no FOR clause that is FOR ALL, and with no role clause it applies to
+-- `public` — which includes `anon`, whose key is published to browsers by
+-- definition (NEXT_PUBLIC_SUPABASE_ANON_KEY). With with_check NULL, Postgres
+-- reuses the USING expression as the INSERT/UPDATE check, so the policy
+-- permitted INSERT, UPDATE and DELETE on the catalogue to anyone who could
+-- reach PostgREST. The only thing standing in the way was that kong is not
+-- publicly exposed — a network placement, not an authorisation control.
+--
+-- Safe to drop: the application never uses the anon key for data access.
+-- src/lib/store.ts:22-32 builds its client with SUPABASE_SERVICE_ROLE_KEY, and
+-- the service role bypasses RLS entirely. There is no client-side Supabase
+-- usage in any page or component. The catalogue scripts
+-- (scripts/catalog/04,06,07) likewise authenticate with the service role.
+--
+-- "Allow public read" is deliberately left in place. It is SELECT-only and
+-- harmless, and narrowing it is a separate decision with its own blast radius
+-- (the admin surface lists hidden products).
+--
+-- Rollback, should anything external turn out to have depended on anon writes:
+--     CREATE POLICY "Allow all write" ON public.products USING (true);
+
+DROP POLICY IF EXISTS "Allow all write" ON public.products;
