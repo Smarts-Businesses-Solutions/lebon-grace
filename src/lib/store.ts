@@ -178,6 +178,79 @@ export const orderItems = {
   },
 };
 
+// ───────────────────────── product_reviews ─────────────────────────
+// Every row is tied to an order by foreign key (migration 0005), which is what
+// makes "ratings shown are backed by a real order" structural rather than a
+// promise. See src/app/page.tsx:9-25 for why that matters here.
+export const reviews = {
+  /** Published reviews for one product, newest first. */
+  async getBySlug(slug: string): Promise<any[]> {
+    if (!slug) return [];
+    const { data, error } = await db()
+      .from("product_reviews")
+      .select("id, rating, comment, customer_name, created_at")
+      .eq("product_slug", slug)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+
+  /**
+   * Average and count per slug, for the catalogue grid.
+   *
+   * Aggregated in JS rather than SQL because PostgREST cannot express GROUP BY
+   * without a database view, and the review count here is small enough that the
+   * round trip is the cost, not the arithmetic. Revisit with a view if this
+   * table ever reaches five figures.
+   */
+  async aggregates(): Promise<Record<string, { average: number; count: number }>> {
+    const { data, error } = await db().from("product_reviews").select("product_slug, rating");
+    if (error) throw error;
+    const totals = new Map<string, { sum: number; count: number }>();
+    for (const row of data || []) {
+      const slug = String(row.product_slug);
+      const t = totals.get(slug) || { sum: 0, count: 0 };
+      t.sum += Number(row.rating) || 0;
+      t.count += 1;
+      totals.set(slug, t);
+    }
+    const out: Record<string, { average: number; count: number }> = {};
+    for (const [slug, t] of totals) {
+      out[slug] = { average: Math.round((t.sum / t.count) * 10) / 10, count: t.count };
+    }
+    return out;
+  },
+
+  /** Reviews already left against one order, so the form can grey them out. */
+  async getByOrder(orderId: string): Promise<any[]> {
+    if (!orderId) return [];
+    const { data, error } = await db()
+      .from("product_reviews")
+      .select("product_slug")
+      .eq("order_id", orderId);
+    if (error) return [];
+    return data || [];
+  },
+
+  /** Has this order already reviewed this piece? Enforced by a UNIQUE too. */
+  async existsFor(orderId: string, slug: string): Promise<boolean> {
+    const { data, error } = await db()
+      .from("product_reviews")
+      .select("id")
+      .eq("order_id", orderId)
+      .eq("product_slug", slug)
+      .maybeSingle();
+    if (error) return false;
+    return !!data;
+  },
+
+  async insert(review: Record<string, any>): Promise<any> {
+    const { data, error } = await db().from("product_reviews").insert(review).select().single();
+    if (error) throw error;
+    return data;
+  },
+};
+
 // ───────────────────────── product_variants ─────────────────────────
 export const productVariants = {
   async getAll(): Promise<any[]> {

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import ProductImage from "@/components/ProductImage";
 import SafetyNotice from "@/components/SafetyNotice";
+import ProductReviews from "@/components/ProductReviews";
 import WhatsAppLink from "@/components/WhatsAppLink";
 import { useParams } from "next/navigation";
 import { useState, useEffect, useMemo } from "react";
@@ -457,6 +458,9 @@ export default function ProductDetailPage() {
               below do not repeat, and a parent judging suitability should
               meet it beside the price, not off to one side. */}
           <SafetyNotice age={product.details?.age} />
+
+          {/* Renders nothing until a delivered order leaves a real review (A-18). */}
+          <ProductReviews slug={product.slug} />
         </div>
 
       </div>

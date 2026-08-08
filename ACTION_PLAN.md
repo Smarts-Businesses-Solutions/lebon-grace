@@ -272,9 +272,10 @@ estrict` token, which is randomised per invocation. Made repeatable as `scripts/
 | **Effort** | Medium |
 | **Acceptance criteria** | No residual `gray-*`/white-card styling; contrast audit passes. |
 
-### A-18 · Post-delivery review request
+### A-18 · Post-delivery review request — **DONE** (2026-08-08)
 | | |
 |---|---|
+| **Status** | Migration `0005` adds `product_reviews` with `order_id` as a **FOREIGN KEY**, so "backed by a real order" is structural rather than a promise a later edit can forget, plus `UNIQUE(order_id, product_slug)` so one delivered order cannot be replayed into unlimited five-star reviews. `/api/reviews` enforces the three things a foreign key cannot: the submitter holds the order id **and** its phone (the same gate `/track` uses, including the S-6 hardening), the order has actually been delivered, and **the order actually contained that product** — without the last check, one delivered order could review the entire catalogue, which is the index-derived fake ratings again with extra steps. The reviewer's display name is taken from the order, never from the request. `/review` is the page the delivered email links to; `ProductReviews` renders **`null`** at zero reviews — no placeholder, no empty stars — preserving the rule set in `page.tsx:9-25` that "a card shows no rating at all, which is the truth". 107 → 127 tests. **One deviation:** the invitation rides on the `delivered` email rather than arriving days later, because there is no scheduler in this estate and an ask that never fires is worse than one that is slightly early; the template comment says where a cron would hook in. |
 | **Priority** | P3 |
 | **Reason** | The shop ships **no** ratings, deliberately — `page.tsx:9-25` records removing index-derived fake ratings, a genuinely good call. Real reviews would let honest social proof return. |
 | **Dependencies** | A-14 (same email plumbing) |

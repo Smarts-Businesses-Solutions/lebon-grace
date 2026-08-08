@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { getAppUrl } from "./app-url";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -106,8 +107,18 @@ const TEMPLATES: Record<
   delivered: {
     subject: (id) => `Thank you! Your order #${id} is delivered ✅`,
     title: "Order Delivered!",
+    // The review invitation rides on the delivered email rather than a separate
+    // one sent days later (A-18). There is no scheduler in this estate, and an
+    // ask that never fires is worse than one that arrives slightly early. If a
+    // cron ever exists, give it its own `review_request` entry here.
+    //
+    // The link carries the order id and phone because those ARE the credential
+    // on this shop — there are no accounts — and /api/reviews re-checks both.
     color: "#16A34A",
-    message: () => "Your order has been delivered. We hope you love it!",
+    message: (o) =>
+      "Your order has been delivered. We hope you love it! " +
+      `If you have a moment, telling us what you think helps other parents choose: ` +
+      `${getAppUrl()}/review?order=${encodeURIComponent(o.id)}`,
   },
   cancelled: {
     subject: (id) => `Order #${id} cancelled — Lebon Grace`,
