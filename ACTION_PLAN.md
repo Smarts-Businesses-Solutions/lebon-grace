@@ -117,12 +117,13 @@ Still held at P1 rather than P0: **A-1** (permissive RLS policy — the database
 | **Expected outcome** | `npm audit --omit=dev` reports 0 high. |
 | **Acceptance criteria** | Typecheck passes, build succeeds, all pages 200, checkout reaches Stripe. Do **not** use `npm audit fix --force`. |
 
-### A-7 · Add database constraints
+### A-7 · Add database constraints — **DONE** (2026-08-08)
 | | |
 |---|---|
+| **Status** | `supabase/migrations/0002_add_constraints.sql` written and applied to production Postgres in one transaction. 7 CHECK constraints + `status NOT NULL`. Audited first: 1 order, 0 order_items, 610 products, 5066 variants, **zero** violations, so everything applied without a rewrite. Every criterion verified live, each with a paired precondition proving the constraint was the cause. **Two corrections to D-1**, both in the audit: the vocabulary is 10 values not 8 (it missed `out_for_delivery` and `completed`, both in the admin dropdown — a CHECK built from D-1's list would have rejected the admin's own dropdown), and `paid` is not vestigial but what the webhook wrote on *every* order, which is a live bug fixed here. |
 | **Priority** | P2 |
 | **Reason** | D-1, D-2 — `orders.status` is free text with 8 values used in code and no CHECK; no `price >= 0` or `stock >= 0` anywhere. |
-| **Affected area** | new `supabase/migrations/0001_add_constraints.sql` |
+| **Affected area** | `supabase/migrations/0002_add_constraints.sql` (0001 was taken by A-2), `src/app/api/stripe-webhook/route.ts` |
 | **Dependencies** | A-8 (establish the forward-migration pattern), and audit existing rows first |
 | **Effort** | Small |
 | **Risk** | Medium — a constraint on dirty data fails to apply. Check current `status` values before writing it. |

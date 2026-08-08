@@ -178,6 +178,17 @@ describe("POST /api/stripe-webhook — order contents", () => {
     });
   });
 
+  it("writes a status every other surface recognises", async () => {
+    // This wrote "paid", which is in none of STATUS_INDEX, PIPELINE_STAGES, the
+    // admin dropdown or the metrics buckets — so a new order lit no step on the
+    // customer's tracking timeline and appeared in no column of the production
+    // queue. Pinned against the same list the DB CHECK uses
+    // (supabase/migrations/0002_add_constraints.sql).
+    constructEvent.mockReturnValue(completedEvent());
+    await POST(post());
+    expect(insert.mock.calls[0][0]).toMatchObject({ status: "deposit_paid" });
+  });
+
   it("records the amount actually charged, not a doubled deposit", async () => {
     // Stripe collects the full amount now; the old 50% deposit model doubled
     // amount_total to reconstruct the order value.

@@ -80,7 +80,17 @@ export async function POST(request: NextRequest) {
       total: total,
       deposit_amount: deposit,
       cod_amount: codBalance,
-      status: "paid",
+      // `deposit_paid`, not `paid`, despite there no longer being a deposit —
+      // this is the key every other surface filters on, and the name is the
+      // only thing about it that is stale. Writing `paid` here made each new
+      // order invisible: it is in none of STATUS_INDEX (track/TrackClient.tsx:15),
+      // PIPELINE_STAGES (components/OperationsDashboard.tsx:37), the admin
+      // dropdown (admin/page.tsx:16) or the metrics buckets (api/metrics:27-28),
+      // so the customer's tracking timeline lit no step and the order appeared
+      // in no column of the production queue — nobody would cut the puzzle, and
+      // nothing would say so. Renaming the state everywhere is the better fix
+      // and a separate change; agreeing with the other six places is this one.
+      status: "deposit_paid",
       metadata: JSON.stringify({
         brand: metadata.brand || "lebon-grace",
         entity: metadata.entity || "shop-lebon-grace",

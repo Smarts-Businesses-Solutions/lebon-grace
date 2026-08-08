@@ -405,11 +405,21 @@ Recorded as a lesson: an earlier contrast script parsed digits out of computed c
 **Recommendation:** Add `CHECK (status IN (...))` with the agreed set. Audit existing rows first.
 **Acceptance:** An invalid status is rejected by the database, not just by convention.
 
+**Two corrections to this finding (2026-08-08), both material.**
+
+1. **The vocabulary is ten values, not eight.** It missed `out_for_delivery` and `completed`, which are in the admin's own dropdown (`src/app/admin/page.tsx:16-19`) and in `PIPELINE_STAGES`, `STATUS_INDEX` and the metrics buckets. A CHECK built from the eight listed above would have rejected statuses the admin UI sets from a `<select>` — turning a hardening change into an outage.
+
+2. **`paid` is not vestigial — it was the live bug.** The finding read the low count as "possibly dead". It is the opposite: `paid` was hardcoded in `src/app/api/stripe-webhook/route.ts` as the status of **every new order**, left behind when the 50% deposit model was removed. It appears in *none* of the sets the rest of the app filters on. Confirmed consequences: `TrackClient.tsx:88` resolves `STATUS_INDEX[status] ?? -1`, so the customer's tracking timeline lit **no step** after paying; `OperationsDashboard.tsx:152` renders only `PIPELINE_STAGES` keys, so the order appeared in **no column** of the production queue; and the metrics route counted it as neither pending nor delivered. This is precisely the failure this finding describes — arriving not from a typo but from the default happy path.
+
+**Fixed** in `supabase/migrations/0002_add_constraints.sql` (applied) plus the webhook now writing `deposit_paid`, pinned by a test. The CHECK permits `paid` **transitionally**: production still serves the 2026-08-07 build, which writes it, so rejecting it would fail every live order insert — customers charged, nothing recorded. The migration documents the follow-up to drop it once the fix is deployed.
+
 ### D-2 — No value constraints on money or stock
 **Severity:** Medium · **Confidence:** Confirmed · **Effort:** Small
 **Evidence:** no CHECK constraints exist on any `public` business table (the only CHECK in the dump is Supabase's own `auth.users`).
 **Problem:** `price` and `stock` accept negatives. A negative price would flow into the Stripe line item as a negative `unit_amount`.
 **Recommendation:** `CHECK (price >= 0)`, `CHECK (stock >= 0)`, and `NOT NULL` where the app already assumes it.
+
+**FIXED** — `supabase/migrations/0002_add_constraints.sql`, applied to production Postgres in one transaction. Seven CHECK constraints (`orders` amounts, `order_items` price and `quantity >= 1`, `products` price and stock, `product_variants` price) plus `orders.status NOT NULL` — added because a CHECK evaluates to *unknown* on NULL and therefore passes, so the value list alone would not have stopped an explicit NULL. Pre-audited across 1 order / 0 order_items / 610 products / 5,066 variants: zero violations, so all applied without a rewrite. Verified live, each with a paired precondition proving the constraint was the cause rather than an unrelated NOT NULL — the first attempt at the negative-price test failed on `category NOT NULL` and proved nothing until corrected.
 
 ### D-3 — `/account` order lookup cannot use an index
 **Category:** Database/Performance · **Severity:** Medium · **Confidence:** Confirmed · **Effort:** Small
