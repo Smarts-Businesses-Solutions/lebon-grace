@@ -320,9 +320,10 @@ estrict` token, which is randomised per invocation. Made repeatable as `scripts/
 >
 > `NEXT_PUBLIC_*` is inlined at **build** time, so editing the env var alone changes nothing in a built image. A rebuild is required.
 
-### A-20 · Uptime monitoring
+### A-20 · Uptime monitoring — **DONE** (2026-08-08)
 | | |
 |---|---|
+| **Status** | `ops/selfhost/scripts/uptime-check.sh`, installed on cx53 as a systemd timer running every 2 minutes (`lebon-grace-uptime.timer`, enabled + active, real executions logged). **200 is not treated as health** — a run passes only if the body carries the homepage sentinel *and* a `dpl=` build id, and every request is cache-busted so a CDN hit cannot report a healthy page from a dead origin. Alerts reuse the app's existing Sentry/GlitchTip DSN, lifted from the running container's env at install time so no credential was retyped. Alerts once on crossing the threshold, not every run, and sends a recovery notice. **The first implementation detected correctly and told nobody:** `/api/N/store/` returned 422 because it is deprecated and dereferences `event_id`/`timestamp` directly; it now sends a proper `/envelope/`, verified delivering on both the DOWN and recovery paths. Verified against all four cases: healthy passes, unreachable alerts, a 200 that is not our app is *not* called healthy, recovery resets. **Stated limitation:** it runs on the box it watches, so it cannot report cx53's own death — intrinsic to a single-server estate. `HEARTBEAT_URL` is the hook (only healthy runs ping it, so silence is the signal) and is left unset because signing this estate up to a third-party service is the operator's call. |
 | **Priority** | P2 |
 | **Reason** | R-3 — Sentry/GlitchTip covers errors and Umami covers analytics, but every outage this session was noticed by a human loading the page. |
 | **Effort** | Small |
@@ -337,9 +338,10 @@ estrict` token, which is randomised per invocation. Made repeatable as `scripts/
 | **Effort** | Small |
 | **Acceptance criteria** | Failed-login counters survive a container restart. |
 
-### A-22 · Load-test before optimising
+### A-22 · Load-test before optimising — **DONE** (2026-08-08)
 | | |
 |---|---|
+| **Status** | Measured numbers now exist: `docs/LOAD-TEST-2026-08.md`. 43,690 requests, **0 errors, 0 non-2xx**. Static/cached routes 980–1376 req/s at p50 14–19 ms; `/shop/[slug]` is the outlier at **386 req/s, p50 50 ms** — the only per-request server-rendered route and the busiest page on the shop, so it is the ceiling to watch. It is also ~33 M page views/day, i.e. not a problem. Live TTFB 320–340 ms warm. **Conclusion: nothing justifies optimisation work**, which is the result this task existed to establish. Three caveats are recorded in the doc rather than buried: it ran on the workstation not cx53 so it is not a capacity figure; Postgres-backed endpoints were deliberately *not* load-tested because that database is shared with twelve tenants; and no write path was touched because checkout creates real Stripe sessions. |
 | **Priority** | P4 |
 | **Reason** | P-3 — scaling recommendations in the audit are static-analysis based. At 42 products and single-digit orders nothing is under pressure. |
 | **Effort** | Medium |
