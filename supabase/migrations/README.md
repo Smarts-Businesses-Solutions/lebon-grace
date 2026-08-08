@@ -67,3 +67,4 @@ failure rolls back. DDL is transactional in Postgres; use it.
 | `00000000000000_baseline.sql` | Origin. Regenerated 2026-08-04. Do not edit. |
 | `0001_restrict_products_write_policy.sql` | Dropped the permissive `anon` write policy (S-1). |
 | `0002_add_constraints.sql` | Status CHECK, `NOT NULL`, non-negative money and stock (D-1, D-2). |
+| `0003_index_order_email_lookup.sql` | Generated `customer_email_lc` + index, so `/account` stops seq-scanning (D-3). |

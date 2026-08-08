@@ -162,11 +162,18 @@ describe("getByEmailPhone — email + phone", () => {
     expect(await orders.getByEmailPhone("buyer@example.com", "0500000000")).toEqual([]);
   });
 
-  it("looks the email up case-insensitively", async () => {
+  it("looks the email up case-insensitively, via the indexed column", async () => {
     // Stripe lowercases what the customer typed; the account form does not.
+    //
+    // Pins the indexed path (0003). This was `.ilike("customer_email", email)`
+    // with no wildcards — case-insensitive equality written with a pattern
+    // operator, which cannot use a btree index, so every lookup scanned the
+    // whole orders table. If it ever reverts, the seq scan comes back silently:
+    // correct results, quietly getting slower as orders accumulate.
     willReturn([]);
-    await orders.getByEmailPhone("Buyer@Example.com", "0501234567");
-    expect(argsOf("ilike")).toEqual(["customer_email", "Buyer@Example.com"]);
+    await orders.getByEmailPhone("  Buyer@Example.com  ", "0501234567");
+    expect(argsOf("eq")).toEqual(["customer_email_lc", "buyer@example.com"]);
+    expect(argsOf("ilike")).toBeUndefined();
   });
 });
 

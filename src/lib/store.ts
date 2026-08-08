@@ -114,12 +114,23 @@ export const orders = {
   },
 
   async getByEmailPhone(email: string, phone: string): Promise<any[]> {
+    // Matches on customer_email_lc, a stored generated column holding
+    // lower(customer_email), indexed by 0003. This was `.ilike("customer_email",
+    // email)` with no wildcards — case-insensitive equality written with a
+    // pattern operator, which is exactly what stopped it using an index, so
+    // every /account lookup scanned the whole orders table.
+    //
+    // Behaviour is unchanged: same rows, still case-insensitive. Only the plan
+    // differs. Lowercasing here must stay in step with the column's lower().
     const { data, error } = await db()
       .from("orders")
       .select("*")
-      .ilike("customer_email", email)
+      .eq("customer_email_lc", email.trim().toLowerCase())
       .order("created_at", { ascending: false });
     if (error) throw error;
+    // The phone stays in JavaScript on purpose — see the note at the foot of
+    // 0003. It is a last-eight-digits comparison, which no btree index can
+    // serve, and by this point the set is one address's orders.
     return (data || []).filter((o) => phoneMatches(o.customer_phone || "", phone));
   },
 

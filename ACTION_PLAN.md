@@ -143,7 +143,8 @@ Still held at P1 rather than P0: **A-1** (permissive RLS policy — the database
 ### A-8 · Adopt forward migrations — **DONE** (2026-08-08)
 | | |
 |---|---|
-| **Status** | Acceptance **proven, not asserted**: baseline + `0001` + `0002` applied to a throwaway database reproduces production's `public` schema **byte-identically** (195 normalised lines each; 9 tables, 7 CHECKs, 2 policies). The only raw diff was pg_dump's `estrict` token, which is randomised per invocation. Made repeatable as `scripts/verify-migrations.sh`, and verified to fail correctly by injecting a bogus migration — it printed the exact offending object and exited 1, then dropped its scratch database via an EXIT trap on that failure path too. Convention documented in `supabase/migrations/README.md`, including the two traps that cost an hour each: `supabase_admin` is the only superuser, and `docker exec -i` without a pipe silently eats the rest of a heredoc. |
+| **Status** | Acceptance **proven, not asserted**: baseline + `0001` + `0002` applied to a throwaway database reproduces production's `public` schema **byte-identically** (195 normalised lines each; 9 tables, 7 CHECKs, 2 policies). The only raw diff was pg_dump's `
+estrict` token, which is randomised per invocation. Made repeatable as `scripts/verify-migrations.sh`, and verified to fail correctly by injecting a bogus migration — it printed the exact offending object and exited 1, then dropped its scratch database via an EXIT trap on that failure path too. Convention documented in `supabase/migrations/README.md`, including the two traps that cost an hour each: `supabase_admin` is the only superuser, and `docker exec -i` without a pipe silently eats the rest of a heredoc. |
 | **Priority** | P2 |
 | **Reason** | D-4 — a single baseline dump with no incremental history. It had already drifted four tables, a view and three columns behind production before being regenerated on 2026-08-04. |
 | **Affected area** | `supabase/migrations/` |
@@ -191,9 +192,10 @@ Still held at P1 rather than P0: **A-1** (permissive RLS policy — the database
 | **Expected outcome** | Smaller production image, honest manifest. |
 | **Acceptance criteria** | Build succeeds; image size drops; no runtime import errors. *(Runtime image size was already unaffected — see Status.)* |
 
-### A-12 · Index the `/account` lookup
+### A-12 · Index the `/account` lookup — **DONE** (2026-08-08)
 | | |
 |---|---|
+| **Status** | `0003_index_order_email_lookup.sql` applied. `customer_email_lc` is a stored generated column of `lower(customer_email)` with a btree index; the query is now `.eq("customer_email_lc", …)`. **Proven by EXPLAIN with `enable_seqscan = off`:** the old `ilike` still seq-scans under a 10⁹ cost penalty — no index can serve `~~*` at all — while the new predicate reports `Index Scan using orders_customer_email_lc_idx`. The `ilike` carried no wildcards; it was case-insensitive *equality* written with a pattern operator, which is precisely why it could not be indexed and why behaviour is unchanged. Generated column backfilled existing rows. `verify-migrations.sh` still green with 0003 in the set. **Deviation from the stated outcome:** the phone comparison is deliberately NOT pushed into the query — `phoneMatches` compares the last eight digits, i.e. `LIKE '%' || $1`, which no btree index can serve; it would need `reverse()` or pg_trgm to save filtering the handful of rows one address returns. Reasoning recorded in the migration. **Rejected `citext`** (needs an extension and a live `ALTER COLUMN TYPE`; PostgreSQL's docs now steer away from it) and **rejected a nondeterministic ICU collation** (what those docs recommend, but it disables pattern-matching operators entirely on the column, and `getById` already uses `ilike` elsewhere). |
 | **Priority** | P2 |
 | **Reason** | D-3 — `store.ts:103-106` uses `.ilike("customer_email", …)` (cannot use a btree index) then filters phone **in JavaScript** after transferring every matching row. No index on `customer_email` exists. |
 | **Affected area** | migration + `src/lib/store.ts` |
