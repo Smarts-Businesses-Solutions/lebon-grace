@@ -37,9 +37,10 @@ Still held at P1 rather than P0: **A-1** (permissive RLS policy — the database
 
 *Objective: make mistakes visible before customers find them.*
 
-### A-1 · Restrict the `products` RLS write policy
+### A-1 · Restrict the `products` RLS write policy — **DONE** (2026-08-08)
 | | |
 |---|---|
+| **Status** | `supabase/migrations/0001_restrict_products_write_policy.sql` applied. Verified in production: `pg_policies` returns **0** rows for `"Allow all write"` on `public.products`. |
 | **Priority** | P1 |
 | **Reason** | S-1 — `CREATE POLICY "Allow all write" ON public.products USING (true)` (baseline:3559) has no role restriction and no `WITH CHECK`. The `anon` key is public by design. Only network placement prevents catalogue rewrites. |
 | **Affected area** | Database — `public.products` policies |
@@ -49,9 +50,10 @@ Still held at P1 rather than P0: **A-1** (permissive RLS policy — the database
 | **Expected outcome** | Catalogue writes require the service role, not merely network position. |
 | **Acceptance criteria** | With the `anon` key: `UPDATE products` and `DELETE FROM products` are rejected. `SELECT` on visible products still works. `04-generate-catalog.mjs` and `06-import-mdf.mjs` still succeed. |
 
-### A-2 · Add CI — **in Forgejo, not GitHub Actions** *(revised)*
+### A-2 · Add CI — **in Forgejo, not GitHub Actions** — **DONE** (2026-08-08)
 | | |
 |---|---|
+| **Status** | `.forgejo/workflows/ci.yml` added: `runs-on: docker`, node 22, typecheck + `npm test` as hard gates. Lint runs with `|| true` because 51 pre-existing problems would make it red on arrival. |
 | **Priority** | P1 |
 | **Reason** | S-2 — nothing runs `typecheck`, `test` or `lint`, so nothing prevents deploying a broken commit. |
 | **Affected area** | Forgejo pipeline + its self-hosted runner |
@@ -67,9 +69,10 @@ Still held at P1 rather than P0: **A-1** (permissive RLS policy — the database
 >
 > Related: the only check currently reporting on PR #1 is a **Vercel** integration. Vercel is not part of this estate at all. It fails on every push with "Account is blocked", training everyone to ignore red CI. Disconnect it as part of this task so red means something again.
 
-### A-3 · Scope ESLint to the application
+### A-3 · Scope ESLint to the application — **DONE** (2026-08-08)
 | | |
 |---|---|
+| **Status** | `eslint.config.mjs` scoped; 233 repo-wide → **54** on `src/` (32 errors, 22 warnings). The biggest single win was ignoring `.claude/**`, an in-repo worktree that was causing all of `src/` to be linted twice. |
 | **Priority** | P1 (blocks A-2) |
 | **Reason** | Q-1 — 182 of 233 lint problems are in root/ and scripts/ cruft. Lint is currently unusable as a signal, which is why it is not run. |
 | **Affected area** | `eslint.config.mjs` |
@@ -105,9 +108,10 @@ Still held at P1 rather than P0: **A-1** (permissive RLS policy — the database
 | **Expected outcome** | After deploy, fetch the site and compare the served `dpl=` id against the one just built; fail loudly on mismatch. |
 | **Acceptance criteria** | A deploy where the container is not replaced exits non-zero with a clear message. |
 
-### A-6 · Patch the `sharp`/libvips advisories
+### A-6 · Patch the `sharp`/libvips advisories — **DONE** (2026-08-08)
 | | |
 |---|---|
+| **Status** | Next 16.2.9 → 16.3.0. `npm audit` reports **0 vulnerabilities**. Exact pin preserved for `deploymentId` version-skew protection. |
 | **Priority** | P1 |
 | **Reason** | P-1 — 6 vulnerabilities (5 high): CVE-2026-33327/33328/35590/35591. |
 | **Affected area** | `package.json` — `next` 16.2.9 → 16.3.0 |
@@ -136,9 +140,10 @@ Still held at P1 rather than P0: **A-1** (permissive RLS policy — the database
 
 *Objective: shrink the surface a maintainer has to hold in their head.*
 
-### A-8 · Adopt forward migrations
+### A-8 · Adopt forward migrations — **DONE** (2026-08-08)
 | | |
 |---|---|
+| **Status** | Acceptance **proven, not asserted**: baseline + `0001` + `0002` applied to a throwaway database reproduces production's `public` schema **byte-identically** (195 normalised lines each; 9 tables, 7 CHECKs, 2 policies). The only raw diff was pg_dump's `estrict` token, which is randomised per invocation. Made repeatable as `scripts/verify-migrations.sh`, and verified to fail correctly by injecting a bogus migration — it printed the exact offending object and exited 1, then dropped its scratch database via an EXIT trap on that failure path too. Convention documented in `supabase/migrations/README.md`, including the two traps that cost an hour each: `supabase_admin` is the only superuser, and `docker exec -i` without a pipe silently eats the rest of a heredoc. |
 | **Priority** | P2 |
 | **Reason** | D-4 — a single baseline dump with no incremental history. It had already drifted four tables, a view and three columns behind production before being regenerated on 2026-08-04. |
 | **Affected area** | `supabase/migrations/` |
