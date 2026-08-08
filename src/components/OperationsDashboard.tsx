@@ -60,21 +60,21 @@ function CuttingQueue({ queue }: { queue: QueueEntry[] }) {
   const engraved = queue.filter((e) => e.engraved).length;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
+    <div className="bg-bone rounded-xl border border-rule p-5">
       <div className="flex items-baseline justify-between mb-4 gap-3 flex-wrap">
-        <h3 className="text-sm font-semibold text-gray-800">
+        <h3 className="text-sm font-semibold text-ink">
           Cutting Queue
-          <span className="ml-2 font-normal text-gray-400">
+          <span className="ml-2 font-normal text-ink-soft">
             {queue.length === 0
               ? "nothing waiting"
               : `${queue.length} order${queue.length === 1 ? "" : "s"} · ${pieces} piece${pieces === 1 ? "" : "s"}${engraved ? ` · ${engraved} to engrave` : ""}`}
           </span>
         </h3>
-        <span className="text-[10px] uppercase tracking-wider text-gray-400">oldest first</span>
+        <span className="text-[10px] uppercase tracking-wider text-ink-soft">oldest first</span>
       </div>
 
       {queue.length === 0 ? (
-        <p className="text-sm text-gray-400 py-6 text-center">
+        <p className="text-sm text-ink-soft py-6 text-center">
           Nothing waiting to be cut. Every paid order has shipped.
         </p>
       ) : (
@@ -85,17 +85,17 @@ function CuttingQueue({ queue }: { queue: QueueEntry[] }) {
               className={`flex flex-wrap items-start gap-3 rounded-lg border p-3 ${
                 e.status === "processing"
                   ? "border-blue-200 bg-blue-50/40"
-                  : "border-gray-200 bg-gray-50/60"
+                  : "border-rule bg-paper/60"
               }`}
             >
-              <span className="w-6 shrink-0 text-center text-sm font-bold text-gray-400">{i + 1}</span>
+              <span className="w-6 shrink-0 text-center text-sm font-bold text-ink-soft">{i + 1}</span>
 
               <div className="min-w-[9rem] flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-mono text-xs text-gray-500">#{e.shortId}</span>
-                  <span className="text-sm font-medium text-gray-900">{e.customer}</span>
+                  <span className="font-mono text-xs text-ink-soft">#{e.shortId}</span>
+                  <span className="text-sm font-medium text-ink">{e.customer}</span>
                 </div>
-                <div className="mt-0.5 flex items-center gap-2 flex-wrap text-[11px] text-gray-500">
+                <div className="mt-0.5 flex items-center gap-2 flex-wrap text-[11px] text-ink-soft">
                   <span
                     className={`rounded px-1.5 py-0.5 font-medium ${
                       e.status === "processing" ? "bg-blue-100 text-blue-700" : "bg-yellow-100 text-yellow-800"
@@ -105,7 +105,7 @@ function CuttingQueue({ queue }: { queue: QueueEntry[] }) {
                   </span>
                   {/* Waiting time is the thing that turns into a complaint, so
                       it is called out once it stops being reasonable. */}
-                  <span className={e.ageDays >= 3 ? "font-semibold text-red-600" : ""}>
+                  <span className={e.ageDays >= 3 ? "font-semibold text-red-700" : ""}>
                     {e.ageDays === 0 ? "today" : `${e.ageDays} day${e.ageDays === 1 ? "" : "s"} waiting`}
                   </span>
                   <span>{e.deliveryMethod === "pickup" ? "🏠 pickup" : `🚚 ${e.emirate || "delivery"}`}</span>
@@ -116,18 +116,18 @@ function CuttingQueue({ queue }: { queue: QueueEntry[] }) {
                 {e.items.length === 0 ? (
                   // A paid order with no recorded lines is not "nothing to do",
                   // it is a problem that needs a human before it ships.
-                  <span className="text-[11px] font-medium text-red-600">
+                  <span className="text-[11px] font-medium text-red-700">
                     ⚠ no items recorded — check this order before cutting
                   </span>
                 ) : (
                   e.items.map((it, n) => (
                     <div key={n} className="flex items-baseline gap-2 text-sm">
-                      <span className="text-gray-400 tabular-nums">{it.quantity}×</span>
-                      <span className="text-gray-800">{it.name}</span>
+                      <span className="text-ink-soft tabular-nums">{it.quantity}×</span>
+                      <span className="text-ink">{it.name}</span>
                       {it.engraving && (
                         // The one field that gets cut irreversibly. Loud on
                         // purpose — a missed engraving means recutting the piece.
-                        <span className="rounded bg-[#23201C] px-1.5 py-0.5 font-mono text-[11px] font-medium text-[#C9A96E]">
+                        <span className="rounded bg-ink px-1.5 py-0.5 font-mono text-[11px] font-medium text-sand">
                           ✎ {it.engraving}
                         </span>
                       )}
@@ -145,12 +145,12 @@ function CuttingQueue({ queue }: { queue: QueueEntry[] }) {
 
 function KpiCard({ icon, label, value, sub, color }: { icon: string; label: string; value: string; sub?: string; color?: string }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4 lg:p-5">
+    <div className="bg-bone rounded-xl border border-rule p-4 lg:p-5">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">{label}</p>
-          <p className={`text-xl lg:text-2xl font-bold mt-1 ${color || "text-gray-900"}`}>{value}</p>
-          {sub && <p className="text-xs text-gray-400 mt-1">{sub}</p>}
+          <p className="text-xs font-medium text-ink-soft uppercase tracking-wider">{label}</p>
+          <p className={`text-xl lg:text-2xl font-bold mt-1 ${color || "text-ink"}`}>{value}</p>
+          {sub && <p className="text-xs text-ink-soft mt-1">{sub}</p>}
         </div>
         <span className="text-2xl">{icon}</span>
       </div>
@@ -158,19 +158,19 @@ function KpiCard({ icon, label, value, sub, color }: { icon: string; label: stri
   );
 }
 
-function MiniBarChart({ data, label, color = "bg-[#23201C]" }: { data: { label: string; value: number }[]; label: string; color?: string }) {
+function MiniBarChart({ data, label, color = "bg-ink" }: { data: { label: string; value: number }[]; label: string; color?: string }) {
   const max = Math.max(...data.map((d) => d.value), 1);
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
-      <h3 className="text-sm font-semibold text-gray-800 mb-4">{label}</h3>
+    <div className="bg-bone rounded-xl border border-rule p-5">
+      <h3 className="text-sm font-semibold text-ink mb-4">{label}</h3>
       <div className="space-y-2">
         {data.map((d, i) => (
           <div key={i} className="flex items-center gap-3">
-            <span className="text-[11px] text-gray-500 w-20 text-right truncate">{d.label}</span>
-            <div className="flex-1 bg-gray-100 rounded-full h-4 overflow-hidden">
+            <span className="text-[11px] text-ink-soft w-20 text-right truncate">{d.label}</span>
+            <div className="flex-1 bg-paper-deep rounded-full h-4 overflow-hidden">
               <div className={`h-full rounded-full ${color} transition-all`} style={{ width: `${(d.value / max) * 100}%` }} />
             </div>
-            <span className="text-[11px] font-medium text-gray-700 w-16 text-right">{typeof d.value === "number" && d.value > 100 ? fmt(d.value) : d.value}</span>
+            <span className="text-[11px] font-medium text-ink-soft w-16 text-right">{typeof d.value === "number" && d.value > 100 ? fmt(d.value) : d.value}</span>
           </div>
         ))}
       </div>
@@ -192,13 +192,13 @@ export default function OperationsDashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="animate-spin w-8 h-8 border-2 border-gray-300 border-t-[#A8874D] rounded-full" />
+        <div className="animate-spin w-8 h-8 border-2 border-rule border-t-sand-dark rounded-full" />
       </div>
     );
   }
 
   if (!data) {
-    return <div className="text-center py-20 text-gray-400">Failed to load metrics</div>;
+    return <div className="text-center py-20 text-ink-soft">Failed to load metrics</div>;
   }
 
   const { financial: fin, pipeline, queue, fulfillment: fulf, cod, customers: cust, products: prod, charts, alerts } = data;
@@ -240,16 +240,16 @@ export default function OperationsDashboard() {
       {/* ─── KPI Cards ─── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-3">
         <KpiCard icon="💰" label="Revenue (Month)" value={fmt(fin.revenueMonth)} sub={`${fin.ordersMonth} orders`} />
-        <KpiCard icon="💳" label="Deposits Collected" value={fmt(fin.depositsCollected)} color="text-[#A8874D]" />
-        <KpiCard icon="🟡" label="COD Pending" value={fmt(fin.codPending)} sub={`${cod.outstandingCount} orders`} color="text-[#C9A96E]" />
-        <KpiCard icon="✅" label="COD Collected" value={fmt(fin.codCollected)} sub={`${cod.collectionRate}% rate`} color="text-[#A8874D]" />
+        <KpiCard icon="💳" label="Deposits Collected" value={fmt(fin.depositsCollected)} color="text-sand-dark" />
+        <KpiCard icon="🟡" label="COD Pending" value={fmt(fin.codPending)} sub={`${cod.outstandingCount} orders`} color="text-sand" />
+        <KpiCard icon="✅" label="COD Collected" value={fmt(fin.codCollected)} sub={`${cod.collectionRate}% rate`} color="text-sand-dark" />
         <KpiCard icon="📊" label="Avg Order Value" value={fmt(fin.avgOrderValue)} sub={`${fin.ordersTotal} total`} />
         <KpiCard icon="📈" label="Today" value={String(fin.ordersToday)} sub={fmt(fin.revenueToday)} />
       </div>
 
       {/* ─── Pipeline ─── */}
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
-        <h3 className="text-sm font-semibold text-gray-800 mb-4">Order Pipeline</h3>
+      <div className="bg-bone rounded-xl border border-rule p-5">
+        <h3 className="text-sm font-semibold text-ink mb-4">Order Pipeline</h3>
         <div className="flex items-end gap-2 overflow-x-auto pb-2">
           {PIPELINE_STAGES.map((stage) => {
             const count = pipeline[stage.key]?.count || 0;
@@ -259,9 +259,9 @@ export default function OperationsDashboard() {
               <div key={stage.key} className="flex-1 min-w-[80px] flex flex-col items-center gap-1">
                 <span className="text-lg">{stage.icon}</span>
                 <div className={`w-full ${stage.color} rounded-t-lg transition-all`} style={{ height: `${height}px` }} />
-                <span className="text-xs font-bold text-gray-900">{count}</span>
-                <span className="text-[10px] text-gray-400 text-center leading-tight">{stage.label}</span>
-                {total > 0 && <span className="text-[10px] text-gray-400">{fmt(total)}</span>}
+                <span className="text-xs font-bold text-ink">{count}</span>
+                <span className="text-[10px] text-ink-soft text-center leading-tight">{stage.label}</span>
+                {total > 0 && <span className="text-[10px] text-ink-soft">{fmt(total)}</span>}
               </div>
             );
           })}
@@ -271,15 +271,15 @@ export default function OperationsDashboard() {
       {/* ─── Charts Row ─── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Revenue Chart */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h3 className="text-sm font-semibold text-gray-800 mb-4">Revenue (Last 14 Days)</h3>
+        <div className="bg-bone rounded-xl border border-rule p-5">
+          <h3 className="text-sm font-semibold text-ink mb-4">Revenue (Last 14 Days)</h3>
           <div className="flex items-end gap-1 h-32">
             {revenueChart.map((d, i) => {
               const h = Math.max((d.amount / chartMax) * 100, 2);
               return (
                 <div key={i} className="flex-1 flex flex-col items-center gap-1" title={`${d.date}: ${fmt(d.amount)}`}>
-                  <div className="w-full bg-[#23201C] rounded-t transition-all" style={{ height: `${h}%` }} />
-                  <span className="text-[8px] text-gray-400 -rotate-45 origin-left">{d.date.slice(5)}</span>
+                  <div className="w-full bg-ink rounded-t transition-all" style={{ height: `${h}%` }} />
+                  <span className="text-[8px] text-ink-soft -rotate-45 origin-left">{d.date.slice(5)}</span>
                 </div>
               );
             })}
@@ -287,16 +287,16 @@ export default function OperationsDashboard() {
         </div>
 
         {/* Orders Chart */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h3 className="text-sm font-semibold text-gray-800 mb-4">Orders (Last 14 Days)</h3>
+        <div className="bg-bone rounded-xl border border-rule p-5">
+          <h3 className="text-sm font-semibold text-ink mb-4">Orders (Last 14 Days)</h3>
           <div className="flex items-end gap-1 h-32">
             {ordersChart.map((d, i) => {
               const maxCount = Math.max(...ordersChart.map((o) => o.count), 1);
               const h = Math.max((d.count / maxCount) * 100, 2);
               return (
                 <div key={i} className="flex-1 flex flex-col items-center gap-1" title={`${d.date}: ${d.count} orders`}>
-                  <div className="w-full bg-[#C9A96E] rounded-t transition-all" style={{ height: `${h}%` }} />
-                  <span className="text-[8px] text-gray-400 -rotate-45 origin-left">{d.date.slice(5)}</span>
+                  <div className="w-full bg-sand rounded-t transition-all" style={{ height: `${h}%` }} />
+                  <span className="text-[8px] text-ink-soft -rotate-45 origin-left">{d.date.slice(5)}</span>
                 </div>
               );
             })}
@@ -307,8 +307,8 @@ export default function OperationsDashboard() {
       {/* ─── Action Items Row ─── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Needs Action */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h3 className="text-sm font-semibold text-gray-800 mb-3">⚡ Needs Action</h3>
+        <div className="bg-bone rounded-xl border border-rule p-5">
+          <h3 className="text-sm font-semibold text-ink mb-3">⚡ Needs Action</h3>
           <div className="space-y-2">
             {fulf.awaiting > 0 && (
               <div className="flex items-center justify-between px-3 py-2 bg-yellow-50 rounded-lg">
@@ -329,42 +329,42 @@ export default function OperationsDashboard() {
               </div>
             )}
             {fulf.awaiting === 0 && fulf.inTransit === 0 && (
-              <p className="text-xs text-gray-400 py-4 text-center">All caught up! 🎉</p>
+              <p className="text-xs text-ink-soft py-4 text-center">All caught up! 🎉</p>
             )}
           </div>
         </div>
 
         {/* Fulfillment Stats */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h3 className="text-sm font-semibold text-gray-800 mb-3">📦 Fulfillment</h3>
+        <div className="bg-bone rounded-xl border border-rule p-5">
+          <h3 className="text-sm font-semibold text-ink mb-3">📦 Fulfillment</h3>
           <div className="space-y-3">
-            <div className="flex justify-between"><span className="text-xs text-gray-500">Avg Delivery Time</span><span className="text-sm font-bold">{fulf.avgDays} days</span></div>
-            <div className="flex justify-between"><span className="text-xs text-gray-500">Success Rate</span><span className="text-sm font-bold text-[#A8874D]">{fulf.deliverySuccessRate}%</span></div>
-            <div className="flex justify-between"><span className="text-xs text-gray-500">Pickup Orders</span><span className="text-sm font-bold">{fulf.pickupOrders}</span></div>
-            <div className="flex justify-between"><span className="text-xs text-gray-500">Delivery Orders</span><span className="text-sm font-bold">{fulf.deliveryOrders}</span></div>
+            <div className="flex justify-between"><span className="text-xs text-ink-soft">Avg Delivery Time</span><span className="text-sm font-bold">{fulf.avgDays} days</span></div>
+            <div className="flex justify-between"><span className="text-xs text-ink-soft">Success Rate</span><span className="text-sm font-bold text-ink">{fulf.deliverySuccessRate}%</span></div>
+            <div className="flex justify-between"><span className="text-xs text-ink-soft">Pickup Orders</span><span className="text-sm font-bold">{fulf.pickupOrders}</span></div>
+            <div className="flex justify-between"><span className="text-xs text-ink-soft">Delivery Orders</span><span className="text-sm font-bold">{fulf.deliveryOrders}</span></div>
           </div>
         </div>
 
         {/* COD Outstanding */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h3 className="text-sm font-semibold text-gray-800 mb-3">💵 COD Outstanding</h3>
+        <div className="bg-bone rounded-xl border border-rule p-5">
+          <h3 className="text-sm font-semibold text-ink mb-3">💵 COD Outstanding</h3>
           {cod.outstanding.length > 0 ? (
             <div className="space-y-2">
               {cod.outstanding.map((o, i) => (
-                <div key={i} className="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-lg">
+                <div key={i} className="flex items-center justify-between px-3 py-2 bg-paper rounded-lg">
                   <div>
-                    <span className="text-xs font-medium text-gray-700">#{o.id}</span>
-                    <span className="text-[10px] text-gray-400 ml-2">{o.customer}</span>
+                    <span className="text-xs font-medium text-ink-soft">#{o.id}</span>
+                    <span className="text-[10px] text-ink-soft ml-2">{o.customer}</span>
                   </div>
                   <div className="text-right">
-                    <span className="text-xs font-bold text-[#C9A96E]">{fmt(o.amount)}</span>
-                    <span className="text-[10px] text-gray-400 ml-1">{o.days}d ago</span>
+                    <span className="text-xs font-bold text-sand">{fmt(o.amount)}</span>
+                    <span className="text-[10px] text-ink-soft ml-1">{o.days}d ago</span>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-xs text-gray-400 py-4 text-center">No outstanding COD</p>
+            <p className="text-xs text-ink-soft py-4 text-center">No outstanding COD</p>
           )}
         </div>
       </div>
@@ -372,45 +372,45 @@ export default function OperationsDashboard() {
       {/* ─── Bottom Row ─── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Top Customers */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h3 className="text-sm font-semibold text-gray-800 mb-3">🏆 Top Customers</h3>
+        <div className="bg-bone rounded-xl border border-rule p-5">
+          <h3 className="text-sm font-semibold text-ink mb-3">🏆 Top Customers</h3>
           {cust.topCustomers.length > 0 ? (
             <div className="space-y-2">
               {cust.topCustomers.slice(0, 5).map((c, i) => (
-                <div key={i} className="flex items-center justify-between px-3 py-2 hover:bg-gray-50 rounded-lg">
+                <div key={i} className="flex items-center justify-between px-3 py-2 hover:bg-paper rounded-lg">
                   <div className="flex items-center gap-3">
-                    <span className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center text-[10px] font-bold text-gray-600">{i + 1}</span>
+                    <span className="w-6 h-6 bg-rule rounded-full flex items-center justify-center text-[10px] font-bold text-ink-soft">{i + 1}</span>
                     <div>
-                      <p className="text-xs font-medium text-gray-800">{c.name}</p>
-                      <p className="text-[10px] text-gray-400">{c.phone}</p>
+                      <p className="text-xs font-medium text-ink">{c.name}</p>
+                      <p className="text-[10px] text-ink-soft">{c.phone}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs font-bold text-gray-900">{fmt(c.total)}</p>
-                    <p className="text-[10px] text-gray-400">{c.orders} order{c.orders > 1 ? "s" : ""}</p>
+                    <p className="text-xs font-bold text-ink">{fmt(c.total)}</p>
+                    <p className="text-[10px] text-ink-soft">{c.orders} order{c.orders > 1 ? "s" : ""}</p>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-xs text-gray-400 py-4 text-center">No customers yet</p>
+            <p className="text-xs text-ink-soft py-4 text-center">No customers yet</p>
           )}
         </div>
 
         {/* Best Sellers or Revenue by Category */}
         {prod.bestSellers.length > 0 ? (
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <h3 className="text-sm font-semibold text-gray-800 mb-3">🔥 Best Sellers</h3>
+          <div className="bg-bone rounded-xl border border-rule p-5">
+            <h3 className="text-sm font-semibold text-ink mb-3">🔥 Best Sellers</h3>
             <div className="space-y-2">
               {prod.bestSellers.slice(0, 5).map((p, i) => (
-                <div key={i} className="flex items-center justify-between px-3 py-2 hover:bg-gray-50 rounded-lg">
+                <div key={i} className="flex items-center justify-between px-3 py-2 hover:bg-paper rounded-lg">
                   <div className="flex items-center gap-3">
-                    <span className="w-6 h-6 bg-[#23201C]/10 rounded-full flex items-center justify-center text-[10px] font-bold text-[#A8874D]">{i + 1}</span>
-                    <span className="text-xs text-gray-800 line-clamp-1">{p.name}</span>
+                    <span className="w-6 h-6 bg-ink/10 rounded-full flex items-center justify-center text-[10px] font-bold text-ink">{i + 1}</span>
+                    <span className="text-xs text-ink line-clamp-1">{p.name}</span>
                   </div>
                   <div className="text-right">
-                    <span className="text-xs font-bold text-gray-900">{p.quantity} sold</span>
-                    <span className="text-[10px] text-gray-400 ml-2">{fmt(p.revenue)}</span>
+                    <span className="text-xs font-bold text-ink">{p.quantity} sold</span>
+                    <span className="text-[10px] text-ink-soft ml-2">{fmt(p.revenue)}</span>
                   </div>
                 </div>
               ))}
@@ -423,17 +423,17 @@ export default function OperationsDashboard() {
 
       {/* ─── Low Stock ─── */}
       {prod.lowStock.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h3 className="text-sm font-semibold text-gray-800 mb-3">⚠️ Low Stock Alerts</h3>
+        <div className="bg-bone rounded-xl border border-rule p-5">
+          <h3 className="text-sm font-semibold text-ink mb-3">⚠️ Low Stock Alerts</h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
             {prod.lowStock.map((p, i) => (
-              <div key={i} className="px-3 py-2 bg-gray-50 rounded-lg">
-                <p className="text-[11px] text-gray-800 line-clamp-1">{p.name}</p>
+              <div key={i} className="px-3 py-2 bg-paper rounded-lg">
+                <p className="text-[11px] text-ink line-clamp-1">{p.name}</p>
                 <div className="flex items-center justify-between mt-1">
-                  <span className={`text-xs font-bold ${p.stock === 0 ? "text-red-600" : p.stock <= 3 ? "text-orange-500" : "text-yellow-600"}`}>
+                  <span className={`text-xs font-bold ${p.stock === 0 ? "text-red-700" : p.stock <= 3 ? "text-orange-500" : "text-yellow-600"}`}>
                     {p.stock} left
                   </span>
-                  <span className="text-[10px] text-gray-400">{fmt(p.price)}</span>
+                  <span className="text-[10px] text-ink-soft">{fmt(p.price)}</span>
                 </div>
               </div>
             ))}

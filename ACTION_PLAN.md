@@ -263,9 +263,10 @@ estrict` token, which is randomised per invocation. Made repeatable as `scripts/
 | **Risk** | **Overselling a live listing** |
 | **Acceptance criteria** | Stock equals a counted number; the description matches what is actually in the box. |
 
-### A-17 · Restyle `/admin`
+### A-17 · Restyle `/admin` — **DONE** (2026-08-08)
 | | |
 |---|---|
+| **Status** | 201 off-system classes mapped to design tokens across `admin/page.tsx` and `OperationsDashboard.tsx`: **0** `gray-*`, **0** `bg-white`/`text-white`, and the only hex left is `#25D366`, WhatsApp's own brand green. **The blanket codemod introduced a serious regression that the audit caught:** mapping `text-gray-400` → `text-ink-soft` is right on light grounds but catastrophic on the dark header, where it measures **1.35:1** — the "Store" and "Log out" links would have been effectively invisible. Eight such pairings were fixed by hand. `npm run audit:contrast` now checks 24 real pairs and exits non-zero on failure; it found two more genuine failures (`red-600` on paper at 4.31, `red-500` on bone at 3.68), both fixed. All 24 pass. **Honest limitation, recorded in the script:** it audits declared pairs, not the live DOM — the admin page would not hydrate inside the in-app browser in dev *or* production, so `getComputedStyle` over rendered text was unavailable. A correct static list beats a browser run that silently measures an unhydrated page. |
 | **Priority** | P3 |
 | **Reason** | U-1 — the only surface never brought onto the design system. Staff-only, so low user impact. |
 | **Effort** | Medium |
