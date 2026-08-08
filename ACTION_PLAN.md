@@ -224,9 +224,10 @@ estrict` token, which is randomised per invocation. Made repeatable as `scripts/
 
 *Objective: reduce support load and make the shop easier to trust.*
 
-### A-14 · Order status emails
+### A-14 · Order status emails — **DONE** (2026-08-08)
 | | |
 |---|---|
+| **Status** | The double-send guard already existed (`orders/route.ts` compares `currentOrder.status !== status`); it was untested, and is now pinned — removing it fails its own test. **What was actually broken was worse:** `buildEmailHTML` ended `statusMap[action] \|\| statusMap.confirmation`, so any action without a template inherited the *confirmation* body. Four of the eight statuses the admin dropdown could set had none — `deposit_paid`, `completed`, `failed`, `refunded` — so **refunding a customer emailed them "Order Confirmed! We're preparing your items now."** That was the default path, not an edge case. Subjects and bodies now derive from one `TEMPLATES` map, so the two cannot drift; an unmapped action sends **nothing** rather than the wrong thing. Added a `refunded` template (which deliberately omits the "all sales are final" line — a contradiction once a refund is issued), and added `cancelled` to the admin dropdown, where it was missing despite having full email and WhatsApp copy. 62 → 89 tests; the original bug was reconstructed and 5 tests catch it. |
 | **Priority** | P2 |
 | **Reason** | Highest value per unit of effort in the audit. Resend is already wired (`lib/email.ts`, used in 3 files) and `orders.status` already moves through `processing → shipped → delivered`. |
 | **Affected area** | `src/lib/email.ts`, wherever status transitions are written |

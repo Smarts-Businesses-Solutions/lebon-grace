@@ -13,9 +13,14 @@ const CATEGORIES = [
   "Keychains & Tags", "Kids & Baby",
 ];
 
+// Must stay a subset of the CHECK constraint in
+// supabase/migrations/0002_add_constraints.sql — anything else the database
+// rejects outright. `cancelled` was missing here despite having full email and
+// WhatsApp copy and a branch in TrackClient, so the one status a customer most
+// needs telling about was the one nobody could set.
 const ORDER_STATUSES = [
   "deposit_paid", "processing", "shipped", "out_for_delivery",
-  "delivered", "completed", "failed", "refunded",
+  "delivered", "completed", "cancelled", "failed", "refunded",
 ];
 
 const STATUS_COLORS: Record<string, { bg: string; text: string }> = {

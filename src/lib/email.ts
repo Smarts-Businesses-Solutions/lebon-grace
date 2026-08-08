@@ -42,17 +42,100 @@ function formatPrice(amount: number): string {
   return `AED ${amount.toLocaleString("en", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
+/**
+ * The one list. An action is emailable if and only if it has an entry here.
+ *
+ * This was previously two things that could drift: a `switch` for subjects and a
+ * `statusMap` for bodies, with the body falling back to `statusMap.confirmation`
+ * for anything unmapped. Four of the eight statuses the admin dropdown can set —
+ * `deposit_paid`, `completed`, `failed` and `refunded` — had no entry, so every
+ * one of them emailed the customer **"Order Confirmed! Thank you for your order.
+ * We're preparing your items now."** under the subject "Order Update".
+ *
+ * Refunding someone and telling them their order is confirmed and being prepared
+ * is the worst of those, and it was the default behaviour.
+ *
+ * Deriving both subject and body from a single map means the failure cannot
+ * recur: an action with no entry now sends nothing at all (see sendOrderEmail),
+ * and adding a template is the single act that makes a status emailable.
+ *
+ * Deliberately absent, because silence is correct for them:
+ *   deposit_paid  the opening state — the webhook already sent `confirmation`.
+ *                 An admin moving an order back must not re-confirm it.
+ *   paid          transitional webhook value (see migration 0002); never a
+ *                 customer-facing transition.
+ *   completed     internal bookkeeping after `delivered`, which already thanked
+ *                 them. A second "done!" mail is noise.
+ *   failed        payment failure is Stripe's conversation with the customer;
+ *                 a later mail from us only confuses it.
+ */
+const TEMPLATES: Record<
+  string,
+  { subject: (id: string) => string; title: string; color: string; message: (o: EmailOrder) => string }
+> = {
+  confirmation: {
+    subject: (id) => `Order Confirmed #${id} — Lebon Grace`,
+    title: "Order Confirmed!",
+    color: "#16A34A",
+    message: () => "Thank you for your order. We're preparing your items now.",
+  },
+  processing: {
+    subject: (id) => `Order Update: Your order #${id} is being prepared`,
+    title: "Order Being Prepared",
+    color: "#2563EB",
+    message: () => "Your order is being prepared and will ship soon.",
+  },
+  shipped: {
+    subject: (id) => `Your order #${id} has shipped! 🚚`,
+    title: "Your Order Has Shipped!",
+    color: "#7C3AED",
+    message: (o) =>
+      o.tracking_number
+        ? `Your order is on its way! Tracking: ${o.tracking_number}`
+        : "Your order is on its way! We'll send tracking details soon.",
+  },
+  out_for_delivery: {
+    subject: (id) => `Your order #${id} arrives today!`,
+    title: "Arriving Today!",
+    color: "#EA580C",
+    message: (o) =>
+      `Your order is out for delivery. ${
+        o.cod_amount > 0 ? `Please have ${formatPrice(o.cod_amount)} ready for the courier.` : ""
+      }`.trim(),
+  },
+  delivered: {
+    subject: (id) => `Thank you! Your order #${id} is delivered ✅`,
+    title: "Order Delivered!",
+    color: "#16A34A",
+    message: () => "Your order has been delivered. We hope you love it!",
+  },
+  cancelled: {
+    subject: (id) => `Order #${id} cancelled — Lebon Grace`,
+    title: "Order Cancelled",
+    color: "#DC2626",
+    message: () =>
+      "Your order has been cancelled. As a reminder, all sales are final and we do not offer refunds. If you believe this was an error, please contact our support team.",
+  },
+  refunded: {
+    // New. This is the one that was silently sending "Order Confirmed!".
+    // Deliberately does not repeat the "all sales are final" line from
+    // `cancelled` — a refund has already been issued, so quoting the no-refunds
+    // policy back at the customer reads as a contradiction.
+    subject: (id) => `Refund issued for order #${id} — Lebon Grace`,
+    title: "Refund Issued",
+    color: "#6B7280",
+    message: (o) =>
+      `We have refunded ${formatPrice(o.total)} for this order. Refunds usually reach your account within 5–10 working days, depending on your bank. If it has not arrived by then, reply to this email and we will chase it.`,
+  },
+};
+
+/** True when this action has a template, i.e. when it should reach a customer. */
+export function isEmailable(action: string): boolean {
+  return Object.hasOwn(TEMPLATES, action);
+}
+
 function getEmailSubject(order: EmailOrder, action: string): string {
-  const id = order.id.slice(0, 8);
-  switch (action) {
-    case "confirmation": return `Order Confirmed #${id} — Lebon Grace`;
-    case "processing": return `Order Update: Your order #${id} is being prepared`;
-    case "shipped": return `Your order #${id} has shipped! 🚚`;
-    case "out_for_delivery": return `Your order #${id} arrives today!`;
-    case "delivered": return `Thank you! Your order #${id} is delivered ✅`;
-    case "cancelled": return `Order #${id} cancelled — Lebon Grace`;
-    default: return `Order Update #${id} — Lebon Grace`;
-  }
+  return TEMPLATES[action].subject(order.id.slice(0, 8));
 }
 
 function buildEmailHTML(order: EmailOrder, action: string): string {
@@ -60,46 +143,11 @@ function buildEmailHTML(order: EmailOrder, action: string): string {
     `<tr><td style="padding:12px 0;border-bottom:1px solid #eee;">${item.name}</td><td style="padding:12px 0;border-bottom:1px solid #eee;text-align:center;">${item.quantity}</td><td style="padding:12px 0;border-bottom:1px solid #eee;text-align:right;">${formatPrice(item.price * item.quantity)}</td></tr>`
   ).join("");
 
-  const statusMap: Record<string, { title: string; message: string; color: string }> = {
-    confirmation: {
-      title: "Order Confirmed!",
-      message: "Thank you for your order. We're preparing your items now.",
-      color: "#16A34A",
-    },
-    processing: {
-      title: "Order Being Prepared",
-      message: "Your order is being prepared and will ship soon.",
-      color: "#2563EB",
-    },
-    shipped: {
-      title: "Your Order Has Shipped!",
-      message: order.tracking_number
-        ? `Your order is on its way! Tracking: ${order.tracking_number}`
-        : "Your order is on its way! We'll send tracking details soon.",
-      color: "#7C3AED",
-    },
-    out_for_delivery: {
-      title: "Arriving Today!",
-      message: `Your order is out for delivery. ${
-        order.cod_amount > 0
-          ? `Please have ${formatPrice(order.cod_amount)} ready for the courier.`
-          : ""
-      }`,
-      color: "#EA580C",
-    },
-    delivered: {
-      title: "Order Delivered!",
-      message: "Your order has been delivered. We hope you love it!",
-      color: "#16A34A",
-    },
-    cancelled: {
-      title: "Order Cancelled",
-      message: "Your order has been cancelled. As a reminder, all sales are final and we do not offer refunds. If you believe this was an error, please contact our support team.",
-      color: "#DC2626",
-    },
-  };
-
-  const status = statusMap[action] || statusMap.confirmation;
+  // No `|| TEMPLATES.confirmation` fallback: sendOrderEmail refuses unmapped
+  // actions before reaching here, so an absent template can no longer be
+  // silently replaced by a wrong one.
+  const t = TEMPLATES[action];
+  const status = { title: t.title, color: t.color, message: t.message(order) };
 
   return `<!DOCTYPE html>
 <html>
@@ -170,7 +218,14 @@ function buildEmailHTML(order: EmailOrder, action: string): string {
 
 export async function sendOrderEmail(order: EmailOrder, action: string): Promise<boolean> {
   if (!order.customer_email) return false;
-  
+
+  // Sending nothing beats sending the wrong thing. An action with no template
+  // used to inherit the "Order Confirmed!" body — see the note on TEMPLATES.
+  if (!isEmailable(action)) {
+    console.log(`[email] no template for "${action}" — deliberately sending nothing`);
+    return false;
+  }
+
   try {
     const result = await resend.emails.send({
       from: fromAddress(),
