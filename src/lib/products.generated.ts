@@ -1,7 +1,7 @@
 // AUTO-GENERATED FROM POSTGRES — DO NOT EDIT BY HAND.
 // Source of truth: the `products` table in the self-hosted Postgres.
 // Regenerate:  node scripts/catalog/04-generate-catalog.mjs
-// Generated:   2026-08-04T13:17:26.714Z  (42 products)
+// Generated:   2026-08-08T19:06:50.292Z  (41 products)
 
 export interface Product {
   slug: string; name: string; variant: string; price: number;
@@ -21,11 +21,6 @@ export interface Product {
 }
 
 export const products: Product[] = [
-  { slug: "phone-case-clearance", name: "Phone Case Clearance", variant: "Good Value", price: 5, category: "Clearance", stock: 179,
-    description: "Cases for older handsets, clearing the shelf at AED 5 each.\n\nThese are new and still sealed. They fit phones from around 2018 to 2019, including iPhone XS Max, iPhone 11 Pro Max and Samsung S9. The range covers leather flip cases, wallet styles with card slots, and plain protective shells.\n\nTell us your phone model in the order notes and we will match you to what we have in stock. If we cannot match your model we will refund you in full, no quibbling.",
-    details: { fits: "Older iPhone and Samsung models, 2018 to 2019", images: ["/images/clearance/phone-case-clearance-0.jpg", "/images/clearance/phone-case-clearance-1.jpg", "/images/clearance/phone-case-clearance-2.jpg", "/images/clearance/phone-case-clearance-3.jpg", "/images/clearance/phone-case-clearance-4.jpg", "/images/clearance/phone-case-clearance-5.jpg"], returns: "Returnable within 7 days, unused", material: "Mixed: leather-look PU, TPU, silicone", condition: "New, sealed in original packaging", collection: "Workshop collection only at this price" },
-    imagePlaceholder: { bg: "#6E6862", initials: "PC" },
-    imageUrl: "/images/clearance/phone-case-clearance-0.jpg" },
   { slug: "abc-jigsaw-board", name: "ABC Jigsaw Board", variant: "Good Value", price: 15, category: "Alphabet & Literacy", stock: 999,
     description: "The whole alphabet, one piece at a time.\n\nA full A to Z jigsaw board where every letter interlocks with the next. Repetition that never feels like drilling.",
     details: { age: "3-6", made: "Made to order in 2 to 3 working days", images: ["/images/lasercut/abc-jigsaw-board-0.png", "/images/lasercut/abc-jigsaw-board-1.png", "/images/lasercut/abc-jigsaw-board-2.png"], material: "3mm MDF, sanded by hand", dimensions: "196mm x 149mm", personalisation: "Add a name free of charge, just ask at checkout" },
@@ -254,6 +249,5 @@ export const categories: Category[] = [
   { name: "Alphabet & Literacy", description: "8 products", icon: "📦" },
   { name: "Animals & Nature", description: "7 products", icon: "📦" },
   { name: "Shapes & Montessori", description: "5 products", icon: "📦" },
-  { name: "Clearance", description: "1 products", icon: "📦" },
   { name: "3D & Architecture", description: "1 products", icon: "📦" },
 ]
