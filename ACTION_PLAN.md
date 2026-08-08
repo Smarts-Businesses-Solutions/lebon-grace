@@ -167,9 +167,10 @@ estrict` token, which is randomised per invocation. Made repeatable as `scripts/
 | **Expected outcome** | Two live routes and two stale data files removed. |
 | **Acceptance criteria** | `src/app/api` contains only routes reachable from the app or from Stripe. Site builds and all pages 200. |
 
-### A-10 · Archive the cruft scripts
+### A-10 · Archive the cruft scripts — **DONE** (2026-08-08)
 | | |
 |---|---|
+| **Status** | 54 files moved to `scripts/archive/`, grouped by the era that produced them — `cj-dropship/`, `mdf-oneshots/`, `ftp-deploy/`, `adhoc-verification/`, `hostinger/`, `catalog-migration/` — each explained in `scripts/archive/README.md`, which also tables the 12 paths that *do* run. `scripts/` now holds only live tooling; the repository root holds only `eslint.config.mjs` and `postcss.config.mjs`. Archived rather than deleted: git retains either way, but the grouping is what makes the history legible. **Two deliberate exclusions.** `scripts/catalog/03-cj-enrich.mjs` stays — it is re-runnable and `scripts/intel/` still uses `products.cj_pid`; only the genuinely one-shot `01`/`02`/`02b` migration steps were archived. The root `_pw_*.py` files stay put: `.gitignore:57` already ignores them, so they are local scratch invisible to anyone cloning, and moving them would either achieve nothing or wrongly add them to the repo. Build clean, 62 tests, lint unchanged at 54 on `src/`. |
 | **Priority** | P2 |
 | **Reason** | A-1 (audit) — ~45 scripts across root and `scripts/`, of which only `scripts/catalog/04–07` are active. A new maintainer cannot tell which matter. |
 | **Affected area** | repo root, `scripts/` |

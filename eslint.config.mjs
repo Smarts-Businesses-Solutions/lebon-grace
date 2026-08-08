@@ -21,10 +21,16 @@ const eslintConfig = defineConfig([
     // lint at all, which is the real cost — the ~51 genuine problems in src/
     // were invisible behind the noise.
     //
-    // These are excluded rather than fixed because they are not shipped, not
-    // imported by the application, and mostly slated for deletion or archival
-    // (ACTION_PLAN.md A-9/A-10). Anything here that survives that clear-out and
-    // becomes real tooling should be moved under scripts/catalog/ and linted.
+    // These are excluded rather than fixed because they are not shipped and not
+    // imported by the application.
+    //
+    // A-9/A-10 have since happened: the loose root scripts are gone (the two
+    // remaining root files are this config and postcss.config.mjs), and 54
+    // one-shot files moved to scripts/archive/, which has a README explaining
+    // each era. What is left under scripts/ is live tooling, so the `scripts/**`
+    // ignore is now broader than it needs to be — narrowing it to
+    // `scripts/archive/**` and fixing the handful of real problems in the
+    // survivors is a reasonable follow-up, not a prerequisite for anything.
     "scripts/**",
     "*.js",
     "*.mjs",
