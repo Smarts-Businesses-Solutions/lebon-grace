@@ -247,9 +247,12 @@ estrict` token, which is randomised per invocation. Made repeatable as `scripts/
 | **Expected outcome** | A status-ordered, date-sorted list of pieces awaiting cutting, with the engraving text visible. |
 | **Acceptance criteria** | The operator can answer "what is due today" without opening the database. |
 
-### A-16 · Resolve the clearance listing
+### A-16 · Resolve the clearance listing — **HIDDEN; recount BLOCKED on the photos**
 | | |
 |---|---|
+| **Status (2026-08-08)** | **Part 1 done — the listing is hidden.** `products.hidden = true` for `phone-case-clearance` and the static catalogue regenerated: 42 → 41 products, and the Clearance category drops out of the nav by itself because categories derive from visible products. ⚠️ **This does not take effect until a deploy.** The storefront reads a build-time catalogue, not the database — `shop/page.tsx` imports `@/lib/products` and its only `useEffect` syncs URL params; `shop/[slug]/page.tsx` calls `getProductBySlug` from the same static module and hits the network only for `/api/variants`. `/api/products` exists but no storefront page consults it. Until the running image is replaced, the listing stays reachable and purchasable, and production is still on `dpl=20260807141549`. |
+| **Blocker — Part 2** | **The 179 stock photos are not in this repository and never were.** `git log --all --diff-filter=A -- "*clearance*"` returns exactly **6** files, the chosen listing images. The 45% survey in §26.3 was run against a set held outside the repo. The recount cannot be done from anything available here — the photos need supplying (a folder, an archive, wherever the shoot lives). |
+| **Useful finding from the 6 photos that do exist** | Each shows **one** item, and the labels use **two different schemes**: `phone-case-clearance-0.jpg` is marked **`i6.5`** — a *screen-size* code — while `-2.jpg` is marked **`IP11 pro`**, an actual model. That is the likely origin of the listing's model-name problem: size codes read as models. It also complicates the §26.3 finding, because a 6.5″ case genuinely does fit an iPhone XS Max, so "XS Max" may be an inference from a size code rather than an observation of stock. The recount must record **what each label literally says**, not what model it implies. |
 | **Priority** | P2 |
 | **Reason** | Section 26.3 — a 45% survey of the stock photos found the lot contains car mounts and USB cables as well as cases; the named models (Samsung S9, iPhone XS Max) were not seen while OnePlus models present go unmentioned; and `stock = 179` appears to be a *photo* count, with front/back pairing implying roughly **74** real items. |
 | **Affected area** | `products` row `phone-case-clearance`, listing copy |
