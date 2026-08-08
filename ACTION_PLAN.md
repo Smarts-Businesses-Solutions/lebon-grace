@@ -79,9 +79,10 @@ Still held at P1 rather than P0: **A-1** (permissive RLS policy — the database
 | **Expected outcome** | Lint reports only on `src/`; ~51 real problems become visible and fixable. |
 | **Acceptance criteria** | `npx eslint src/` reports a number small enough to drive to zero. |
 
-### A-4 · Test the money path
+### A-4 · Test the money path — **DONE** (2026-08-08)
 | | |
 |---|---|
+| **Status** | All five written. 15 → 61 tests. Each new guard was verified by removing it and watching its own test fail. Writing (4) surfaced a live vulnerability in the order-id lookup — see S-6, fixed. |
 | **Priority** | P1 |
 | **Reason** | T-1 — the only tests cover `puzzle/geometry.ts`, a feature that has not shipped. The two behaviours most expensive to get wrong are untested. |
 | **Affected area** | new tests beside `api/checkout/route.ts`, `api/stripe-webhook/route.ts`, `lib/cart-context.tsx`, `lib/store.ts`, `lib/product-filters.ts` |

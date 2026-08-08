@@ -273,6 +273,17 @@ Note the contrast with `orders`/`order_items`, which have RLS enabled and *no* p
 **Problem:** Any origin can use the endpoint as a free caching proxy for the three allowed hosts. Bandwidth abuse only — the allowlist prevents anything worse.
 **Recommendation:** The route is called by **zero** source files. Delete it (see A-1). If kept, drop the wildcard CORS and add `rateLimit`.
 
+### S-6 — Order-id lookup accepted LIKE wildcards and one-character prefixes — **FIXED**
+**Category:** Security · **Severity:** High · **Confidence:** Confirmed (reproduced in test) · **Effort:** Small
+**Found:** 2026-08-08, while writing the A-4 phone-matching tests. Not in the original audit pass.
+**Evidence:** `src/lib/store.ts:79` `getById()` — the non-uuid branch built `ilike("id", \`${id}%\`)` from `?id=` in `api/orders/route.ts:11`, unvalidated.
+**Problem:** Guest order access has no accounts; "order id + phone" *is* the credential, and a hit returns name, email, phone, delivery address, totals and tracking. Two ways the id half stopped being a secret:
+- **Wildcards were live.** `_` matches any single character, and [PostgREST aliases `*` to `%`](https://docs.postgrest.org/en/v12/references/api/tables_views.html) so it needs no URL-encoding. `?id=*` searched on `%%`, matched the entire `orders` table and returned an arbitrary row.
+- **One-character prefixes were accepted.** `?id=a` returned the first order whose uuid begins with `a`; sixteen requests walk sixteen strangers' orders into range.
+
+Either way the attacker still had to match the phone, so this was not a direct read — but it reduced the credential from "your order id *and* your phone" to "a phone number", against a check that compares only the last 8 digits. Rate limiting (10/hour, added earlier) was the only other brake.
+**Fix:** `getById()` now requires `/^[0-9a-f]{8}[0-9a-f-]*$/i` before the prefix branch — hex and hyphens only, minimum eight characters, which is exactly what the receipt prints (`TrackClient.tsx:205` renders `#${id.slice(0, 8)}`). The full-uuid branch and the admin caller are unaffected. Verified by removing the guard and watching `src/lib/store.test.ts` return a live order object for `*` and for `a`.
+
 ### S-5 — Secrets hygiene: good
 **Category:** Security · **Severity:** Informational · **Confidence:** Confirmed
 **Evidence:** `.gitignore:34` — `.env*`. `supabase.local` lives outside the repository and has **0** commits touching it.

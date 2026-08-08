@@ -37,6 +37,22 @@ function db(): SupabaseClient {
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+// What a customer may type into Track Order. The receipt shows the first eight
+// characters of the uuid (TrackClient.tsx:205 renders `#${id.slice(0, 8)}`), so
+// eight hex characters is the shortest real order reference; a uuid prefix is
+// hex and hyphens and nothing else.
+//
+// Enforcing that matters because the prefix branch below builds a LIKE pattern
+// out of this string. Anything shorter is a probe rather than a reference —
+// `?id=a` matched every order beginning with "a" — and the pattern characters
+// were live: `_` matches any single character, and PostgREST treats `*` as an
+// alias for `%` so it never has to be URL-encoded. `?id=*` therefore searched
+// on `%%`, matched the entire orders table and returned an arbitrary row.
+// Only the phone check stood between that and a stranger's name, address and
+// order history, which reduced the credential from "your order id and your
+// phone" to "a phone number" — the id stopped being a secret at all.
+const ID_PREFIX_RE = /^[0-9a-f]{8}[0-9a-f-]*$/i;
+
 // Normalize a phone to comparable digits (UAE): strip non-digits, leading 0 → 971.
 function cleanPhone(p: string): string {
   return (p || "").replace(/\D/g, "").replace(/^0/, "971");
@@ -73,6 +89,7 @@ export const orders = {
     }
     // Prefix lookup on the uuid, cast to text. If the backend rejects it, treat
     // as "not found" rather than erroring the request.
+    if (!ID_PREFIX_RE.test(id)) return null;
     const { data, error } = await db()
       .from("orders")
       .select("*")
