@@ -66,6 +66,15 @@ export default function CartPage() {
               <div className="flex-1 min-w-0">
                 <Link href={"/shop/" + item.product.slug}>
                   <h3 className="text-sm font-medium tracking-tight hover:text-[#A8874D] transition-colors truncate">{item.product.name}</h3>
+                  {/* The engraving is cut irreversibly and the piece cannot be
+                      returned, so the last chance to catch a typo has to be
+                      visible. It was captured, stored and shown to the workshop
+                      but never shown back to the customer. */}
+                  {item.personalisation && (
+                    <p data-testid="cart-engraving" className="mt-1 text-xs text-ink-muted">
+                      Engraving: <span className="text-ink font-medium">{item.personalisation}</span>
+                    </p>
+                  )}
                 </Link>
                 <p className="text-ink-muted text-xs mt-0.5">{item.product.variant}</p>
                 <p className="text-gray-900 text-sm font-semibold mt-2">{formatPrice(item.product.price)}</p>

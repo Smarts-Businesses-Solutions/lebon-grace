@@ -8,23 +8,69 @@ internal belongs in [FOR-EVARISTE.md](FOR-EVARISTE.md) instead.
 Two audiences: **customers** buying a puzzle, and the **workshop operator**
 running the shop.
 
+## Roles, and what this shop does not have
+
+There are exactly two kinds of user: **customer** and **operator**. Within
+"customer" there are no tiers, plans, or membership levels — everyone gets the
+same prices and the same options, because there are **no customer accounts at
+all**. Nothing to sign up for, nothing to upgrade.
+
+The customer side splits into behaviours rather than accounts:
+
+| Behaviour | What identifies them | Frequency |
+|---|---|---|
+| **Visitor** — browsing | nothing | any time |
+| **Shopper** — buying | nothing; the basket lives in their browser | one-shot, occasionally repeated |
+| **Tracker** — checking an order | order number + phone | a few times per order |
+| **Reviewer** — after delivery | order number + phone, order delivered | once per piece per order |
+
+**One language: English.** There is no translation layer and no locale
+switching. Arabic with right-to-left layout is wanted and deliberately deferred
+until the site is stable — see `docs/DECISION-ARABIC-RTL.md`. Any guide claiming
+a language selector is describing something that does not exist.
+
 ---
 
 # For customers
 
 ## Buying a puzzle
 
-1. Browse the shop, or filter by category.
+1. Browse the shop, or filter by category and price.
 2. Open a piece to see its photographs, size and age guidance.
-3. If it can be engraved, type the name before adding it to the basket — each
-   engraved name is a separate line, so you can order two different ones.
-4. In the basket, choose **delivery** or **collection**.
-5. Check out. Payment is on Stripe's page; card details never touch this shop.
+3. **To have a name engraved**, tick the option and type it before adding to the
+   basket. Engraving is **free** and up to **20 characters**. Each different
+   name becomes its own basket line, so you can order one for Amira and one for
+   Yusuf in the same go.
 
-**Delivery.** AED 20, free over AED 150. Collection is free.
+   **Check it in the basket.** The name you typed is shown on the basket line
+   and again in the Order Summary on the checkout page, under "Engraving". It is
+   cut exactly as written and the piece cannot be returned afterwards, so that
+   is the moment to catch a typo. To change it, remove the line and add the
+   piece again with the correct spelling.
+4. Choose a quantity. You cannot order more than the workshop has material for,
+   so the control stops at the available number.
+5. In the basket, choose **delivery** or **collection**.
+6. Check out. Payment happens on Stripe's page; card details never touch this
+   shop.
+
+**Delivery.** AED 20, free once the basket reaches **AED 150** — at exactly 150,
+not above it. Collection is free.
+
+**Your basket survives.** Closing the tab and coming back keeps both the basket
+and your delivery choice. It is stored in your own browser, not on our server,
+so it does not follow you to a different device.
 
 **You do not need an account.** There is nothing to sign up for and no password
 to forget.
+
+## Before you buy — what cannot be undone
+
+Every piece is cut **after** you order, so:
+
+- a made-to-order piece **cannot be returned** because you changed your mind;
+- a piece **engraved with a name can never be returned**, because it cannot go
+  to anyone else — check the spelling, it is engraved exactly as typed;
+- clearance stock is different and **can** be returned within 7 days, unused.
 
 ## After you order
 
@@ -51,6 +97,12 @@ that is enforced, not a policy.
 **"Order Confirmed" never appeared.** If the payment failed you will stay on the
 checkout page with an error and **your basket will still be full**, so you can
 try again. Nothing was charged.
+
+**A product link gives "Product Not Found".** That piece has been withdrawn, or
+the link is wrong. As of 2026-08-09 the page also returns a proper 404 to
+browsers and search engines rather than pretending the page exists, so an old
+bookmark or a stale search result will drop out of search in time. Use the shop
+grid to find the current range.
 
 **You paid but got no email.** Check the address you typed, then use Track with
 your phone number. If the order is not there, contact us — do not pay again.

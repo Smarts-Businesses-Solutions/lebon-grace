@@ -300,6 +300,11 @@ export default function CheckoutPage() {
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-medium text-dark truncate">{item.product.name}</p>
                     <p className="text-xs text-warm-gray">Qty: {item.quantity}</p>
+                    {item.personalisation && (
+                      <p data-testid="checkout-engraving" className="text-xs text-warm-gray">
+                        Engraving: <span className="text-dark font-medium">{item.personalisation}</span>
+                      </p>
+                    )}
                   </div>
                   <span className="text-xs font-medium text-dark">{formatPrice(item.product.price * item.quantity)}</span>
                 </div>
