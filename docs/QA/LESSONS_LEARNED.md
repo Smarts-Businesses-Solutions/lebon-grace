@@ -334,3 +334,51 @@ mobile checkout is broken" from "the local server was overloaded". The shared
 kit already sets `workers: 2, retries: 2` under CI and `retries: 0` locally —
 deliberately, so flakes surface to the person who caused them rather than being
 retried into silence.
+
+## L-20 · A credential that gets weaker the less you type
+
+The phone half of the guest-order credential compared `ca.endsWith(cb.slice(-8))`.
+`slice(-8)` of a short string is the whole string, so **the less an attacker
+typed, the more it matched**. One digit matched any number ending in that digit.
+
+The rate limit did not save it. Ten attempts an hour was sized for guessing a
+whole phone number; there are only ten single digits.
+
+> Any comparison whose strictness depends on the *length of the input* is
+> controlled by the attacker. Fix the window, and refuse to compare below it.
+
+Two corollaries, both paid for here:
+
+- **Extract it to test it.** This lived as two private functions in `store.ts`
+  with no way to reach them without a database, which is why it survived. The
+  extraction immediately caught a second flaw in the *fix* — measuring length
+  after `^0 → 971` lets a seven-digit entry pass as nine, because the
+  substitution adds digits.
+- **A stricter credential locks people out.** There are no accounts and no
+  password reset, so `/account` is the only route back to an order. The window
+  is eight digits, not the nine a UAE mobile has, because a UAE landline has
+  eight — and Dubai is full of expatriate foreign numbers. Before shipping it,
+  the database was queried for stored phones that the new rule would orphan:
+  one order, twelve digits, none.
+
+## L-21 · Clicking before hydration is a silent no-op, and reads as a broken page
+
+Twice during the returning-customer walkthrough `/account` looked broken: fill
+the form, click, nothing happens, no request. Both times the page was fine.
+
+A click that lands before React has attached to the server-rendered markup does
+nothing at all — no handler, no request, no error. A human cannot hit that
+window, because filling two fields takes seconds. **A test hits it every time.**
+
+> "Nothing happened" has two causes — the feature is broken, or you got there
+> before it was listening. They are indistinguishable from the outside.
+
+Wait for the app to settle before interacting, and assert on the **request**
+rather than a timeout: waiting for `/api/orders` makes the absence assertion
+that follows meaningful, where a fixed sleep would let a form that never
+submitted pass as "nothing was disclosed" (L-2 again).
+
+The same investigation was derailed a third time by targeting inputs by type:
+the header search box is also a text input and the WhatsApp float is another
+`tel` input. That is L-12 for the third time this engagement, and the fix is the
+same each time — give the page test ids and stop guessing at its DOM.

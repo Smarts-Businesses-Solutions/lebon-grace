@@ -380,6 +380,47 @@ The e2e guard uses `"(05) 0-1 2-3"` — 12 characters, 6 digits. `"4567"` would
 have been rejected by the old rule too, and the test would have passed without
 the fix (L-1).
 
+## B-23 · The account phone field said "WhatsApp us"
+
+Found walking production as a returning customer, 2026-08-09. **Fixed.**
+
+`/account` labels the field **Phone Number** and its placeholder read **"WhatsApp
+us"** — copy from the contact widget that had leaked into the one field whose
+format decides whether a customer finds their order.
+
+It matters more here than a stray placeholder normally would. There is no
+account behind this lookup: the number has to be *the one used at checkout*, and
+it is matched on the last eight digits. The email field one row up shows
+`you@example.com`; the phone field showed nothing useful at all.
+
+Now `050 123 4567`. Pinned by an e2e assertion that the placeholder does not
+match `/whatsapp|contact|message us/i` **and** does look like a number — forced
+in both directions.
+
+## B-24 · The page returning the most PII had no end-to-end coverage
+
+Found alongside B-23. **Fixed.**
+
+`/account` returns **every order matching an email and phone**, each with the
+delivery address — the largest payload the site will hand out. It had:
+
+- **zero** e2e tests (`/track` next door had a suite), and
+- **zero** `data-testid` attributes (`/track` had five).
+
+The second caused the first. The page cannot be targeted by input type: the
+header search box is also a text input and the WhatsApp float is another `tel`
+input, so a type selector fills the wrong element — which is exactly what
+happened twice while investigating, and both times looked like a broken page
+rather than a broken probe.
+
+Three tests added that need no database, since CI has no Supabase credentials:
+the form is real, a lookup that finds nothing discloses nothing, and an unknown
+email produces the same wording as a wrong phone so the page cannot be used to
+discover whether an address has ordered here.
+
+Each waits on the request as the **precondition** for its absence assertion —
+without it, "no order shown" also passes on a form that never submitted (L-2).
+
 ## Still open
 
 | Bug | Where |
