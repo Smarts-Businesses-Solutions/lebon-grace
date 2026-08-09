@@ -69,3 +69,9 @@ shopnode.json
 HOSTINGER_*.md
 SESSION_RESUME.md
 whatnext.md
+
+# Playwright HTML report (test-results/ is already ignored above).
+playwright-report/
+
+# Playwright JSON used to regenerate docs/QA/ROUTE_COVERAGE_REPORT.md.
+playwright-results.json

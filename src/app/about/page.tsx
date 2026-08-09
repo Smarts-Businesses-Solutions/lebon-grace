@@ -29,10 +29,10 @@ export default function AboutPage() {
             <p>
               Lebon Grace started with a laser cutter and a simple thought: a wooden toy that teaches a child their letters should not cost a hundred dirhams, and it should not be made on the other side of the world either. So we draw them, cut them and sand them here, one order at a time.</p>
             <p>
-              We are a small workshop in the UAE making wooden puzzles for children. Everything here is drawn as a cutting file, cut from MDF on our own laser, sanded by hand and checked before it goes out. Nothing is bought in and relabelled, and nothing sits in a warehouse waiting for someone to want it. Your puzzle does not exist until you order it, which is why it takes two or three days and why we can put your child's name on it for nothing.
+              We are a small workshop in the UAE making wooden puzzles for children. Everything here is drawn as a cutting file, cut from MDF on our own laser, sanded by hand and checked before it goes out. Nothing is bought in and relabelled, and nothing sits in a warehouse waiting for someone to want it. Your puzzle does not exist until you order it, which is why it takes two or three days and why we can put your child’s name on it for nothing.
             </p>
             <p>
-              Our name reflects our approach. "Lebon" means good in French. "Grace" means doing it with style. Together: good things, done well, at fair prices.
+              Our name reflects our approach. “Lebon” means good in French. “Grace” means doing it with style. Together: good things, done well, at fair prices.
             </p>
           </div>
         </div>
@@ -40,7 +40,7 @@ export default function AboutPage() {
         {/* Mission */}
         <div className="bg-charcoal text-offwhite rounded-sm p-8 lg:p-12">
           <h2 className="font-heading text-2xl font-semibold tracking-tight mb-4">Our Mission</h2>
-          <p className="text-warm-gray text-sm leading-relaxed">
+          <p className="text-paper/90 text-sm leading-relaxed">
             To make toys that are worth keeping, at a price that does not make you think twice. A wooden alphabet board should not cost a hundred dirhams, and it should not fall apart either. Every puzzle we make is AED 15, with the name engraving included.
           </p>
         </div>
@@ -56,7 +56,7 @@ export default function AboutPage() {
                 </svg>
               </div>
               <h3 className="font-heading text-lg font-semibold tracking-tight">Honest Pricing</h3>
-              <p className="mt-3 text-warm-gray text-sm leading-relaxed">
+              <p className="mt-3 text-paper/90 text-sm leading-relaxed">
                 There is no middleman because there is no supplier. Every piece is drawn, cut, sanded and finished here, so you pay for the wood and the work, nothing else.
               </p>
             </div>
@@ -68,7 +68,7 @@ export default function AboutPage() {
                 </svg>
               </div>
               <h3 className="font-heading text-lg font-semibold tracking-tight">Made to Order</h3>
-              <p className="mt-3 text-warm-gray text-sm leading-relaxed">
+              <p className="mt-3 text-paper/90 text-sm leading-relaxed">
                 We hold no stock, so nothing is ever discontinued or out of stock. You order it, we make it, you collect it or we send it. Two to three working days, every time.
               </p>
             </div>
@@ -79,7 +79,7 @@ export default function AboutPage() {
                 </svg>
               </div>
               <h3 className="font-heading text-lg font-semibold tracking-tight">Customer First</h3>
-              <p className="mt-3 text-warm-gray text-sm leading-relaxed">
+              <p className="mt-3 text-paper/90 text-sm leading-relaxed">
                 Free collection, WhatsApp support, and a free replacement within 7 days if anything arrives faulty. You do not send it back; we just make you another one.
               </p>
             </div>
@@ -89,7 +89,7 @@ export default function AboutPage() {
         {/* CTA */}
         <div className="text-center">
           <p className="text-warm-gray text-sm mb-4">Come and see what we make</p>
-          <Link href="/shop" className="inline-flex items-center px-8 py-3.5 bg-sand text-white text-sm tracking-wider uppercase font-medium rounded-sm hover:bg-sand-dark transition-colors">
+          <Link href="/shop" className="inline-flex items-center px-8 py-3.5 bg-sand text-ink text-sm tracking-wider uppercase font-medium rounded-sm hover:bg-sand-dark transition-colors">
             Shop the Collection
           </Link>
         </div>

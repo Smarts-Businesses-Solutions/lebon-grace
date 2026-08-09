@@ -80,7 +80,17 @@ export async function POST(request: NextRequest) {
       total: total,
       deposit_amount: deposit,
       cod_amount: codBalance,
-      status: "paid",
+      // `deposit_paid`, not `paid`, despite there no longer being a deposit —
+      // this is the key every other surface filters on, and the name is the
+      // only thing about it that is stale. Writing `paid` here made each new
+      // order invisible: it is in none of STATUS_INDEX (track/TrackClient.tsx:15),
+      // PIPELINE_STAGES (components/OperationsDashboard.tsx:37), the admin
+      // dropdown (admin/page.tsx:16) or the metrics buckets (api/metrics:27-28),
+      // so the customer's tracking timeline lit no step and the order appeared
+      // in no column of the production queue — nobody would cut the puzzle, and
+      // nothing would say so. Renaming the state everywhere is the better fix
+      // and a separate change; agreeing with the other six places is this one.
+      status: "deposit_paid",
       metadata: JSON.stringify({
         brand: metadata.brand || "lebon-grace",
         entity: metadata.entity || "shop-lebon-grace",
@@ -132,6 +142,11 @@ export async function POST(request: NextRequest) {
             product_name: personalisation
               ? `${li.description || "Product"} (engraved: ${personalisation})`
               : (li.description || "Product"),
+            // Also stored on its own, because this is the string that gets cut
+            // irreversibly into a piece of wood and the workshop queue reads it.
+            // It used to exist only inside product_name above, so showing it
+            // meant parsing that sentence back apart (0004).
+            personalisation: personalisation || null,
             // No doubling: the line item is charged at full price.
             price: (li.amount_total || 0) / 100 / (li.quantity || 1),
             quantity: li.quantity || 1,
@@ -156,6 +171,9 @@ export async function POST(request: NextRequest) {
       customer_email: order.customer_email,
       customer_phone: order.customer_phone,
       total: order.total,
+      // So the receipt states the delivery actually charged, not a constant.
+      subtotal: order.subtotal,
+      shipping: order.shipping,
       deposit_amount: order.deposit_amount,
       cod_amount: order.cod_amount,
       status: order.status,

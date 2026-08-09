@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict 6c2oPDTguZc7Lbh2MGMMPUn7pGKhhJWlJdGIu025DpfU0BYoDQNpGciRd4ooEip
+\restrict PHK8fIGZe5M5abZwo9APFWRKRXfsrCkcEa09a6Lpb8q3s9mdaA1ssrCFXVRXh4o
 
 -- Dumped from database version 17.6
 -- Dumped by pg_dump version 17.6
@@ -1791,6 +1791,37 @@ CREATE TABLE auth.webauthn_credentials (
 
 
 --
+-- Name: newsletter_subscribers; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.newsletter_subscribers (
+    id bigint NOT NULL,
+    email text NOT NULL,
+    source text DEFAULT 'homepage'::text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: newsletter_subscribers_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.newsletter_subscribers_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: newsletter_subscribers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.newsletter_subscribers_id_seq OWNED BY public.newsletter_subscribers.id;
+
+
+--
 -- Name: order_items; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1837,6 +1868,73 @@ CREATE TABLE public.orders (
 
 
 --
+-- Name: product_intel_snapshots; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.product_intel_snapshots (
+    id bigint NOT NULL,
+    cj_pid text NOT NULL,
+    captured_at timestamp with time zone DEFAULT now() NOT NULL,
+    inventory integer,
+    variant_count integer,
+    sell_price numeric(10,2),
+    sale_status text,
+    cj_inventory integer,
+    factory_inventory integer
+);
+
+
+--
+-- Name: product_intel_deltas; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.product_intel_deltas AS
+ SELECT cj_pid,
+    captured_at,
+    lag(captured_at) OVER w AS prev_at,
+    inventory,
+    lag(inventory) OVER w AS prev_inventory,
+    (lag(inventory) OVER w - inventory) AS drop,
+    (EXTRACT(epoch FROM (captured_at - lag(captured_at) OVER w)) / 86400.0) AS days
+   FROM public.product_intel_snapshots s
+  WINDOW w AS (PARTITION BY cj_pid ORDER BY captured_at);
+
+
+--
+-- Name: product_intel_snapshots_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.product_intel_snapshots_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: product_intel_snapshots_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.product_intel_snapshots_id_seq OWNED BY public.product_intel_snapshots.id;
+
+
+--
+-- Name: product_intel_watchlist; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.product_intel_watchlist (
+    cj_pid text NOT NULL,
+    product_name text,
+    category text,
+    source text DEFAULT 'catalog'::text,
+    added_at timestamp with time zone DEFAULT now(),
+    active boolean DEFAULT true,
+    primary_vid text
+);
+
+
+--
 -- Name: product_variants; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1870,7 +1968,44 @@ CREATE TABLE public.products (
     cj_price text,
     variant text DEFAULT 'Good Value'::text,
     created_at timestamp with time zone DEFAULT now(),
-    updated_at timestamp with time zone DEFAULT now()
+    updated_at timestamp with time zone DEFAULT now(),
+    details jsonb DEFAULT '{}'::jsonb,
+    image_placeholder jsonb DEFAULT '{}'::jsonb,
+    hidden boolean DEFAULT false
+);
+
+
+--
+-- Name: sourcing_candidates; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.sourcing_candidates (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    cj_pid text NOT NULL,
+    product_title text NOT NULL,
+    category text,
+    primary_material text,
+    packaging_type text,
+    sourcing_cost_usd numeric(10,2),
+    freight_usd numeric(10,2),
+    actual_weight_kg numeric(10,3),
+    dims_cm jsonb DEFAULT '{}'::jsonb,
+    volumetric_weight_kg numeric(10,3),
+    volumetric_ratio numeric(10,2),
+    landed_cost_aed numeric(10,2),
+    suggested_retail_aed numeric(10,2),
+    expected_margin_aed numeric(10,2),
+    competition jsonb DEFAULT '{}'::jsonb,
+    market_price_aed numeric(10,2),
+    market_source text,
+    passes_all_filters boolean DEFAULT false,
+    filter_results jsonb DEFAULT '{}'::jsonb,
+    score numeric(10,2) DEFAULT 0,
+    status text DEFAULT 'pending_review'::text,
+    reviewer_note text,
+    raw jsonb DEFAULT '{}'::jsonb,
+    created_at timestamp with time zone DEFAULT now(),
+    reviewed_at timestamp with time zone
 );
 
 
@@ -2058,6 +2193,20 @@ CREATE TABLE storage.vector_indexes (
 --
 
 ALTER TABLE ONLY auth.refresh_tokens ALTER COLUMN id SET DEFAULT nextval('auth.refresh_tokens_id_seq'::regclass);
+
+
+--
+-- Name: newsletter_subscribers id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.newsletter_subscribers ALTER COLUMN id SET DEFAULT nextval('public.newsletter_subscribers_id_seq'::regclass);
+
+
+--
+-- Name: product_intel_snapshots id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.product_intel_snapshots ALTER COLUMN id SET DEFAULT nextval('public.product_intel_snapshots_id_seq'::regclass);
 
 
 --
@@ -2325,6 +2474,22 @@ ALTER TABLE ONLY auth.webauthn_credentials
 
 
 --
+-- Name: newsletter_subscribers newsletter_subscribers_email_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.newsletter_subscribers
+    ADD CONSTRAINT newsletter_subscribers_email_key UNIQUE (email);
+
+
+--
+-- Name: newsletter_subscribers newsletter_subscribers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.newsletter_subscribers
+    ADD CONSTRAINT newsletter_subscribers_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: order_items order_items_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2346,6 +2511,30 @@ ALTER TABLE ONLY public.orders
 
 ALTER TABLE ONLY public.orders
     ADD CONSTRAINT orders_stripe_session_id_key UNIQUE (stripe_session_id);
+
+
+--
+-- Name: product_intel_snapshots product_intel_snapshots_cj_pid_captured_at_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.product_intel_snapshots
+    ADD CONSTRAINT product_intel_snapshots_cj_pid_captured_at_key UNIQUE (cj_pid, captured_at);
+
+
+--
+-- Name: product_intel_snapshots product_intel_snapshots_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.product_intel_snapshots
+    ADD CONSTRAINT product_intel_snapshots_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: product_intel_watchlist product_intel_watchlist_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.product_intel_watchlist
+    ADD CONSTRAINT product_intel_watchlist_pkey PRIMARY KEY (cj_pid);
 
 
 --
@@ -2378,6 +2567,22 @@ ALTER TABLE ONLY public.products
 
 ALTER TABLE ONLY public.products
     ADD CONSTRAINT products_slug_key UNIQUE (slug);
+
+
+--
+-- Name: sourcing_candidates sourcing_candidates_cj_pid_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sourcing_candidates
+    ADD CONSTRAINT sourcing_candidates_cj_pid_key UNIQUE (cj_pid);
+
+
+--
+-- Name: sourcing_candidates sourcing_candidates_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sourcing_candidates
+    ADD CONSTRAINT sourcing_candidates_pkey PRIMARY KEY (id);
 
 
 --
@@ -2910,6 +3115,27 @@ CREATE INDEX idx_orders_stripe_session ON public.orders USING btree (stripe_sess
 
 
 --
+-- Name: pis_pid_time_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX pis_pid_time_idx ON public.product_intel_snapshots USING btree (cj_pid, captured_at DESC);
+
+
+--
+-- Name: sourcing_candidates_score_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX sourcing_candidates_score_idx ON public.sourcing_candidates USING btree (score DESC);
+
+
+--
+-- Name: sourcing_candidates_status_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX sourcing_candidates_status_idx ON public.sourcing_candidates USING btree (status);
+
+
+--
 -- Name: bname; Type: INDEX; Schema: storage; Owner: -
 --
 
@@ -3341,6 +3567,12 @@ CREATE POLICY "Allow public read" ON public.products FOR SELECT USING (true);
 
 
 --
+-- Name: newsletter_subscribers; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.newsletter_subscribers ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: order_items; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -3435,5 +3667,5 @@ ALTER TABLE storage.vector_indexes ENABLE ROW LEVEL SECURITY;
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 6c2oPDTguZc7Lbh2MGMMPUn7pGKhhJWlJdGIu025DpfU0BYoDQNpGciRd4ooEip
+\unrestrict PHK8fIGZe5M5abZwo9APFWRKRXfsrCkcEa09a6Lpb8q3s9mdaA1ssrCFXVRXh4o
 

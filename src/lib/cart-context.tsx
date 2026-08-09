@@ -37,6 +37,15 @@ interface CartContextType {
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
+  /**
+   * True once the cart has been restored from localStorage.
+   *
+   * Exposed because effect order is child-then-parent: a page's effect runs
+   * BEFORE this provider's restore effect, so a page that cleared the cart on
+   * mount had its clear immediately undone by the restore that followed. The
+   * checkout success handler waits on this.
+   */
+  ready: boolean;
   totalItems: number;
   subtotal: number;
   shipping: number;
@@ -56,6 +65,20 @@ export const FREE_DELIVERY_OVER = 150;
 const CART_KEY = "lebon-grace-cart";
 const CART_EMAIL_KEY = "lebon-grace-cart-email";
 const CART_TS_KEY = "lebon-grace-cart-ts";
+/**
+ * Delivery choice, persisted alongside the cart.
+ *
+ * It used to live only in React state. The cart itself survived a reload but
+ * this did not, so a customer who chose "Deliver to me" and then refreshed —
+ * or opened /checkout directly, or came back with the browser's Back button —
+ * was silently switched to pickup. /checkout has no toggle of its own
+ * (checkout/page.tsx:172 only READS deliveryMethod), so the address fields
+ * simply vanished and the order was quoted with free collection.
+ *
+ * Found by the Module C browser suite; regression test in
+ * tests/e2e/money-path/checkout.spec.ts.
+ */
+const CART_DELIVERY_KEY = "lebon-grace-cart-delivery";
 
 function loadCart(): CartItem[] {
   if (typeof window === "undefined") return [];
@@ -66,6 +89,26 @@ function loadCart(): CartItem[] {
     // ignore corrupted data
   }
   return [];
+}
+
+function loadDeliveryMethod(): DeliveryMethod {
+  if (typeof window === "undefined") return "pickup";
+  try {
+    const stored = localStorage.getItem(CART_DELIVERY_KEY);
+    if (stored === "delivery" || stored === "pickup") return stored;
+  } catch {
+    // ignore corrupted data
+  }
+  return "pickup";
+}
+
+function saveDeliveryMethod(method: DeliveryMethod): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(CART_DELIVERY_KEY, method);
+  } catch {
+    // ignore storage errors
+  }
 }
 
 function saveCart(items: CartItem[]): void {
@@ -118,10 +161,25 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>("pickup");
   const [mounted, setMounted] = useState(false);
 
+  // localStorage does not exist during SSR, so the cart CANNOT be read while
+  // rendering — reading it in an effect after mount is the correct pattern, not
+  // a workaround. Moving this into render would hydrate a server-empty cart
+  // over a client-full one and throw a hydration mismatch.
   useEffect(() => {
+    // The cart CANNOT be read while rendering: localStorage does not exist during
+        // SSR, and hydrating a server-empty cart over a client-full one mismatches.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setItems(loadCart());
+    // Restored here too, for the same reason and in the same breath: the cart
+    // surviving a reload while the delivery choice did not is what silently
+    // reverted customers to pickup.
+    setDeliveryMethod(loadDeliveryMethod());
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (mounted) saveDeliveryMethod(deliveryMethod);
+  }, [deliveryMethod, mounted]);
 
   useEffect(() => {
     if (mounted) {
@@ -202,6 +260,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       removeItem,
       updateQuantity,
       clearCart,
+      ready: mounted,
       totalItems,
       subtotal,
       shipping,
@@ -209,7 +268,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       depositNow,
       payOnDelivery,
     }),
-    [items, deliveryMethod, addItem, removeItem, updateQuantity, clearCart, totalItems, subtotal, shipping, total, depositNow, payOnDelivery]
+    [items, deliveryMethod, addItem, removeItem, updateQuantity, clearCart, mounted, totalItems, subtotal, shipping, total, depositNow, payOnDelivery]
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

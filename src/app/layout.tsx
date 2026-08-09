@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Fraunces, Karla } from "next/font/google";
 import { CartProvider } from "@/lib/cart-context";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -7,11 +7,33 @@ import WhatsAppButton from "@/components/WhatsAppButton";
 import Analytics from "@/components/Analytics";
 import "./globals.css";
 
-const inter = Inter({
-  variable: "--font-inter",
+/**
+ * Fraunces for display, Karla for text.
+ *
+ * Inter did both jobs before. It is a fine interface face and it made the shop
+ * look like software: the same typeface as every dashboard and SaaS landing
+ * page. Nothing about it said "cut by hand in a workshop".
+ *
+ * Fraunces is a variable serif with optical SOFT and WONK axes, so it can be
+ * warm without tipping into novelty, which suits a children's product that is
+ * still a considered object. Karla is a grotesque with enough character to sit
+ * beside it and enough restraint to disappear at 14px.
+ *
+ * Both are SIL Open Font License, so they are licensed for commercial use
+ * including the physical goods this shop sells.
+ */
+const display = Fraunces({
+  variable: "--font-display",
   subsets: ["latin"],
   display: "swap",
-  weight: ["300", "400", "500", "600"],
+  axes: ["SOFT", "WONK", "opsz"],
+});
+
+const text = Karla({
+  variable: "--font-text",
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["300", "400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -65,7 +87,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={inter.variable}>
+    <html lang="en" className={`${display.variable} ${text.variable}`}>
       <body className="min-h-screen flex flex-col bg-offwhite text-dark antialiased">
           <CartProvider>
             <Header />

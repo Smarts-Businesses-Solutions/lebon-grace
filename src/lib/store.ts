@@ -35,7 +35,113 @@ function db(): SupabaseClient {
   return _client;
 }
 
+/**
+ * A row as PostgREST returns it.
+ *
+ * `any` was used for every return type here, which is 20 of this project's lint
+ * errors and, more to the point, meant a typo in a column name compiled
+ * silently. These interfaces name the columns the application actually reads,
+ * with an `unknown` index signature so a column nobody has typed yet is still
+ * reachable — but reachable as `unknown`, which has to be narrowed rather than
+ * used by accident.
+ *
+ * Nullability mirrors the database, including the constraints added in
+ * migration 0002: `orders.status`, `subtotal`, `total`, `deposit_amount` and
+ * `cod_amount` are NOT NULL there, so they are non-optional here. Where the two
+ * disagree, the database is right and this file is the bug.
+ */
+export interface OrderRow {
+  id: string;
+  status: string;
+  subtotal: number;
+  total: number;
+  deposit_amount: number;
+  cod_amount: number;
+  shipping?: number | null;
+  stripe_session_id?: string | null;
+  stripe_payment_intent?: string | null;
+  customer_name?: string | null;
+  customer_email?: string | null;
+  customer_email_lc?: string | null;
+  customer_phone?: string | null;
+  delivery_address?: string | null;
+  emirate?: string | null;
+  delivery_method?: string | null;
+  tracking_number?: string | null;
+  courier_name?: string | null;
+  notes?: string | null;
+  metadata?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [column: string]: unknown;
+}
+
+export interface OrderItemRow {
+  id?: string;
+  order_id: string;
+  product_slug?: string | null;
+  product_name?: string | null;
+  /** Own column since migration 0004 — the workshop queue reads it. */
+  personalisation?: string | null;
+  price: number;
+  quantity: number;
+  image_url?: string | null;
+  [column: string]: unknown;
+}
+
+export interface ProductRow {
+  slug: string;
+  name?: string | null;
+  category?: string | null;
+  price: number;
+  stock?: number | null;
+  image_url?: string | null;
+  hidden?: boolean | null;
+  cj_pid?: string | null;
+  cj_price?: string | null;
+  [column: string]: unknown;
+}
+
+export interface VariantRow {
+  id?: string;
+  product_slug: string;
+  variant_sku?: string | null;
+  variant_name?: string | null;
+  variant_image?: string | null;
+  variant_color?: string | null;
+  variant_size?: string | null;
+  variant_price?: number | null;
+  [column: string]: unknown;
+}
+
+export interface ReviewRow {
+  id: string;
+  order_id?: string;
+  product_slug?: string;
+  rating: number;
+  comment?: string | null;
+  customer_name?: string;
+  created_at?: string;
+  [column: string]: unknown;
+}
+
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// What a customer may type into Track Order. The receipt shows the first eight
+// characters of the uuid (TrackClient.tsx:205 renders `#${id.slice(0, 8)}`), so
+// eight hex characters is the shortest real order reference; a uuid prefix is
+// hex and hyphens and nothing else.
+//
+// Enforcing that matters because the prefix branch below builds a LIKE pattern
+// out of this string. Anything shorter is a probe rather than a reference —
+// `?id=a` matched every order beginning with "a" — and the pattern characters
+// were live: `_` matches any single character, and PostgREST treats `*` as an
+// alias for `%` so it never has to be URL-encoded. `?id=*` therefore searched
+// on `%%`, matched the entire orders table and returned an arbitrary row.
+// Only the phone check stood between that and a stranger's name, address and
+// order history, which reduced the credential from "your order id and your
+// phone" to "a phone number" — the id stopped being a secret at all.
+const ID_PREFIX_RE = /^[0-9a-f]{8}[0-9a-f-]*$/i;
 
 // Normalize a phone to comparable digits (UAE): strip non-digits, leading 0 → 971.
 function cleanPhone(p: string): string {
@@ -50,7 +156,7 @@ function phoneMatches(a: string, b: string): boolean {
 
 // ───────────────────────── orders ─────────────────────────
 export const orders = {
-  async getAll(): Promise<any[]> {
+  async getAll(): Promise<OrderRow[]> {
     const { data, error } = await db()
       .from("orders")
       .select("*")
@@ -60,7 +166,7 @@ export const orders = {
   },
 
   // Accepts a full uuid (exact) or a prefix (best-effort). Bad input → null.
-  async getById(id: string): Promise<any | null> {
+  async getById(id: string): Promise<OrderRow | null> {
     if (!id) return null;
     if (UUID_RE.test(id)) {
       const { data, error } = await db()
@@ -73,6 +179,7 @@ export const orders = {
     }
     // Prefix lookup on the uuid, cast to text. If the backend rejects it, treat
     // as "not found" rather than erroring the request.
+    if (!ID_PREFIX_RE.test(id)) return null;
     const { data, error } = await db()
       .from("orders")
       .select("*")
@@ -85,7 +192,7 @@ export const orders = {
   // Idempotency lookup for Stripe webhooks — match the Stripe session id, which
   // lives in stripe_session_id (the column also has a UNIQUE constraint, so a
   // duplicate insert is rejected atomically even if two webhooks race).
-  async getBySessionId(sessionId: string): Promise<any | null> {
+  async getBySessionId(sessionId: string): Promise<OrderRow | null> {
     if (!sessionId) return null;
     const { data, error } = await db()
       .from("orders")
@@ -96,24 +203,35 @@ export const orders = {
     return data;
   },
 
-  async getByEmailPhone(email: string, phone: string): Promise<any[]> {
+  async getByEmailPhone(email: string, phone: string): Promise<OrderRow[]> {
+    // Matches on customer_email_lc, a stored generated column holding
+    // lower(customer_email), indexed by 0003. This was `.ilike("customer_email",
+    // email)` with no wildcards — case-insensitive equality written with a
+    // pattern operator, which is exactly what stopped it using an index, so
+    // every /account lookup scanned the whole orders table.
+    //
+    // Behaviour is unchanged: same rows, still case-insensitive. Only the plan
+    // differs. Lowercasing here must stay in step with the column's lower().
     const { data, error } = await db()
       .from("orders")
       .select("*")
-      .ilike("customer_email", email)
+      .eq("customer_email_lc", email.trim().toLowerCase())
       .order("created_at", { ascending: false });
     if (error) throw error;
+    // The phone stays in JavaScript on purpose — see the note at the foot of
+    // 0003. It is a last-eight-digits comparison, which no btree index can
+    // serve, and by this point the set is one address's orders.
     return (data || []).filter((o) => phoneMatches(o.customer_phone || "", phone));
   },
 
-  async getByTracking(id: string, phone: string): Promise<any | null> {
+  async getByTracking(id: string, phone: string): Promise<OrderRow | null> {
     const order = await this.getById(id);
     if (!order) return null;
     if (!phoneMatches(order.customer_phone || "", phone)) return null;
     return order;
   },
 
-  async insert(order: any): Promise<any> {
+  async insert(order: Partial<OrderRow>): Promise<OrderRow> {
     // Let Postgres generate id/created_at/updated_at unless explicitly provided.
     const { data, error } = await db()
       .from("orders")
@@ -124,7 +242,7 @@ export const orders = {
     return data;
   },
 
-  async update(id: string, updates: Record<string, any>): Promise<any | null> {
+  async update(id: string, updates: Partial<OrderRow>): Promise<OrderRow | null> {
     const { data, error } = await db()
       .from("orders")
       .update({ ...updates, updated_at: new Date().toISOString() })
@@ -138,26 +256,99 @@ export const orders = {
 
 // ───────────────────────── order_items ─────────────────────────
 export const orderItems = {
-  async getAll(): Promise<any[]> {
+  async getAll(): Promise<OrderItemRow[]> {
     const { data, error } = await db().from("order_items").select("*");
     if (error) throw error;
     return data || [];
   },
-  async insertMany(items: any[]): Promise<void> {
+  async insertMany(items: Partial<OrderItemRow>[]): Promise<void> {
     if (!items.length) return;
     const { error } = await db().from("order_items").insert(items);
     if (error) throw error;
   },
 };
 
+// ───────────────────────── product_reviews ─────────────────────────
+// Every row is tied to an order by foreign key (migration 0005), which is what
+// makes "ratings shown are backed by a real order" structural rather than a
+// promise. See src/app/page.tsx:9-25 for why that matters here.
+export const reviews = {
+  /** Published reviews for one product, newest first. */
+  async getBySlug(slug: string): Promise<ReviewRow[]> {
+    if (!slug) return [];
+    const { data, error } = await db()
+      .from("product_reviews")
+      .select("id, rating, comment, customer_name, created_at")
+      .eq("product_slug", slug)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+
+  /**
+   * Average and count per slug, for the catalogue grid.
+   *
+   * Aggregated in JS rather than SQL because PostgREST cannot express GROUP BY
+   * without a database view, and the review count here is small enough that the
+   * round trip is the cost, not the arithmetic. Revisit with a view if this
+   * table ever reaches five figures.
+   */
+  async aggregates(): Promise<Record<string, { average: number; count: number }>> {
+    const { data, error } = await db().from("product_reviews").select("product_slug, rating");
+    if (error) throw error;
+    const totals = new Map<string, { sum: number; count: number }>();
+    for (const row of data || []) {
+      const slug = String(row.product_slug);
+      const t = totals.get(slug) || { sum: 0, count: 0 };
+      t.sum += Number(row.rating) || 0;
+      t.count += 1;
+      totals.set(slug, t);
+    }
+    const out: Record<string, { average: number; count: number }> = {};
+    for (const [slug, t] of totals) {
+      out[slug] = { average: Math.round((t.sum / t.count) * 10) / 10, count: t.count };
+    }
+    return out;
+  },
+
+  /** Reviews already left against one order, so the form can grey them out. */
+  async getByOrder(orderId: string): Promise<Pick<ReviewRow, "product_slug">[]> {
+    if (!orderId) return [];
+    const { data, error } = await db()
+      .from("product_reviews")
+      .select("product_slug")
+      .eq("order_id", orderId);
+    if (error) return [];
+    return data || [];
+  },
+
+  /** Has this order already reviewed this piece? Enforced by a UNIQUE too. */
+  async existsFor(orderId: string, slug: string): Promise<boolean> {
+    const { data, error } = await db()
+      .from("product_reviews")
+      .select("id")
+      .eq("order_id", orderId)
+      .eq("product_slug", slug)
+      .maybeSingle();
+    if (error) return false;
+    return !!data;
+  },
+
+  async insert(review: Partial<ReviewRow>): Promise<ReviewRow> {
+    const { data, error } = await db().from("product_reviews").insert(review).select().single();
+    if (error) throw error;
+    return data;
+  },
+};
+
 // ───────────────────────── product_variants ─────────────────────────
 export const productVariants = {
-  async getAll(): Promise<any[]> {
+  async getAll(): Promise<VariantRow[]> {
     const { data, error } = await db().from("product_variants").select("*");
     if (error) throw error;
     return data || [];
   },
-  async getBySlug(slug: string): Promise<any[]> {
+  async getBySlug(slug: string): Promise<VariantRow[]> {
     const { data, error } = await db()
       .from("product_variants")
       .select("*")
@@ -167,7 +358,7 @@ export const productVariants = {
   },
   // Upsert on the UNIQUE (product_slug, variant_sku). Returns how many rows the
   // upsert wrote (inserts + updates) — callers only use it as a nonzero signal.
-  async upsertMany(variants: any[]): Promise<number> {
+  async upsertMany(variants: Partial<VariantRow>[]): Promise<number> {
     if (!variants.length) return 0;
     const { data, error } = await db()
       .from("product_variants")
@@ -182,12 +373,12 @@ export const productVariants = {
 // The storefront catalog also ships statically in src/lib/products.ts; this
 // table holds imported/edited products (Postgres has the full 500+ row catalog).
 export const catalog = {
-  async getAll(): Promise<any[]> {
+  async getAll(): Promise<ProductRow[]> {
     const { data, error } = await db().from("products").select("*");
     if (error) throw error;
     return data || [];
   },
-  async upsert(product: any): Promise<void> {
+  async upsert(product: Partial<ProductRow>): Promise<void> {
     const { error } = await db()
       .from("products")
       .upsert({ ...product, updated_at: new Date().toISOString() }, { onConflict: "slug" });
