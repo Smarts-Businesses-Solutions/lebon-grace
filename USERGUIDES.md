@@ -284,11 +284,41 @@ reply that bounces helps nobody. Ordinary addresses — including
 
 ## The newsletter
 
-Subscribe from the footer; unsubscribe at `/unsubscribe` with the same address.
+Subscribe from the homepage; unsubscribe at `/unsubscribe` with the same address.
 
-Unsubscribing always says the same thing whether or not the address was on the
-list. That is deliberate — otherwise the page could be used to work out who has
-subscribed.
+**What actually happens when you subscribe.** Your address is stored, and that is
+all — **no confirmation email is sent, and no welcome offer exists**. If you were
+expecting one, nothing has gone wrong. Signing up twice is not an error either;
+the second one is quietly ignored.
+
+**How often will you hear from us?** Honestly: **not yet.** No campaign has ever
+been sent from this shop. The page says "we will email you when there is
+something new", and that remains true rather than imminent.
+
+**Unsubscribing.** Enter the address at `/unsubscribe`. The row is **deleted
+outright**, not flagged — keeping the address of someone who asked to be
+forgotten is the opposite of what they asked for. It always says the same thing
+whether or not the address was on the list, deliberately, so the page cannot be
+used to work out who has subscribed. Five signups and ten unsubscribes an hour
+per address-holder's connection, which no real person will notice.
+
+Unsubscribing does **not** stop emails about orders you have already placed —
+those have to be sent to fulfil the order.
+
+### For the operator
+
+Until 2026-08-09 the list was **write-only**: addresses went into a table that
+nothing in the application could read — no admin view, no export, no send path —
+so "we will email you" was a promise the shop had no mechanism to keep.
+
+`GET /api/admin/subscribers` now returns the list and a count, and
+`?format=csv` downloads it for whatever actually sends the mail. It is
+**admin-only**, because it returns a list of people's email addresses; a new
+file under `src/app/api/` is public the moment it is created, and that has
+already bitten this project once.
+
+There is still no sending path in the application, and that is deliberate — the
+export exists precisely so one does not have to be invented here.
 
 ---
 

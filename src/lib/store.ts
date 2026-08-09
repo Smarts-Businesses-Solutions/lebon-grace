@@ -417,6 +417,27 @@ export const catalog = {
 // the NEXT_PUBLIC_ one, so a route that read SUPABASE_URL directly threw
 // "supabaseUrl is required" on every signup.
 export const subscribers = {
+  /**
+   * The list, for the operator.
+   *
+   * This did not exist. `subscribers` had `add` and `remove` and nothing else,
+   * so an address typed into the homepage went into a table that **nothing in
+   * the application could read** — no admin view, no export, no send path. The
+   * homepage meanwhile promises "We will email you when there is something
+   * new", which was a promise the system had no way to keep.
+   *
+   * Newest first, because the useful question is "who joined since I last
+   * looked".
+   */
+  async getAll(): Promise<Array<{ id: string; email: string; source: string | null; created_at: string }>> {
+    const { data, error } = await db()
+      .from("newsletter_subscribers")
+      .select("id,email,source,created_at")
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return (data || []) as Array<{ id: string; email: string; source: string | null; created_at: string }>;
+  },
+
   /** Returns true if this created a new subscriber, false if already on the list. */
   async add(email: string, source = "homepage"): Promise<boolean> {
     const { error } = await db()
