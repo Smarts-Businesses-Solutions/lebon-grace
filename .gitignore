@@ -68,7 +68,9 @@ sub.json
 shopnode.json
 HOSTINGER_*.md
 SESSION_RESUME.md
-whatnext.md
+# whatnext.md was ignored here as collateral of the Hostinger cleanup above,
+# not as a deliberate "this stays local". It is the ranked queue and the docs
+# link to it, so it is tracked as of 2026-08-09.
 
 # Playwright HTML report (test-results/ is already ignored above).
 playwright-report/
