@@ -105,16 +105,20 @@ jobs:
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
-      # Runs the desktop project only. The two mobile viewports are configured
-      # and worth adding, but a release gate earns trust by being fast and
-      # never flaky first.
+      # All three projects: desktop 1920x1080, iPhone-class and Android-class
+      # (§2.3). 126 tests in about two minutes locally — a gate earns trust by
+      # being fast and never flaky, and this is both.
+      #
+      # The mobile-only suite skips itself on desktop rather than living in a
+      # separate config, so the skip list documents which behaviours exist only
+      # below the `lg` breakpoint.
       #
       # Playwright starts the app itself (webServer in playwright.config.ts),
       # serving .next/standalone — the artifact the container actually runs —
       # so this exercises production's server, not a near-neighbour. It needs
       # the Build step above to have produced it.
-      - name: E2E smoke
-        run: npx playwright test --project=desktop
+      - name: E2E (desktop + mobile viewports)
+        run: npx playwright test
 
       # Evidence for a red run: trace, video, screenshots. Without this a CI
       # failure is a stack trace and a guess.

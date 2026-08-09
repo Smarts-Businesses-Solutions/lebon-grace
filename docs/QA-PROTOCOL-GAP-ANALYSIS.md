@@ -60,7 +60,7 @@ elaborate tests for personas and pages that will never exist.
 | ~~Playwright does not run in CI~~ | ✅ **CLOSED 2026-08-08.** `.forgejo/workflows/ci.yml` now installs Chromium, builds, and runs the smoke suite as a hard gate, uploading trace/video/screenshots on failure. Verified it *catches* defects rather than merely passing: a 404ing asset injected into `/about` was reported by name. **The first attempt at that check was invalid** — the string it patched (`<main`) does not appear in that file, so nothing was injected and the resulting 14-pass proved nothing. Re-run with both preconditions asserted (present in source, present in `.next/server/app/about.html`). |
 | ~~Module C — user action coverage~~ | ✅ **CLOSED 2026-08-08.** `tests/e2e/money-path/checkout.spec.ts` — 12 tests over add-to-cart, cart arithmetic, the free-delivery boundary at exactly AED 150, persistence, the checkout payload, and the `/track` refusal. `/api/checkout` is intercepted at the browser so a suite running on every push never creates a real Stripe session; what is asserted instead is the payload the client *asks* to be charged, with the server's refusal to trust it already covered by A-4. **Found a live defect** — see below. |
 | ~~Module E — failure modes~~ | ✅ **CLOSED 2026-08-08.** `tests/e2e/failure-modes/resilience.spec.ts` — 8 tests: forced 500, dropped connection, retry-after-failure, degraded `/api/variants`, order-lookup failure, and the 10s spinner gate. All failures injected with `page.route`, so nothing depends on timing luck. **Found the worst defect of the engagement** — see §7. |
-| Mobile viewport runs | The kit configures three viewports; no test exercises the mobile ones. |
+| ~~Mobile viewport runs~~ | ✅ **CLOSED 2026-08-08.** CI runs all three projects — desktop 1920×1080, iPhone 14 Pro, Pixel 7 — 126 tests in ~2m08s. The existing suites passed on mobile unchanged, so the value is in `tests/e2e/mobile/layout.spec.ts`: the `lg:hidden` sticky buy bar (which has no desktop equivalent and had never been exercised), a geometric regression test for the WhatsApp float that once covered it, horizontal-overflow checks on six routes, the mobile nav toggle, and tap-target sizes. **Found a WCAG 2.5.5 failure** — see §8. |
 | `docs/QA/` artifacts | `SYSTEM_MAP.md`, `COVERAGE_INVENTORY.md`, `ROUTE_COVERAGE_REPORT.md`, `BUGS.md`, `LESSONS_LEARNED.md` do not exist. Much of their content lives in `CODEBASE_AUDIT.md` and `ACTION_PLAN.md` under different names. |
 | Automated a11y sweep | A static WCAG audit exists (`npm run audit:contrast`, 24 pairs) but it checks declared colour pairs, not the rendered DOM. |
 
@@ -106,6 +106,23 @@ In order:
    first run by finding a defect no unit test could see (below).
 4. Leave Modules A/B-per-persona and everything in §2.2 alone until this shop
    has accounts or plans. Today it has neither.
+
+## 8. What the mobile runs found — a 27px tap target on the money path
+
+The cart's quantity controls measured **27×32px**. WCAG 2.5.5 asks for 44×44,
+which is also what Apple and Android publish. A 27px control is fine with a
+mouse and a coin-flip with a thumb — and this is the control between a customer
+and changing what they are about to buy. Raised to a 44px minimum, with
+`aria-label`s added while there.
+
+Invisible at 1920×1080, which is the entire argument for running the viewports.
+
+The suite also pins, geometrically rather than by class name, that the WhatsApp
+float does not cover the sticky Add-to-cart bar. That is not hypothetical:
+`WhatsAppButton.tsx:43-48` records the float being `z-50 bottom-6` against the
+bar's `z-40 bottom-0`, so on every product page the green circle sat on Add to
+cart and swallowed the tap. Verified by moving it back — the test fails with
+"the WhatsApp float overlaps the Add to cart button — it will eat the tap".
 
 ## 6. What Module E found — a failed payment that said "Order Confirmed"
 

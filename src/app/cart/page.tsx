@@ -70,9 +70,9 @@ export default function CartPage() {
                 <p className="text-gray-900 text-sm font-semibold mt-2">{formatPrice(item.product.price)}</p>
                 <div className="mt-2 flex items-center justify-between">
                   <div className="flex items-center border border-rule">
-                    <button onClick={() => updateQuantity(lineId(item), item.quantity - 1)} className="px-2.5 py-1.5 text-gray-500 hover:text-gray-700 transition-colors text-sm">−</button>
+                    <button aria-label="Decrease quantity" onClick={() => updateQuantity(lineId(item), item.quantity - 1)} className="min-w-11 min-h-11 inline-flex items-center justify-center text-gray-500 hover:text-gray-700 transition-colors text-sm">−</button>
                     <span className="px-3 py-1.5 text-sm font-medium">{item.quantity}</span>
-                    <button data-testid="cart-qty-inc" onClick={() => updateQuantity(lineId(item), item.quantity + 1)} className="px-2.5 py-1.5 text-gray-500 hover:text-gray-700 transition-colors text-sm">+</button>
+                    <button data-testid="cart-qty-inc" aria-label="Increase quantity" onClick={() => updateQuantity(lineId(item), item.quantity + 1)} className="min-w-11 min-h-11 inline-flex items-center justify-center text-gray-500 hover:text-gray-700 transition-colors text-sm">+</button>
                   </div>
                   <button onClick={() => removeItem(lineId(item))} className="text-gray-400 text-xs hover:text-red-500 transition-colors">Remove</button>
                 </div>
