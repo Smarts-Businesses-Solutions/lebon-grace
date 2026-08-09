@@ -315,6 +315,71 @@ WhatsApp messages remain undelivered. Operator task, not a code change.
 
 ---
 
+## B-21 · A single digit was a valid phone for someone else's order
+
+Found walking production as a returning customer, 2026-08-09. **Fixed.**
+
+There are no accounts here, so a pair *is* the credential: `/track` takes order
+id + phone, `/account` takes email + phone. A match returns the full record —
+name, email, phone, delivery address, totals, tracking.
+
+The comparison was:
+
+```js
+ca.endsWith(cb.slice(-8)) || cb.endsWith(ca.slice(-8))
+```
+
+`slice(-8)` of a **short** string is the whole string, so a short input *widened*
+the match instead of narrowing it. Verified directly:
+
+```
+phoneMatches("0501234567", "7")  ===  true
+```
+
+Exactly one single digit matches any given number, so **ten attempts sufficed** —
+against a rate limit of **ten an hour**. The limiter added in A-21 was sized for
+guessing a whole phone number and was never a barrier to guessing one digit.
+
+With a valid order id that returned a stranger's full record; with a known email
+address, their entire order history.
+
+**Fix.** A fixed eight-digit window, and a refusal to compare at all when either
+side is shorter — so the length of the input can no longer change how strict the
+test is. Eight rather than nine because a UAE landline has eight significant
+digits, and nine would lock those customers out of the only route to their own
+order.
+
+Moved from two private functions in `store.ts` to `src/lib/phone.ts`. Nothing
+could reach them without a database, which is why the defect survived; the
+extraction paid for itself immediately by catching that measuring length *after*
+the `^0 → 971` substitution lets a seven-digit entry pass as nine.
+
+Pinned by 35 unit tests, including "no single digit matches" and "no two-digit
+string matches" as exhaustive loops rather than samples.
+
+## B-22 · The phone was never validated server-side at checkout
+
+Found alongside B-21. **Fixed.**
+
+`/api/checkout` did `String(customer?.phone || "").trim().slice(0, 32)` and
+nothing else. The only check lived in the checkout page and counted
+**characters** — `form.phone.length < 10` — so `"----------"` passed it, and
+being client-side it never bound a request that did not come from our own form.
+
+The phone is half the credential for both lookups, so a stored phone that cannot
+be compared is **an order the customer can never reach**. There is no account and
+no password reset; the only fallback is messaging a human.
+
+**Fix.** Both sides now use `isUsablePhone` from `src/lib/phone.ts`, counting
+digits rather than characters.
+
+**Existing data checked:** one order, 12 digits, zero unmatchable — so the
+stricter rule locked nobody out.
+
+The e2e guard uses `"(05) 0-1 2-3"` — 12 characters, 6 digits. `"4567"` would
+have been rejected by the old rule too, and the test would have passed without
+the fix (L-1).
+
 ## Still open
 
 | Bug | Where |
