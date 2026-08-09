@@ -2,17 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { rateLimit } from "@/lib/rate-limit";
 import { CONTACT } from "@/lib/contact";
-import { fromAddress } from "@/lib/email";
+import { fromAddress, esc } from "@/lib/email";
 import { isDeliverableEmail } from "@/lib/email-address";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-
-function esc(s: string): string {
-  return s.replace(/[&<>"']/g, (c) =>
-    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!)
-  );
-}
 
 /**
  * Contact form.

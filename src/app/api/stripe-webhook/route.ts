@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { stripe, stripeMode } from "@/lib/stripe";
 import { orders as orderStore, orderItems } from "@/lib/store";
-import { sendOrderEmail } from "@/lib/email";
+import { sendOrderEmail, sendOperatorOrderAlert } from "@/lib/email";
 import { notifyWhatsApp } from "@/lib/whatsapp";
 
 export async function POST(request: NextRequest) {
@@ -120,6 +120,10 @@ export async function POST(request: NextRequest) {
 
     console.log("Order created:", orderId);
 
+    // Captured for the operator alert below, which must be able to say WHAT
+    // was ordered and what is engraved without the reader opening /admin.
+    let orderedItems: Array<{ product_name: string; quantity: number; personalisation?: string | null }> = [];
+
     // ─── AWAIT order items insert (not fire-and-forget) ───
     try {
       const lineItems = await stripe().checkout.sessions.listLineItems(session.id, {
@@ -155,6 +159,8 @@ export async function POST(request: NextRequest) {
               : "",
           };
         });
+
+      orderedItems = items;
 
       if (items.length > 0) {
         await orderItems.insertMany(items);
@@ -201,6 +207,19 @@ export async function POST(request: NextRequest) {
       ...notificationOrder,
       status: "confirmation",
     }).catch((err) => console.error("WhatsApp notification failed:", err));
+
+    // Tell the OPERATOR. Nothing did: the two calls above both address the
+    // customer, and the maker found out by opening /admin and looking.
+    //
+    // Fire-and-forget, deliberately. Failing the webhook when this fails would
+    // make Stripe retry, and the retry short-circuits on the idempotency check
+    // above — so the alert would be skipped permanently rather than resent.
+    // Safe here because the app runs as a long-lived standalone Node server,
+    // not a serverless function that may freeze once the response is sent.
+    sendOperatorOrderAlert(
+      { ...notificationOrder, customer_phone: order.customer_phone },
+      orderedItems
+    ).catch((err) => console.error("[operator-alert] failed:", err));
   }
 
   return NextResponse.json({ received: true });

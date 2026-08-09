@@ -29,6 +29,9 @@ const m = vi.hoisted(() => ({
   insert: vi.fn(async (_order: Record<string, unknown>) => ({ id: "ord_1" })),
   insertMany: vi.fn(async (_rows: unknown[]) => undefined),
   sendOrderEmail: vi.fn(async () => undefined),
+  // Params declared: a bare vi.fn() infers an empty tuple, so mock.calls[0][0]
+  // is a COMPILE error rather than a runtime one.
+  sendOperatorOrderAlert: vi.fn(async (_order: Record<string, unknown>, _items?: unknown[]) => true),
   notifyWhatsApp: vi.fn(async () => undefined),
 }));
 
@@ -43,7 +46,7 @@ vi.mock("@/lib/store", () => ({
   orders: { getBySessionId: m.getBySessionId, insert: m.insert },
   orderItems: { insertMany: m.insertMany },
 }));
-vi.mock("@/lib/email", () => ({ sendOrderEmail: m.sendOrderEmail }));
+vi.mock("@/lib/email", () => ({ sendOrderEmail: m.sendOrderEmail, sendOperatorOrderAlert: m.sendOperatorOrderAlert }));
 vi.mock("@/lib/whatsapp", () => ({ notifyWhatsApp: m.notifyWhatsApp }));
 
 const { constructEvent, insert, getBySessionId } = m;
@@ -227,6 +230,45 @@ describe("POST /api/stripe-webhook — order contents", () => {
     await POST(post());
     const rows = m.insertMany.mock.calls[0][0] as Array<Record<string, unknown>>;
     expect(rows[0].personalisation).toBeNull();
+  });
+
+  it("tells the OPERATOR a new order arrived, not just the customer", async () => {
+    // Nobody told the operator. sendOrderEmail() addresses the customer and
+    // notifyWhatsApp() addresses the customer's phone; there was no admin
+    // recipient anywhere in src/. The maker found out by opening /admin and
+    // looking. .env.example documented ORDER_NOTIFY_EMAIL and no code read it.
+    constructEvent.mockReturnValue(completedEvent());
+    m.listLineItems.mockResolvedValue({
+      data: [{
+        description: "ABC Jigsaw Board",
+        quantity: 1,
+        amount_total: 1500,
+        price: { product: { metadata: { slug: "abc-jigsaw-board", personalisation: "Amira" }, images: [] } },
+      }],
+    });
+
+    await POST(post());
+    // The send is fire-and-forget, deliberately: making the webhook fail on a
+    // notification failure would have Stripe retry, and the retry short-circuits
+    // on the idempotency check — so the alert would be skipped permanently
+    // rather than retried. Give the microtask a turn.
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(
+      m.sendOperatorOrderAlert,
+      "the operator was never told the order arrived"
+    ).toHaveBeenCalledTimes(1);
+
+    // It must carry enough to act on WITHOUT opening /admin — the engraving
+    // above all, since that is cut irreversibly.
+    const [alertOrder, alertItems] = m.sendOperatorOrderAlert.mock.calls[0];
+    expect(alertOrder.customer_name, "the alert must name the customer").toBeTruthy();
+    // The engraving travels in the ITEMS argument, not the order — the first
+    // draft stringified only the order and reported a false failure.
+    expect(
+      JSON.stringify(alertItems),
+      "the alert must carry the engraving; it is cut irreversibly"
+    ).toContain("Amira");
   });
 
   it("shouts when a paid order ends up with nothing to make", async () => {

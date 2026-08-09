@@ -1,5 +1,19 @@
 import { Resend } from "resend";
 import { getAppUrl } from "./app-url";
+import { CONTACT } from "./contact";
+
+/**
+ * Escape for interpolation into an HTML email body.
+ *
+ * Exported rather than kept local: /api/contact had its own identical copy, and
+ * duplicated escaping is exactly the thing that ends up fixed in one place and
+ * not the other.
+ */
+export function esc(s: string): string {
+  return s.replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!)
+  );
+}
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -264,6 +278,87 @@ export async function sendOrderEmail(order: EmailOrder, action: string): Promise
     return true;
   } catch (error) {
     console.error(`Email failed: ${action}`, error);
+    return false;
+  }
+}
+
+/**
+ * Tell the operator an order arrived.
+ *
+ * Nothing did. `sendOrderEmail` addresses `order.customer_email` and
+ * `notifyWhatsApp` addresses the customer's phone — both go to the CUSTOMER,
+ * and there was no admin recipient anywhere in the codebase. The maker found
+ * out by opening /admin and looking. `.env.example` has documented
+ * ORDER_NOTIFY_EMAIL since the beginning and no code ever read it.
+ *
+ * Same family as B-7 and B-18: the money path succeeds and the person who has
+ * to act is the one nobody told.
+ *
+ * Email rather than WhatsApp, for now. The council split on this — MiniMax
+ * argued WhatsApp is the right channel for a maker at a workbench with busy
+ * hands, and it is probably right — but the WhatsApp Business credentials are
+ * not configured in production, so that path silently returns false today.
+ * Email works, is already proven to deliver to this address, and costs nothing.
+ * Wiring WhatsApp later does not require changing this.
+ *
+ * Recipient: ORDER_NOTIFY_EMAIL if set (the documented variable), otherwise the
+ * contact address, which is set in production and known to deliver. Honours the
+ * intent without requiring configuration to start working.
+ *
+ * Content is chosen so the operator can act WITHOUT opening the admin page, and
+ * the subject line carries the order and the value so it is useful unread on a
+ * lock screen. The engraving is called out first: it is cut irreversibly, and
+ * it is the one field worth checking before any wood is touched.
+ */
+export interface OperatorAlertItem {
+  product_name: string;
+  quantity: number;
+  personalisation?: string | null;
+}
+
+export async function sendOperatorOrderAlert(
+  order: EmailOrder & { delivery_method?: string; customer_phone?: string },
+  items: OperatorAlertItem[] = []
+): Promise<boolean> {
+  const to = process.env.ORDER_NOTIFY_EMAIL || CONTACT.email;
+  if (!to) {
+    console.error("[operator-alert] no ORDER_NOTIFY_EMAIL or CONTACT_EMAIL — nobody will be told about orders");
+    return false;
+  }
+
+  const short = String(order.id || "").slice(0, 8);
+  const engraved = items.filter((i) => i.personalisation);
+  const lines = items.length
+    ? items
+        .map(
+          (i) =>
+            `<li>${i.quantity} x ${esc(i.product_name)}${
+              i.personalisation ? ` — <strong>engrave: ${esc(String(i.personalisation))}</strong>` : ""
+            }</li>`
+        )
+        .join("")
+    : "<li><strong>No line items recorded</strong> — check the Stripe session before cutting anything.</li>";
+
+  const html = `
+    <p><strong>New order #${esc(short)}</strong> — AED ${order.total}</p>
+    <ul>${lines}</ul>
+    <p>${esc(order.customer_name || "")}${order.customer_phone ? ` · ${esc(order.customer_phone)}` : ""}</p>
+    <p>${order.delivery_method === "delivery" ? "Delivery" : "Collection"} · made to order, 2 to 3 working days</p>
+    ${engraved.length ? "<p><strong>Check the spelling before cutting.</strong></p>" : ""}
+  `;
+
+  try {
+    await resend.emails.send({
+      from: fromAddress(),
+      to: [to],
+      subject: `New order #${short} — AED ${order.total}${engraved.length ? " (engraved)" : ""}`,
+      html,
+    });
+    return true;
+  } catch (error) {
+    // Loud, not thrown. The caller must not fail the webhook over this — see
+    // the note at the call site about Stripe retries and idempotency.
+    console.error(`[operator-alert] could not tell the operator about order ${short}:`, error);
     return false;
   }
 }
