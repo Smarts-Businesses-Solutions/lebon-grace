@@ -251,4 +251,54 @@ test.describe("@smoke money path — order lookup", () => {
     // rendered, AND no order was disclosed alongside it.
     await expect(page.getByText(/tracking number|order id\s*#/i)).toHaveCount(0);
   });
+
+  test("a single-digit phone is refused, not treated as a match", async ({ page }) => {
+    // R-1. The phone comparison was `ca.endsWith(cb.slice(-8))`, and slice(-8)
+    // of a one-character string is that character — so "7" matched any number
+    // ending in 7. Exactly one digit matches, so ten attempts defeated the
+    // phone half of the credential, against a limit of ten an hour.
+    //
+    // The unit tests in src/lib/phone.test.ts pin the comparison itself; this
+    // pins that the shipped page does not accept it either.
+    await page.goto("/track");
+    await page.getByTestId("track-order-id").fill("3f1c2b8a");
+    await page.getByTestId("track-phone").fill("7");
+    await page.getByTestId("track-submit").click();
+
+    await expect(page.getByTestId("track-error")).toBeVisible({ timeout: 15_000 });
+    // Paired with the refusal so this is not a bare absence check.
+    await expect(page.getByText(/tracking number|order id\s*#/i)).toHaveCount(0);
+  });
+});
+
+test.describe("@smoke money path — the phone is part of the credential", () => {
+  test("checkout refuses a phone too short to look the order up with", async ({ page }) => {
+    // R-2. The only phone check lived on the client and counted CHARACTERS
+    // (`form.phone.length < 10`), so "----------" passed it. A stored phone
+    // that cannot be compared is an order the customer can never reach: both
+    // /track and /account check it, and there is no account to fall back on.
+    //
+    // Asserts the request is never made, which is stronger than asserting a
+    // message: the guard exists to stop the order being created at all.
+    let checkoutCalled = false;
+    await page.route("**/api/checkout", async (route) => {
+      checkoutCalled = true;
+      await route.abort();
+    });
+
+    await addToCart(page);
+    await page.goto("/checkout");
+    await fillCheckout(page, { delivery: false });
+    // 12 CHARACTERS but only 6 DIGITS — chosen so this test discriminates.
+    // "4567" would be rejected by the old rule too (4 < 10) and the test would
+    // pass without the fix, which is no test at all. This value sails through
+    // `form.phone.length < 10` and is caught only by counting digits.
+    await page.fill('input[name="phone"]', "(05) 0-1 2-3");
+    await page.getByRole("button", { name: /pay|place order|continue/i }).first().click();
+
+    // Precondition for the absence assertion below: the form is still here,
+    // i.e. we did not simply navigate away and observe nothing.
+    await expect(page.locator('input[name="phone"]')).toBeVisible();
+    expect(checkoutCalled, "a too-short phone must not reach /api/checkout").toBe(false);
+  });
 });

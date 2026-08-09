@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useCart, saveCartEmail, clearCartRecovery } from "@/lib/cart-context";
 import { formatPrice } from "@/lib/products";
 import { isDeliverableEmail } from "@/lib/email-address";
+import { isUsablePhone } from "@/lib/phone";
 
 const emirates = ["Dubai", "Abu Dhabi", "Sharjah", "Ajman", "Ras Al Khaimah", "Fujairah", "Umm Al Quwain"];
 
@@ -55,7 +56,13 @@ export default function CheckoutPage() {
     if (!form.email.trim()) ne.email = "Email is required";
     else if (!isDeliverableEmail(form.email))
       ne.email = "That email address will not receive your order confirmation — please check it";
-    if (!form.phone.trim() || form.phone.length < 10) ne.phone = "Valid phone required";
+    // Counts DIGITS, via the same helper the server now uses. It counted
+    // CHARACTERS (`form.phone.length < 10`), so "----------" passed — and a
+    // stored phone that cannot be compared is an order the customer can never
+    // reach, because /track and /account both check it.
+    if (!form.phone.trim()) ne.phone = "Phone is required";
+    else if (!isUsablePhone(form.phone))
+      ne.phone = "That number looks too short — it is also how you find your order later";
     if (!form.firstName.trim()) ne.firstName = "Required";
     if (!form.lastName.trim()) ne.lastName = "Required";
     if (deliveryMethod === "delivery") {

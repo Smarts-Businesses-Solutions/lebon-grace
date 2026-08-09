@@ -140,8 +140,64 @@ you do, that is a fault worth telling us about.
 - **Order not completed** — the order could not go through, and nothing was
   charged.
 
-**If you ordered more than once:** go to **Account** and enter your email and
-phone to see all of them together.
+## Coming back — finding your orders again
+
+There is no account to log into, and no password. **Account** is a lookup, not a
+login: enter the **email address** and the **phone number** you ordered with, and
+you get every order matching that pair, newest first.
+
+Two routes, and they answer different questions:
+
+| Page | You need | You get |
+|---|---|---|
+| **Track** | order number **+** phone | that one order, with its timeline |
+| **Account** | email **+** phone | **every** order on that email and phone |
+
+**Use Account when you have lost the order number** — it is the way back in when
+the confirmation email has gone missing, because it needs nothing you were given
+after the fact.
+
+### Getting the phone number right
+
+It is matched on the **last 8 digits**, so all of these are the same number and
+any of them will work:
+
+`0501234567` · `+971 50 123 4567` · `971501234567` · `050-123-4567`
+
+What matters is that it is *the number you typed at checkout*. A different
+number will not find the order even if it also belongs to you — there is no
+account tying your numbers together.
+
+Since 2026-08-09 a **too-short number is refused rather than accepted**. Entering
+just the last few digits used to appear to work and could show an order that was
+not yours; it now asks for the full number. Checkout refuses a short number too,
+for the same reason: if the stored number cannot be matched, you would have no
+way back to your own order.
+
+### If it says no orders found
+
+The message is deliberately the same whether the email is unknown or the phone
+does not match — so that nobody can use this page to discover whether an address
+has ordered here. That does mean it cannot tell you *which* of the two is wrong.
+Check both, then:
+
+- try the phone in another format (with `+971`, or with the leading `0`);
+- try any other email you might have used — a work address, or the one attached
+  to your card;
+- if it still fails, **message us on WhatsApp**. There is no password reset,
+  because there is no password; a human is the fallback, and we can find an
+  order from a name and roughly when it was placed.
+
+**Ten lookups an hour.** That is generous for someone checking their own order
+and deliberately tight for anyone working through guesses. If you hit it, wait
+and try again — nothing is wrong with your order.
+
+### What a returning customer cannot do
+
+There is nothing to keep signed in, no saved address, no order history beyond
+the lookup, and no way to re-order in one click. Every visit starts the same way.
+That is a deliberate trade — see `docs/QA/ACTORS.md` — the shop holds no account
+to be broken into, and the basket lives only in your own browser.
 
 ## Leaving a review
 

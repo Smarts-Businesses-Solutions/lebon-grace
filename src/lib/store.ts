@@ -16,6 +16,7 @@
  *   - catalog:         getAll / upsert / remove
  */
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { phoneMatches } from "./phone";
 
 const SUPABASE_URL =
   process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
@@ -143,16 +144,12 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 // phone" to "a phone number" — the id stopped being a secret at all.
 const ID_PREFIX_RE = /^[0-9a-f]{8}[0-9a-f-]*$/i;
 
-// Normalize a phone to comparable digits (UAE): strip non-digits, leading 0 → 971.
-function cleanPhone(p: string): string {
-  return (p || "").replace(/\D/g, "").replace(/^0/, "971");
-}
-function phoneMatches(a: string, b: string): boolean {
-  const ca = cleanPhone(a);
-  const cb = cleanPhone(b);
-  if (!ca || !cb) return false;
-  return ca.endsWith(cb.slice(-8)) || cb.endsWith(ca.slice(-8));
-}
+// Phone comparison moved to src/lib/phone.ts. It was two private functions
+// here, which is exactly why the defect in it survived: nothing could reach
+// them without a database, so nothing tested them. `ca.endsWith(cb.slice(-8))`
+// let a SHORT input widen the match — supplying "7" matched any number ending
+// in 7, so ten attempts defeated the phone half of the credential against a
+// limit of ten an hour.
 
 // ───────────────────────── orders ─────────────────────────
 export const orders = {

@@ -5,6 +5,7 @@ import { products } from "@/lib/products";
 import { rateLimit } from "@/lib/rate-limit";
 import { getAppUrl } from "@/lib/app-url";
 import { isDeliverableEmail } from "@/lib/email-address";
+import { isUsablePhone } from "@/lib/phone";
 
 export async function POST(request: NextRequest) {
   // Each call creates a Stripe Checkout Session; cap per IP to stop abuse.
@@ -38,6 +39,26 @@ export async function POST(request: NextRequest) {
     );
   }
   const custPhone = String(customer?.phone || "").trim().slice(0, 32);
+
+  // Same argument as the email guard above, for the other half of the
+  // credential. The phone is what `/track` and `/account` check, so a phone
+  // that cannot be compared is an order the customer can never reach.
+  //
+  // Nothing validated it server-side: this was `.trim().slice(0, 32)` and
+  // that was all. The only check lived in the checkout page and counted
+  // CHARACTERS (`form.phone.length < 10`), so "----------" passed it — and
+  // being client-side it was never binding on a request that did not come
+  // from our own form.
+  if (!isUsablePhone(custPhone)) {
+    return NextResponse.json(
+      {
+        error:
+          "Please enter the mobile number you want us to reach you on — it is also how you look up your order later.",
+      },
+      { status: 400 }
+    );
+  }
+
   const custName = String(customer?.name || "").trim().slice(0, 120);
 
   if (!items || items.length === 0) {
