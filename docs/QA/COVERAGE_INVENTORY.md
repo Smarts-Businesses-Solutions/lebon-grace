@@ -5,7 +5,7 @@
 
 MASTER-QA-PROTOCOL §5.1. Counted from the test files, not asserted.
 
-**151 cases** — 124 unit, 27 browser.
+**153 cases** — 124 unit, 29 browser.
 
 Browser tests run under **three viewports** (desktop 1920×1080, iPhone 14 Pro, Pixel 7), so the executed count is higher than the case count below.
 
@@ -13,6 +13,7 @@ Browser tests run under **three viewports** (desktop 1920×1080, iPhone 14 Pro, 
 
 | File | Cases |
 |---|---:|
+| `tests/e2e/a11y/axe.spec.ts` | 2 |
 | `tests/e2e/failure-modes/resilience.spec.ts` | 8 |
 | `tests/e2e/mobile/layout.spec.ts` | 7 |
 | `tests/e2e/money-path/checkout.spec.ts` | 12 |

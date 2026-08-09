@@ -5,7 +5,7 @@
 
 MASTER-QA-PROTOCOL §6 Module B. From the last recorded Playwright run.
 
-**138 executions** — 126 pass, 12 skipped.
+**183 executions** — 171 pass, 12 skipped.
 
 ## Routes visited
 

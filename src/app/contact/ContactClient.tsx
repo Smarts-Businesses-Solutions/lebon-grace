@@ -125,7 +125,7 @@ export default function ContactClient() {
                 </div>
                 <div>
                   <label className="block text-xs text-gray-600 tracking-wide mb-1.5">Subject</label>
-                  <select name="subject" value={form.subject} onChange={handleChange}
+                  <select aria-label="What is your message about?" name="subject" value={form.subject} onChange={handleChange}
                     className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:border-[#A8874D] focus:ring-2 focus:ring-[#A8874D]/20 outline-none transition-all cursor-pointer">
                     <option>General Inquiry</option>
                     <option>Order Issue</option>
@@ -175,7 +175,7 @@ export default function ContactClient() {
                     {/* This used to link to /contact from /contact. */}
                     <p className="text-sm font-medium text-gray-900">Email</p>
                     <p className="text-sm text-gray-500">Use the form on this page</p>
-                    <p className="text-xs text-gray-400 mt-0.5">We reply to the address you give us</p>
+                    <p className="text-xs text-ink-muted mt-0.5">We reply to the address you give us</p>
                   </div>
                 </div>
 

@@ -247,7 +247,7 @@ export default function AdminPage() {
                           {editSlug === p.slug ? <input value={editName} onChange={(e) => setEditName(e.target.value)} className="border border-rule rounded-lg px-3 py-1.5 text-sm w-full focus:border-sand-dark outline-none" /> : <span className="text-ink font-medium text-sm">{p.name}</span>}
                         </div></td>
                         <td className="px-5 py-3">{editSlug === p.slug ? (
-                          <select value={editCategory} onChange={(e) => setEditCategory(e.target.value)} className="border border-rule rounded-lg px-3 py-1.5 text-sm outline-none">{CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}</select>
+                          <select aria-label="Product category" value={editCategory} onChange={(e) => setEditCategory(e.target.value)} className="border border-rule rounded-lg px-3 py-1.5 text-sm outline-none">{CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}</select>
                         ) : <span className="inline-block px-2.5 py-1 bg-paper-deep rounded-lg text-xs font-medium text-ink-soft">{p.category}</span>}</td>
                         <td className="px-5 py-3">{editSlug === p.slug ? <input type="number" value={editPrice} onChange={(e) => setEditPrice(Number(e.target.value))} className="border border-rule rounded-lg px-3 py-1.5 text-sm w-20 outline-none" /> : <span className="text-ink font-semibold">AED {p.price}</span>}</td>
                         <td className="px-5 py-3">{editSlug === p.slug ? <input type="number" value={editStock} onChange={(e) => setEditStock(Number(e.target.value))} className="border border-rule rounded-lg px-3 py-1.5 text-sm w-16 outline-none" /> : (
@@ -313,7 +313,7 @@ export default function AdminPage() {
                         <td className="px-5 py-3 text-ink font-medium">AED {o.deposit_amount}</td>
                         <td className="px-5 py-3 text-sand font-medium">AED {o.cod_amount}</td>
                         <td className="px-5 py-3"><span className={`px-2 py-0.5 rounded text-xs font-medium ${o.delivery_method === 'pickup' ? 'bg-blue-50 text-blue-700' : 'bg-paper-deep text-ink-soft'}`}>{o.delivery_method === 'pickup' ? 'Pickup' : 'Delivery'}</span></td>
-                        <td className="px-5 py-3"><select value={o.status} onChange={(e) => updateOrderStatus(o.id, e.target.value)} disabled={updatingOrderId === o.id}
+                        <td className="px-5 py-3"><select aria-label="Order status" value={o.status} onChange={(e) => updateOrderStatus(o.id, e.target.value)} disabled={updatingOrderId === o.id}
                           className={`px-2 py-1 rounded-lg text-xs font-medium border border-rule outline-none ${sc.bg} ${sc.text}`}>
                           {ORDER_STATUSES.map((s) => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>)}
                         </select></td>

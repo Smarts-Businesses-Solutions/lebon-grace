@@ -108,7 +108,7 @@ export default function ProductDetailPage() {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
         <h1 className="text-2xl font-semibold">Product Not Found</h1>
-        <p className="mt-4 text-gray-400 text-sm">The product you are looking for does not exist.</p>
+        <p className="mt-4 text-ink-muted text-sm">The product you are looking for does not exist.</p>
         <Link href="/shop" className="mt-6 inline-block text-[#A8874D] text-sm font-medium hover:underline">Back to Shop</Link>
       </div>
     );
@@ -147,7 +147,7 @@ export default function ProductDetailPage() {
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
       {/* Breadcrumb */}
-      <nav className="mb-6 flex items-center gap-2 text-sm text-gray-400">
+      <nav className="mb-6 flex items-center gap-2 text-sm text-ink-muted">
         <Link href="/shop" className="hover:text-[#A8874D] transition-colors">Shop</Link>
         <span>/</span>
         <Link href={"/shop?category=" + encodeURIComponent(product.category)} className="hover:text-[#A8874D] transition-colors">{product.category}</Link>
@@ -286,7 +286,7 @@ export default function ProductDetailPage() {
                   );
                 })}
               </div>
-              <p className="text-[11px] text-gray-400 mt-2">{variantGroup.variants.length} styles available</p>
+              <p className="text-[11px] text-ink-muted mt-2">{variantGroup.variants.length} styles available</p>
             </div>
           )}
 
@@ -374,15 +374,15 @@ export default function ProductDetailPage() {
             <div className="flex items-center gap-3">
               <label className="text-sm text-gray-600">Qty</label>
               <div className="flex items-center border border-gray-200 rounded-lg">
-                <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-3 py-2 text-gray-500 hover:text-gray-700 transition-colors">
+                <button aria-label="Decrease quantity" onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-3 py-2 text-gray-500 hover:text-gray-700 transition-colors">
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 12h-15" /></svg>
                 </button>
                 <span className="px-4 py-2 text-sm font-medium min-w-[40px] text-center">{quantity}</span>
-                <button onClick={() => setQuantity(Math.min(product.stock, quantity + 1))} className="px-3 py-2 text-gray-500 hover:text-gray-700 transition-colors">
+                <button aria-label="Increase quantity" onClick={() => setQuantity(Math.min(product.stock, quantity + 1))} className="px-3 py-2 text-gray-500 hover:text-gray-700 transition-colors">
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                 </button>
               </div>
-              <span className="text-gray-400 text-xs">Made to order</span>
+              <span className="text-ink-muted text-xs">Made to order</span>
             </div>
 
             {/* Squared, matching the homepage’s "Browse the range". The rounded
@@ -406,7 +406,7 @@ export default function ProductDetailPage() {
             {/* MDF-specific action buttons */}
             {isMDF && (
               <div className="mt-3 space-y-2">
-                <p className="text-[11px] text-gray-400 uppercase tracking-wider font-medium">Locally Made in Dubai, UAE</p>
+                <p className="text-[11px] text-ink-muted uppercase tracking-wider font-medium">Locally Made in Dubai, UAE</p>
                 <Link
                   href={"/contact?subject=Custom+MDF+Design&product=" + encodeURIComponent(slug)}
                   className="flex items-center gap-3 w-full px-4 py-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:border-[#A8874D] hover:text-[#A8874D] transition-colors"
@@ -414,7 +414,7 @@ export default function ProductDetailPage() {
                   <span className="text-lg">🎨</span>
                   <div className="text-left">
                     <p className="font-medium">Request Custom Design</p>
-                    <p className="text-[11px] text-gray-400 font-normal">We laser-cut any shape you want</p>
+                    <p className="text-[11px] text-ink-muted font-normal">We laser-cut any shape you want</p>
                   </div>
                 </Link>
                 <WhatsAppLink
@@ -424,7 +424,7 @@ export default function ProductDetailPage() {
                   <span className="text-lg">💬</span>
                   <div className="text-left">
                     <p className="font-medium">WhatsApp Us</p>
-                    <p className="text-[11px] text-gray-400 font-normal">Chat directly with our team</p>
+                    <p className="text-[11px] text-ink-muted font-normal">Chat directly with our team</p>
                   </div>
                 </WhatsAppLink>
                 <Link
@@ -434,7 +434,7 @@ export default function ProductDetailPage() {
                   <span className="text-lg">📦</span>
                   <div className="text-left">
                     <p className="font-medium">Bulk Order Inquiry</p>
-                    <p className="text-[11px] text-gray-400 font-normal">Volume discounts for 50+ pieces</p>
+                    <p className="text-[11px] text-ink-muted font-normal">Volume discounts for 50+ pieces</p>
                   </div>
                 </Link>
               </div>
@@ -525,7 +525,7 @@ export default function ProductDetailPage() {
                 ["Stock", `${product.stock} units`],
               ].map(([label, value]) => (
                 <div key={label} className="flex py-3">
-                  <dt className="w-40 text-sm text-gray-400 flex-shrink-0">{label}</dt>
+                  <dt className="w-40 text-sm text-ink-muted flex-shrink-0">{label}</dt>
                   <dd className="text-sm text-gray-700">{value}</dd>
                 </div>
               ))}
@@ -541,14 +541,14 @@ export default function ProductDetailPage() {
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
                   <div className="flex items-center gap-3">
                     <span className="text-lg">🚚</span>
-                    <div><p className="text-sm font-medium text-gray-700">UAE Delivery</p><p className="text-xs text-gray-400">AED 20, free over AED 150</p></div>
+                    <div><p className="text-sm font-medium text-gray-700">UAE Delivery</p><p className="text-xs text-ink-muted">AED 20, free over AED 150</p></div>
                   </div>
                   <span className="text-sm font-bold text-gray-900">AED 20</span>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-[#23201C]/5 rounded-xl border border-[#A8874D]/10">
                   <div className="flex items-center gap-3">
                     <span className="text-lg">📍</span>
-                    <div><p className="text-sm font-medium text-gray-700">Free Collection</p><p className="text-xs text-gray-400">Ready in 2 to 3 working days</p></div>
+                    <div><p className="text-sm font-medium text-gray-700">Free Collection</p><p className="text-xs text-ink-muted">Ready in 2 to 3 working days</p></div>
                   </div>
                   <span className="text-sm font-bold text-[#A8874D]">FREE</span>
                 </div>

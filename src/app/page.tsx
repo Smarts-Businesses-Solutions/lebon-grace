@@ -266,7 +266,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center mb-8">
             <h2 className="font-heading text-2xl lg:text-3xl font-semibold tracking-tight">Shop by Category</h2>
-            <p className="mt-2 text-gray-400 text-sm">Cut and finished by hand, one at a time</p>
+            <p className="mt-2 text-ink-muted text-sm">Cut and finished by hand, one at a time</p>
           </div>
           <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-6 gap-6">
             {categories.filter((c) => !c.hidden && c.name !== "Clearance").slice(0, 12).map((cat) => {
@@ -305,7 +305,7 @@ export default function HomePage() {
             })}
           </div>
           <div className="text-center mt-8">
-            <Link href="/shop" className="inline-flex items-center gap-1 text-[#A8874D] text-sm font-medium hover:underline">
+            <Link href="/shop" className="inline-flex items-center gap-1 text-ink text-sm font-medium underline underline-offset-4 decoration-sand-dark hover:decoration-ink">
               View all categories
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
             </Link>
@@ -319,9 +319,9 @@ export default function HomePage() {
           <div className="flex items-center justify-between mb-8">
             <div>
               <h2 className="font-heading text-2xl lg:text-3xl font-semibold tracking-tight">Popular Shapes</h2>
-              <p className="mt-1 text-gray-400 text-sm">Alphabet boards, animals and Montessori trays</p>
+              <p className="mt-1 text-ink-muted text-sm">Alphabet boards, animals and Montessori trays</p>
             </div>
-            <Link href="/shop" className="text-[#A8874D] text-sm font-medium hover:underline hidden sm:block">
+            <Link href="/shop" className="text-ink text-sm font-medium underline underline-offset-4 decoration-sand-dark hover:decoration-ink hidden sm:block">
               View all →
             </Link>
           </div>
@@ -363,9 +363,9 @@ export default function HomePage() {
           <div className="flex items-center justify-between mb-8">
             <div>
               <h2 className="font-heading text-2xl lg:text-3xl font-semibold tracking-tight">More From The Workshop</h2>
-              <p className="mt-1 text-gray-400 text-sm">Numbers, vehicles and build-it-yourself kits</p>
+              <p className="mt-1 text-ink-muted text-sm">Numbers, vehicles and build-it-yourself kits</p>
             </div>
-            <Link href="/shop" className="text-[#A8874D] text-sm font-medium hover:underline hidden sm:block">
+            <Link href="/shop" className="text-ink text-sm font-medium underline underline-offset-4 decoration-sand-dark hover:decoration-ink hidden sm:block">
               View all →
             </Link>
           </div>
@@ -388,7 +388,7 @@ export default function HomePage() {
             <div className="lg:col-span-5">
               <span className="eyebrow text-ink-muted">From the workshop</span>
               <h2 className="font-heading text-3xl lg:text-4xl text-ink mt-3 leading-[1.1]">
-                New designs, <em className="text-sand-dark not-italic font-normal">now and then</em>
+                New designs, <em className="text-ink not-italic font-normal">now and then</em>
               </h2>
               <p className="text-ink-soft/80 text-sm mt-4 max-w-sm leading-relaxed">
                 Workshop news and new shapes as they come off the laser. No offers you have not asked for.

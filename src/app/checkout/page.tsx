@@ -146,7 +146,7 @@ export default function CheckoutPage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
         <h1 className="font-heading text-2xl font-semibold">Nothing to Checkout</h1>
         <p className="mt-3 text-warm-gray text-sm">Your cart is empty.</p>
-        <Link href="/shop" className="mt-6 inline-flex items-center px-6 py-3 bg-sand text-white text-sm tracking-wider uppercase font-medium rounded-sm hover:bg-sand-dark transition-colors">Shop Now</Link>
+        <Link href="/shop" className="mt-6 inline-flex items-center px-6 py-3 bg-sand text-ink text-sm tracking-wider uppercase font-medium rounded-sm hover:bg-sand-dark transition-colors">Shop Now</Link>
       </section>
     );
   }
@@ -162,7 +162,7 @@ export default function CheckoutPage() {
           Thank you for your order. You will receive a confirmation email shortly. Your piece is now in the making queue. We cut, sand and finish it in 2 to 3 working days and will let you know the moment it is ready.
         </p>
         <div className="mt-8 flex gap-3 justify-center">
-          <Link href="/track" className="inline-flex items-center px-6 py-3 bg-sand text-white text-sm tracking-wider uppercase font-medium rounded-sm hover:bg-sand-dark transition-colors">Track Your Order</Link>
+          <Link href="/track" className="inline-flex items-center px-6 py-3 bg-sand text-ink text-sm tracking-wider uppercase font-medium rounded-sm hover:bg-sand-dark transition-colors">Track Your Order</Link>
           <Link href="/shop" className="inline-flex items-center px-6 py-3 border border-sand text-sand text-sm tracking-wider uppercase font-medium rounded-sm hover:bg-sand/5 transition-colors">Continue Shopping</Link>
         </div>
       </section>

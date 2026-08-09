@@ -40,7 +40,7 @@ export default function AboutPage() {
         {/* Mission */}
         <div className="bg-charcoal text-offwhite rounded-sm p-8 lg:p-12">
           <h2 className="font-heading text-2xl font-semibold tracking-tight mb-4">Our Mission</h2>
-          <p className="text-warm-gray text-sm leading-relaxed">
+          <p className="text-paper/90 text-sm leading-relaxed">
             To make toys that are worth keeping, at a price that does not make you think twice. A wooden alphabet board should not cost a hundred dirhams, and it should not fall apart either. Every puzzle we make is AED 15, with the name engraving included.
           </p>
         </div>
@@ -56,7 +56,7 @@ export default function AboutPage() {
                 </svg>
               </div>
               <h3 className="font-heading text-lg font-semibold tracking-tight">Honest Pricing</h3>
-              <p className="mt-3 text-warm-gray text-sm leading-relaxed">
+              <p className="mt-3 text-paper/90 text-sm leading-relaxed">
                 There is no middleman because there is no supplier. Every piece is drawn, cut, sanded and finished here, so you pay for the wood and the work, nothing else.
               </p>
             </div>
@@ -68,7 +68,7 @@ export default function AboutPage() {
                 </svg>
               </div>
               <h3 className="font-heading text-lg font-semibold tracking-tight">Made to Order</h3>
-              <p className="mt-3 text-warm-gray text-sm leading-relaxed">
+              <p className="mt-3 text-paper/90 text-sm leading-relaxed">
                 We hold no stock, so nothing is ever discontinued or out of stock. You order it, we make it, you collect it or we send it. Two to three working days, every time.
               </p>
             </div>
@@ -79,7 +79,7 @@ export default function AboutPage() {
                 </svg>
               </div>
               <h3 className="font-heading text-lg font-semibold tracking-tight">Customer First</h3>
-              <p className="mt-3 text-warm-gray text-sm leading-relaxed">
+              <p className="mt-3 text-paper/90 text-sm leading-relaxed">
                 Free collection, WhatsApp support, and a free replacement within 7 days if anything arrives faulty. You do not send it back; we just make you another one.
               </p>
             </div>
@@ -89,7 +89,7 @@ export default function AboutPage() {
         {/* CTA */}
         <div className="text-center">
           <p className="text-warm-gray text-sm mb-4">Come and see what we make</p>
-          <Link href="/shop" className="inline-flex items-center px-8 py-3.5 bg-sand text-white text-sm tracking-wider uppercase font-medium rounded-sm hover:bg-sand-dark transition-colors">
+          <Link href="/shop" className="inline-flex items-center px-8 py-3.5 bg-sand text-ink text-sm tracking-wider uppercase font-medium rounded-sm hover:bg-sand-dark transition-colors">
             Shop the Collection
           </Link>
         </div>

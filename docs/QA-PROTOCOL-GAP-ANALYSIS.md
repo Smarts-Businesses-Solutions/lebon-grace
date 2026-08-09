@@ -62,7 +62,7 @@ elaborate tests for personas and pages that will never exist.
 | ~~Module E — failure modes~~ | ✅ **CLOSED 2026-08-08.** `tests/e2e/failure-modes/resilience.spec.ts` — 8 tests: forced 500, dropped connection, retry-after-failure, degraded `/api/variants`, order-lookup failure, and the 10s spinner gate. All failures injected with `page.route`, so nothing depends on timing luck. **Found the worst defect of the engagement** — see §7. |
 | ~~Mobile viewport runs~~ | ✅ **CLOSED 2026-08-08.** CI runs all three projects — desktop 1920×1080, iPhone 14 Pro, Pixel 7 — 126 tests in ~2m08s. The existing suites passed on mobile unchanged, so the value is in `tests/e2e/mobile/layout.spec.ts`: the `lg:hidden` sticky buy bar (which has no desktop equivalent and had never been exercised), a geometric regression test for the WhatsApp float that once covered it, horizontal-overflow checks on six routes, the mobile nav toggle, and tap-target sizes. **Found a WCAG 2.5.5 failure** — see §8. |
 | ~~`docs/QA/` artifacts~~ | ✅ **CLOSED 2026-08-08.** All six exist, split by kind. **Generated** from the codebase and a real Playwright run (`npm run qa:report`): `SYSTEM_MAP.md`, `COVERAGE_INVENTORY.md`, `ROUTE_COVERAGE_REPORT.md`. **Hand-written**, because what broke and what it taught is judgement: `BUGS.md` (12 fixed, each with its regression), `LESSONS_LEARNED.md` (11 patterns, several recorded against mistakes made during this engagement), `TODO.md`. Plus `tests/fixtures/USER_ACTIONS_INVENTORY.md` (§10). `TODO.md` deliberately **points at** `ACTION_PLAN.md` rather than restating it — a second copy disagrees with the first within a week, which is the failure the file exists to prevent. |
-| Automated a11y sweep | **The last one open.** A static WCAG audit exists (`npm run audit:contrast`, 24 pairs) but it checks declared colour pairs, not the rendered DOM. An `axe-core` pass inside the Playwright suite would close it. |
+| ~~Automated a11y sweep~~ | ✅ **CLOSED 2026-08-08.** `tests/e2e/a11y/axe.spec.ts` runs axe-core over 15 routes × 3 viewports at WCAG 2.0/2.1 A **and** AA. **The first run found 51 failing nodes the static audit structurally could not see** — see §9. Both audits are kept: the static one is fast and browser-free, this one catches the pair nobody thought to list. |
 
 ## 4. One conflict — resolved here, still open in the kit
 
@@ -106,6 +106,33 @@ In order:
    first run by finding a defect no unit test could see (below).
 4. Leave Modules A/B-per-persona and everything in §2.2 alone until this shop
    has accounts or plans. Today it has neither.
+
+## 9. What the rendered-DOM sweep found — 51 nodes, and a hole in my own audit
+
+`npm run audit:contrast` passed 24/24 the whole time. axe found **51 failing
+nodes** on the first run, because the static audit only ever enumerated the
+**admin** palette — and the storefront used `text-ink-muted` for small text
+everywhere.
+
+| Cause | Nodes | Fix |
+|---|---:|---|
+| `text-ink-muted` #7d766c on small text (4.34/4.06/3.69 — large-text only, *as that audit itself documented*) | 34 | token darkened to **#6f685e** (5.32/4.97/4.52) |
+| `text-gray-400` left on the storefront (A-17 restyled admin only) | 4 | → `text-ink-muted` |
+| gold `#A8874D` as 14px link text (3.22–3.36) | 4 | → `text-ink` with a sand underline |
+| `bg-sand text-white` — **2.17** on a call-to-action | 2 | → `text-ink` on sand (7.25) |
+| `<select>` with no accessible name | 3 | `aria-label` |
+| icon-only `<button>` with no name | 2 | `aria-label` |
+| `<dt>`/`<dd>` with no `<dl>` parent | 2 | wrapped |
+
+**The fix caused one regression, which the same sweep then caught.** Darkening
+`ink-muted` helped 34 nodes on light grounds and made the dark `#23201c` panel in
+`/about` *worse*: 3.61 → 2.94. Light text on dark needs `paper`, not a token
+designed for the opposite. Fixed, and recorded in `scripts/contrast-audit.mjs`.
+
+Also worth keeping: axe first reported a colour the design never uses
+(`#857e75`) because it sampled a paragraph **mid fade-in**. The suite now freezes
+animations before analysing, so a result is about the design rather than the
+timing.
 
 ## 8. What the mobile runs found — a 27px tap target on the money path
 

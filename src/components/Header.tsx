@@ -190,7 +190,7 @@ export default function Header() {
                   {/* Category matches */}
                   {categoryMatches.length > 0 && (
                     <div className="px-4 pt-4 pb-2">
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Categories</p>
+                      <p className="text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-2">Categories</p>
                       {categoryMatches.map((cat) => {
                         const globalIdx = allItems.findIndex((i) => i.type === "category" && i.value === cat.name);
                         return (
@@ -198,7 +198,7 @@ export default function Header() {
                             <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center text-sm">{cat.icon}</div>
                             <div>
                               <p className="text-sm font-medium text-gray-800">{highlightMatch(cat.name, query)}</p>
-                              <p className="text-[11px] text-gray-400">{cat.description}</p>
+                              <p className="text-[11px] text-ink-muted">{cat.description}</p>
                             </div>
                           </button>
                         );
@@ -209,7 +209,7 @@ export default function Header() {
                   {/* Product results */}
                   {results.length > 0 && (
                     <div className={`px-4 ${categoryMatches.length > 0 ? "pt-2" : "pt-4"} pb-2`}>
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Products</p>
+                      <p className="text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-2">Products</p>
                       {results.map((product, i) => {
                         const globalIdx = categoryMatches.length + i;
                         return (
@@ -221,7 +221,7 @@ export default function Header() {
                               <p className="text-sm font-medium text-gray-800 truncate">{highlightMatch(product.name, query)}</p>
                               <div className="flex items-center gap-2 mt-0.5">
                                 <span className="text-sm font-bold text-[#A8874D]">{formatPrice(product.price)}</span>
-                                <span className="text-[11px] text-gray-400">{product.category}</span>
+                                <span className="text-[11px] text-ink-muted">{product.category}</span>
                               </div>
                             </div>
                             {product.color && <span className="px-2 py-0.5 bg-gray-100 text-gray-500 text-[10px] rounded-full">{product.color}</span>}
@@ -234,7 +234,7 @@ export default function Header() {
                   {/* No results */}
                   {query.trim().length >= 2 && results.length === 0 && categoryMatches.length === 0 && (
                     <div className="px-4 py-8 text-center">
-                      <p className="text-gray-400 text-sm">No results for &ldquo;{query}&rdquo;</p>
+                      <p className="text-ink-muted text-sm">No results for &ldquo;{query}&rdquo;</p>
                     </div>
                   )}
 
@@ -244,8 +244,8 @@ export default function Header() {
                       {recentSearches.length > 0 && (
                         <div className="mb-4">
                           <div className="flex items-center justify-between mb-2">
-                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Recent Searches</p>
-                            <button onClick={() => localStorage.removeItem(RECENT_KEY)} className="text-[10px] text-gray-400 hover:text-gray-600">Clear</button>
+                            <p className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">Recent Searches</p>
+                            <button onClick={() => localStorage.removeItem(RECENT_KEY)} className="text-[10px] text-ink-muted hover:text-gray-600">Clear</button>
                           </div>
                           {recentSearches.map((term) => (
                             <button key={term} onClick={() => { setQuery(term); saveRecentSearch(term); router.push(`/shop?search=${encodeURIComponent(term)}`); setFocused(false); }} className="flex items-center gap-3 w-full px-3 py-2 rounded-lg hover:bg-gray-50 text-left">
@@ -256,7 +256,7 @@ export default function Header() {
                         </div>
                       )}
                       <div>
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Trending</p>
+                        <p className="text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-2">Trending</p>
                         <div className="flex flex-wrap gap-2">
                           {TRENDING.map((term) => (
                             <button key={term} onClick={() => { setQuery(term); saveRecentSearch(term); router.push(`/shop?search=${encodeURIComponent(term)}`); setFocused(false); }} className="px-3 py-1.5 bg-gray-50 text-gray-600 text-xs rounded-full hover:bg-gray-100 transition-colors">
@@ -270,8 +270,8 @@ export default function Header() {
 
                   {/* Footer */}
                   <div className="px-4 py-2.5 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
-                    <span className="text-[10px] text-gray-400">{results.length > 0 ? `${results.length} results` : "Type to search"}</span>
-                    <div className="flex items-center gap-2 text-[10px] text-gray-400">
+                    <span className="text-[10px] text-ink-muted">{results.length > 0 ? `${results.length} results` : "Type to search"}</span>
+                    <div className="flex items-center gap-2 text-[10px] text-ink-muted">
                       <kbd className="px-1.5 py-0.5 bg-white border border-gray-200 rounded text-[9px]">↑↓</kbd> navigate
                       <kbd className="px-1.5 py-0.5 bg-white border border-gray-200 rounded text-[9px]">↵</kbd> select
                       <kbd className="px-1.5 py-0.5 bg-white border border-gray-200 rounded text-[9px]">esc</kbd> close
@@ -293,7 +293,7 @@ export default function Header() {
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 lg:h-6 lg:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
                 </svg>
-                {totalItems > 0 && <span className="absolute -top-0.5 -right-0.5 bg-sand text-white text-[10px] font-bold h-4.5 w-4.5 flex items-center justify-center rounded-full">{totalItems}</span>}
+                {totalItems > 0 && <span className="absolute -top-0.5 -right-0.5 bg-sand text-ink text-[10px] font-bold h-4.5 w-4.5 flex items-center justify-center rounded-full">{totalItems}</span>}
               </Link>
 
               {/* Mobile menu toggle */}
@@ -336,7 +336,7 @@ export default function Header() {
                 <Link key={link.href} href={link.href} onClick={() => setMobileOpen(false)} className="block px-3 py-2.5 text-sm tracking-wide text-charcoal hover:text-sand hover:bg-sand/5 rounded-lg transition-colors">{link.label}</Link>
               ))}
               <hr className="my-2 border-border" />
-              <p className="px-3 py-1 text-xs text-gray-400 uppercase tracking-wider">Categories</p>
+              <p className="px-3 py-1 text-xs text-ink-muted uppercase tracking-wider">Categories</p>
               {[
                 { href: "/shop?category=Animals+%26+Nature", label: "Animals" },
                 { href: "/shop?category=Vehicles+%26+Making", label: "Vehicles" },
@@ -362,7 +362,7 @@ export default function Header() {
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" /></svg>
               </button>
               <form onSubmit={(e) => { e.preventDefault(); if (query.trim()) { saveRecentSearch(query.trim()); router.push(`/shop?search=${encodeURIComponent(query.trim())}`); setSearchOverlay(false); setQuery(""); } }} className="flex-1 relative">
-                <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
+                <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-ink-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
                 <input
                   type="text"
                   value={query}
@@ -372,7 +372,7 @@ export default function Header() {
                   autoFocus
                 />
                 {query && (
-                  <button onClick={() => setQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600">
+                  <button onClick={() => setQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-ink-muted hover:text-gray-600">
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                   </button>
                 )}
@@ -384,7 +384,7 @@ export default function Header() {
               <>
                 {categoryMatches.length > 0 && (
                   <div className="mb-4">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Categories</p>
+                    <p className="text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-2">Categories</p>
                     {categoryMatches.map((cat) => (
                       <button key={cat.name} onClick={() => { router.push(`/shop?category=${encodeURIComponent(cat.name)}`); setSearchOverlay(false); setQuery(""); }} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left hover:bg-gray-50">
                         <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center text-sm">{cat.icon}</div>
@@ -395,7 +395,7 @@ export default function Header() {
                 )}
                 {results.length > 0 && (
                   <div>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Products</p>
+                    <p className="text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-2">Products</p>
                     {results.map((product) => (
                       <button key={product.slug} onClick={() => { router.push(`/shop/${product.slug}`); setSearchOverlay(false); setQuery(""); }} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left hover:bg-gray-50">
                         <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0"><ProductImage src={product.imageUrl} alt={product.name} sizes="48px" /></div>
@@ -408,14 +408,14 @@ export default function Header() {
                   </div>
                 )}
                 {results.length === 0 && categoryMatches.length === 0 && (
-                  <p className="text-center text-gray-400 text-sm py-8">No results for &ldquo;{query}&rdquo;</p>
+                  <p className="text-center text-ink-muted text-sm py-8">No results for &ldquo;{query}&rdquo;</p>
                 )}
               </>
             ) : (
               <>
                 {recentSearches.length > 0 && (
                   <div className="mb-6">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Recent</p>
+                    <p className="text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-2">Recent</p>
                     {recentSearches.map((term) => (
                       <button key={term} onClick={() => { router.push(`/shop?search=${encodeURIComponent(term)}`); setSearchOverlay(false); setQuery(""); }} className="flex items-center gap-3 w-full px-3 py-2 rounded-lg hover:bg-gray-50 text-left">
                         <svg className="w-4 h-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -425,7 +425,7 @@ export default function Header() {
                   </div>
                 )}
                 <div>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Trending</p>
+                  <p className="text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-2">Trending</p>
                   <div className="flex flex-wrap gap-2">
                     {TRENDING.map((term) => (
                       <button key={term} onClick={() => { router.push(`/shop?search=${encodeURIComponent(term)}`); setSearchOverlay(false); setQuery(""); }} className="px-3 py-1.5 bg-gray-50 text-gray-600 text-xs rounded-full hover:bg-gray-100">{term}</button>

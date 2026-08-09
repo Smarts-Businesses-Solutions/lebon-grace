@@ -16,7 +16,7 @@ export default function CartPage() {
           <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
         </svg>
         <h1 className="mt-6 text-2xl font-semibold tracking-tight">Your Cart is Empty</h1>
-        <p className="mt-3 text-gray-400 text-sm">Browse our collection of affordable essentials.</p>
+        <p className="mt-3 text-ink-muted text-sm">Browse our collection of affordable essentials.</p>
         <Link href="/shop" className="mt-6 inline-flex items-center px-7 py-3.5 bg-ink text-paper text-sm tracking-wide hover:bg-sand-dark transition-colors">
           Shop Now
         </Link>
@@ -39,7 +39,7 @@ export default function CartPage() {
             <p className="text-sm text-gray-600">
               Add <strong className="text-sage">{formatPrice(FREE_DELIVERY_OVER - subtotal)}</strong> more for <strong>free delivery</strong>
             </p>
-            <span className="text-xs text-gray-400">{Math.round((subtotal / FREE_DELIVERY_OVER) * 100)}%</span>
+            <span className="text-xs text-ink-muted">{Math.round((subtotal / FREE_DELIVERY_OVER) * 100)}%</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div className="bg-[#23201C] h-2 rounded-full transition-all" style={{ width: `${Math.min((subtotal / FREE_DELIVERY_OVER) * 100, 100)}%` }} />
@@ -66,7 +66,7 @@ export default function CartPage() {
                 <Link href={"/shop/" + item.product.slug}>
                   <h3 className="text-sm font-medium tracking-tight hover:text-[#A8874D] transition-colors truncate">{item.product.name}</h3>
                 </Link>
-                <p className="text-gray-400 text-xs mt-0.5">{item.product.variant}</p>
+                <p className="text-ink-muted text-xs mt-0.5">{item.product.variant}</p>
                 <p className="text-gray-900 text-sm font-semibold mt-2">{formatPrice(item.product.price)}</p>
                 <div className="mt-2 flex items-center justify-between">
                   <div className="flex items-center border border-rule">
@@ -74,7 +74,7 @@ export default function CartPage() {
                     <span className="px-3 py-1.5 text-sm font-medium">{item.quantity}</span>
                     <button data-testid="cart-qty-inc" aria-label="Increase quantity" onClick={() => updateQuantity(lineId(item), item.quantity + 1)} className="min-w-11 min-h-11 inline-flex items-center justify-center text-gray-500 hover:text-gray-700 transition-colors text-sm">+</button>
                   </div>
-                  <button onClick={() => removeItem(lineId(item))} className="text-gray-400 text-xs hover:text-red-500 transition-colors">Remove</button>
+                  <button onClick={() => removeItem(lineId(item))} className="text-ink-muted text-xs hover:text-red-500 transition-colors">Remove</button>
                 </div>
               </div>
             </div>
@@ -117,7 +117,7 @@ export default function CartPage() {
                   FREE_DELIVERY_OVER, so a basket of AED 200 already had free
                   delivery and was still being told it needed AED 300. */}
               {deliveryMethod === "delivery" && subtotal < FREE_DELIVERY_OVER && (
-                <p className="text-gray-400 text-xs mt-2">
+                <p className="text-ink-muted text-xs mt-2">
                   Free delivery on orders over {formatPrice(FREE_DELIVERY_OVER)}
                 </p>
               )}
@@ -128,11 +128,11 @@ export default function CartPage() {
 
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-400">Subtotal ({items.length} items)</span>
+                <span className="text-ink-muted">Subtotal ({items.length} items)</span>
                 <span data-testid="cart-subtotal" className="text-gray-900">{formatPrice(subtotal)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-400">{deliveryMethod === "pickup" ? "Pickup" : "Shipping"}</span>
+                <span className="text-ink-muted">{deliveryMethod === "pickup" ? "Pickup" : "Shipping"}</span>
                 <span className={shipping === 0 ? "text-[#A8874D] font-medium" : "text-gray-900"}>
                   <span data-testid="cart-shipping">{shipping === 0 ? "Free" : formatPrice(shipping)}</span>
                 </span>
@@ -163,7 +163,7 @@ export default function CartPage() {
               Proceed to Checkout
             </Link>
 
-            <p className="text-center text-gray-400 text-xs mt-4">
+            <p className="text-center text-ink-muted text-xs mt-4">
               Secure payment via Stripe
             </p>
           </div>

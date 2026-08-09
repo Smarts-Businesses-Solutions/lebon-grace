@@ -51,11 +51,15 @@ export default function SafetyNotice({ age }: { age?: string }) {
     <div className="bg-transparent border-t border-ink pt-4 mb-7">
       <h3 className="eyebrow text-ink-muted mb-4 block">Safety &amp; age</h3>
 
+      {/* <dl>, not <div>: a <dt>/<dd> pair with no description-list parent means
+          nothing to a screen reader, which is what axe's `dlitem` rule objects
+          to. The comment sits outside the ternary because a branch takes one
+          expression, not a comment and an element. */}
       {readableAge ? (
-        <div className="flex justify-between mb-3">
+        <dl className="flex justify-between mb-3">
           <dt className="text-xs text-ink-muted">Suitable for</dt>
           <dd className="text-xs font-medium text-ink">{readableAge}</dd>
-        </div>
+        </dl>
       ) : (
         <p className="text-xs text-ink-muted mb-3">
           We have not assessed an age range for this piece yet.

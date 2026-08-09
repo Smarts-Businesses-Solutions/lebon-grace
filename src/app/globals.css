@@ -29,7 +29,14 @@
   /* Ink — warm near-black. Pure black is too hard against paper */
   --color-ink: #23201c;
   --color-ink-soft: #3a352e;
-  --color-ink-muted: #7d766c;
+  /* Darkened from #7d766c (2026-08-08). The old value measured 4.34 / 4.06 /
+     3.69 against bone / paper / paper-deep — i.e. large-text-only — and the
+     storefront used it for small text everywhere: an axe sweep of the rendered
+     DOM found 34 failing nodes. The static contrast audit had not caught it
+     because it only enumerated the ADMIN pairs. Same hue, 14 steps darker,
+     which clears 4.5 on the worst ground (4.52), with room on the others
+     (5.32 / 4.97). */
+  --color-ink-muted: #6f685e;
 
   /* Sand — the MDF itself */
   --color-sand: #c9a96e;

@@ -44,7 +44,7 @@ function FilterSection({ title, children, defaultOpen = true }: { title: string;
     <div className="border-b border-gray-100 py-4">
       <button onClick={() => setOpen(!open)} className="flex items-center justify-between w-full text-left">
         <span className="text-sm font-semibold text-gray-800">{title}</span>
-        <svg className={`w-4 h-4 text-gray-400 transition-transform ${open ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <svg className={`w-4 h-4 text-ink-muted transition-transform ${open ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
         </svg>
       </button>
@@ -355,7 +355,7 @@ function ShopContent() {
                     className="w-3.5 h-3.5 rounded border-gray-300 text-[#A8874D] focus:ring-[#A8874D]"
                   />
                   <span className="text-xs text-gray-600">{mat}</span>
-                  <span className="text-[10px] text-gray-400 ml-auto">{count}</span>
+                  <span className="text-[10px] text-ink-muted ml-auto">{count}</span>
                 </label>
               );
             })}
@@ -437,7 +437,7 @@ function ShopContent() {
                         </svg>
                       </button>
                     ))}
-                    <button onClick={clearFilters} className="text-[11px] text-gray-400 hover:text-gray-600 ml-1">Clear all</button>
+                    <button onClick={clearFilters} className="text-[11px] text-ink-muted hover:text-gray-600 ml-1">Clear all</button>
                   </div>
                 )}
               </div>
@@ -446,7 +446,7 @@ function ShopContent() {
               <div className="flex items-center gap-3 flex-shrink-0">
                 {/* Inline search (visible on md+ where header search is shown, but useful here too) */}
                 <div className="relative hidden sm:block">
-                  <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
                   </svg>
                   <input
@@ -457,10 +457,11 @@ function ShopContent() {
                     className="pl-8 pr-3 py-1.5 text-xs border border-gray-200 rounded-lg bg-white text-gray-700 focus:border-[#A8874D] focus:ring-1 focus:ring-[#A8874D] outline-none w-36"
                   />
                 </div>
-                <span className="text-gray-400 text-xs">
+                <span className="text-ink-muted text-xs">
                   {Math.min(visibleCount, filteredProducts.length)} of {filteredProducts.length} products
                 </span>
                 <select
+                  aria-label="Sort products"
                   value={filters.sortBy}
                   onChange={(e) => updateFilter("sortBy", e.target.value)}
                   className="border border-gray-200 rounded-lg px-3 py-1.5 text-xs bg-white text-gray-700 focus:border-[#A8874D] focus:ring-1 focus:ring-[#A8874D] outline-none cursor-pointer"
@@ -483,7 +484,7 @@ function ShopContent() {
 
             {filteredProducts.length === 0 && (
               <div className="text-center py-20">
-                <p className="text-gray-400 text-lg">No products match your filters</p>
+                <p className="text-ink-muted text-lg">No products match your filters</p>
                 <button onClick={clearFilters} className="mt-4 text-[#A8874D] text-sm font-medium hover:underline">
                   Clear all filters
                 </button>
@@ -496,7 +497,7 @@ function ShopContent() {
                 <button onClick={() => setVisibleCount((prev) => prev + 24)} className="px-10 py-3.5 bg-gray-900 text-white text-sm font-semibold tracking-wide rounded-lg hover:bg-gray-800 transition-colors">
                   Load More Products
                 </button>
-                <p className="mt-2 text-gray-400 text-xs">
+                <p className="mt-2 text-ink-muted text-xs">
                   Showing {Math.min(visibleCount, filteredProducts.length)} of {filteredProducts.length} products
                 </p>
               </div>
@@ -507,19 +508,19 @@ function ShopContent() {
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 text-center">
                 <div>
                   <p className="text-sm font-medium text-gray-800">Free Pickup</p>
-                  <p className="text-xs text-gray-400 mt-0.5">Or AED 20 UAE delivery, free over AED 150</p>
+                  <p className="text-xs text-ink-muted mt-0.5">Or AED 20 UAE delivery, free over AED 150</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-800">Made to Order</p>
-                  <p className="text-xs text-gray-400 mt-0.5">Cut to order in 2 to 3 days</p>
+                  <p className="text-xs text-ink-muted mt-0.5">Cut to order in 2 to 3 days</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-800">Secure Payment</p>
-                  <p className="text-xs text-gray-400 mt-0.5">Via Stripe</p>
+                  <p className="text-xs text-ink-muted mt-0.5">Via Stripe</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-800">Faulty? Replaced Free</p>
-                  <p className="text-xs text-gray-400 mt-0.5">Send a photo within 7 days</p>
+                  <p className="text-xs text-ink-muted mt-0.5">Send a photo within 7 days</p>
                 </div>
               </div>
             </div>
@@ -558,7 +559,7 @@ function ShopContent() {
 
 export default function ShopPage() {
   return (
-    <Suspense fallback={<div className="max-w-7xl mx-auto px-4 py-16 text-center text-gray-400">Loading...</div>}>
+    <Suspense fallback={<div className="max-w-7xl mx-auto px-4 py-16 text-center text-ink-muted">Loading...</div>}>
       <ShopContent />
     </Suspense>
   );

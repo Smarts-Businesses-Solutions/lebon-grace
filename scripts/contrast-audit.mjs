@@ -31,7 +31,7 @@
 
 const TOKENS = {
   // src/app/globals.css @theme
-  ink: "#23201c", "ink-soft": "#3a352e", "ink-muted": "#7d766c",
+  ink: "#23201c", "ink-soft": "#3a352e", "ink-muted": "#6f685e",
   bone: "#fdfbf7", paper: "#f7f3ec", "paper-deep": "#efe8dc",
   sand: "#c9a96e", "sand-dark": "#a8874d", sage: "#5f7355", rule: "#e3dcd1",
 };
@@ -77,12 +77,22 @@ const PAIRS = [
   ["alert: danger", "red-700", "red-50"],
 ];
 
-// Tokens that are NOT usable for normal-size text anywhere on this palette, kept
-// as an explicit reminder because both are tempting and both look fine by eye:
-//   ink-muted  4.34 on bone, 4.06 on paper, 3.69 on paper-deep — large text only
-//   sand-dark  3.26 on bone, 3.04 on paper, 2.76 on paper-deep — large text only,
-//              and it fails outright on paper-deep. On the dark ink bar it is
-//              4.82 and fine.
+// ink-muted was #7d766c and IS large-text-only at that value: 4.34 / 4.06 / 3.69
+// on bone / paper / paper-deep. This file said so — and the storefront used it
+// for small text everywhere anyway, which an axe sweep of the rendered DOM found
+// as 34 failing nodes. This audit could not have caught it, because it only ever
+// enumerated the ADMIN pairs. Darkened to #6f685e (5.32 / 4.97 / 4.52), so it is
+// now safe at any size on a light ground.
+//
+// It is NOT safe on a dark ground, and darkening made that worse: on the ink
+// panel in /about it went 3.61 -> 2.94. Light text on dark needs `paper` or
+// `bone`, not a muted token designed for the opposite.
+//
+// sand-dark remains LARGE-TEXT ONLY on light: 3.26 / 3.04 / 2.76, failing
+// outright on paper-deep. On the dark ink bar it is 4.82 and fine.
+//
+// The general lesson is in docs/QA/LESSONS_LEARNED.md L-2: this file checks the
+// pairs someone listed; axe checks the pairs that were painted.
 
 const srgbToLinear = (c) => (c / 255 <= 0.03928 ? c / 255 / 12.92 : ((c / 255 + 0.055) / 1.055) ** 2.4);
 
