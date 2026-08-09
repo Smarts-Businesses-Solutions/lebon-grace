@@ -15,7 +15,37 @@ export function esc(s: string): string {
   );
 }
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let _resend: Resend | null = null;
+
+/**
+ * The mail client, constructed on first use rather than at module load.
+ *
+ * `const resend = new Resend(process.env.RESEND_API_KEY)` at module scope threw
+ * `Missing API key` the moment this file was IMPORTED with no key present. Next
+ * evaluates every route module during `next build` to collect its config, so
+ * that turned an absent environment variable into a failed BUILD rather than a
+ * failed send — and made the build depend on production secrets.
+ *
+ * It survived because the only build that ran was the Docker one, and
+ * build-apps.sh passes placeholders. The Forgejo CI gate built without them on
+ * its first real run and died on /api/contact and /api/cart-recovery. The
+ * project had even written the trap down (FOR-EVARISTE: "builds need placeholder
+ * env values") — this removes the need for that advice rather than repeating it,
+ * because a workaround that must be remembered in every new build context is
+ * forgotten in each one until something breaks.
+ *
+ * Deliberately no "key is missing" guard of its own: `email.test.ts` mocks the
+ * `resend` module and sets no key, so a guard here would fail those tests. The
+ * SDK's own error is enough, and it now surfaces at send time — inside the
+ * try/catch each caller already has — instead of at import.
+ *
+ * Matches the lazy `db()` in store.ts and login-throttle.ts. Resend was the
+ * outlier, not the pattern.
+ */
+export function mailer(): Resend {
+  if (!_resend) _resend = new Resend(process.env.RESEND_API_KEY);
+  return _resend;
+}
 
 /**
  * Sender for all outbound mail.
@@ -267,7 +297,7 @@ export async function sendOrderEmail(order: EmailOrder, action: string): Promise
   }
 
   try {
-    const result = await resend.emails.send({
+    const result = await mailer().emails.send({
       from: fromAddress(),
       to: [order.customer_email],
       subject: getEmailSubject(order, action),
@@ -348,7 +378,7 @@ export async function sendOperatorOrderAlert(
   `;
 
   try {
-    await resend.emails.send({
+    await mailer().emails.send({
       from: fromAddress(),
       to: [to],
       subject: `New order #${short} — AED ${order.total}${engraved.length ? " (engraved)" : ""}`,
