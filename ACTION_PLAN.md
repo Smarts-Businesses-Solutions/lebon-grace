@@ -371,13 +371,16 @@ estrict` token, which is randomised per invocation. Made repeatable as `scripts/
 | **Risk** | Licensing exposure if unresolved |
 | **Acceptance criteria** | Preview matches the cut file; nothing customer-supplied cuts without review. |
 
-### A-25 · Arabic / RTL storefront
+### A-25 · Arabic / RTL storefront — **DECIDED** (2026-08-08) · `docs/DECISION-ARABIC-RTL.md`
 | | |
 |---|---|
-| **Priority** | P4 |
+| **Status** | Decision recorded. **The P4/UX framing was wrong.** UAE Federal Law No. 15 of 2020 requires suppliers *registered in the UAE* operating in e-commerce to provide adequate information **in Arabic** about the product, its specifications, and the terms of contract, payment and warranty — and requires contracts and invoices in Arabic, with other languages permitted alongside. If Lebon Grace is UAE-registered, Arabic is an **obligation the shop is not currently meeting**, not a growth idea, and it belongs beside §26.1 and §26.3 as a live claim that has not been underwritten. |
+| **The split that makes it affordable** | "Large" came from reading this as *build an RTL storefront*. **Tier 1** — Arabic *content* on product info, terms, payment/returns, warranty, privacy and order emails — is small and is the part the law appears to reach. **Tier 2** — mirrored `dir="rtl"` layout, Arabic chrome and typography — is a market bet and genuinely optional. Conflating them made a task look like a project. |
+| **Recommendation** | Do not build Tier 2 now (nothing measured justifies it — see `docs/LOAD-TEST-2026-08.md`). Treat Tier 1 as compliance once registration is confirmed. **Adopt Tailwind logical properties (`ms-*`/`me-*`/`ps-*`/`pe-*`) in new components starting now** — free, invisible, and it removes most of Tier 2's future cost. Put the Arabic question to a UAE lawyer in the same conversation as A-23. |
+| **Blocked on** | **Is Lebon Grace a UAE-registered supplier?** — the same one written answer A-23 needs. Yes → Tier 1 is compliance. No → these obligations do not attach and A-25 really is an optional P4. |
+| **Priority** | **Reclassified: P1 by risk if UAE-registered**, P4 otherwise |
 | **Reason** | U-2 — English-only, LTR-only, selling to UAE consumers. |
-| **Effort** | Large |
-| **Acceptance criteria** | A deliberate decision either way, rather than a default. |
+| **Acceptance criteria** | A deliberate decision either way, rather than a default. ✅ met — recorded with its reasoning and its open question. |
 
 ---
 
