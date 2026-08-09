@@ -78,8 +78,11 @@ jobs:
       # ACTION_PLAN.md A-3. Of them, react-hooks/set-state-in-effect (13) is the
       # group worth reading first — it usually signals a render loop or state
       # that should be derived rather than synced.
-      - name: Lint (informational until src/ is clean)
-        run: npx eslint || true
+      # Was `|| true` because 51 pre-existing problems would have made CI red on
+      # arrival. src/ is at zero now, so this is a real gate: the next problem
+      # introduced fails the build instead of scrolling past.
+      - name: Lint
+        run: npx eslint --report-unused-disable-directives
 
       # `next build` peaks around 3–4 GiB. If the runner's job container is
       # capped below that this step OOMs rather than failing cleanly.
