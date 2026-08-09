@@ -4,13 +4,20 @@
 #   scp ops/health/deploy-verify.sh root@116.203.242.215:/usr/local/bin/lebon-grace-deploy-verify.sh
 #   bash ops/health/install.sh          # run ON the box
 #
-# Two timers, two different questions:
+# Three timers, three different questions:
 #
 #   lebon-grace-uptime.timer          every 2 min   is the shop UP?
 #   lebon-grace-deploy-verify.timer   every 15 min  is it serving what we shipped?
+#   lebon-grace-ci-freshness.timer    every 30 min  is the CI gate still WATCHING?
 #
 # The second exists because the first would have passed on every fault found on
 # 2026-08-09 — all of them returned 200 with the right title and a valid dpl=.
+#
+# The third exists because .forgejo/workflows/ci.yml was committed, documented in
+# four places as the quality gate, and had never executed once — the repository
+# did not exist in Forgejo, so nothing was listening. Nothing reported that,
+# because a pipeline that never runs produces no failures, and neither does a
+# healthy one. Only silence distinguishes them, so something has to watch for it.
 #
 # Cost: nothing. systemd on a box that is already paid for, alerting into the
 # GlitchTip the app already reports to. No third-party tier to outgrow, which
@@ -20,6 +27,10 @@ set -euo pipefail
 SCRIPT=/usr/local/bin/lebon-grace-deploy-verify.sh
 [ -f "$SCRIPT" ] || { echo "ERROR: $SCRIPT not present — scp it across first" >&2; exit 1; }
 chmod +x "$SCRIPT"
+
+CI_SCRIPT=/usr/local/bin/lebon-grace-ci-freshness.sh
+[ -f "$CI_SCRIPT" ] || { echo "ERROR: $CI_SCRIPT not present — scp it across first" >&2; exit 1; }
+chmod +x "$CI_SCRIPT"
 
 cat > /etc/systemd/system/lebon-grace-deploy-verify.service <<'UNIT'
 [Unit]
@@ -50,8 +61,39 @@ Unit=lebon-grace-deploy-verify.service
 WantedBy=timers.target
 UNIT
 
+cat > /etc/systemd/system/lebon-grace-ci-freshness.service <<'UNIT'
+[Unit]
+Description=Is the lebon-grace CI gate still watching?
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/lebon-grace-ci-freshness.sh
+UNIT
+
+# 30 minutes. The mirror syncs every 10, a full green run takes ~20, and the
+# faults this catches (a dead mirror, an offline runner, a stuck job) are all
+# slow-burning — none of them needs sub-minute detection. Longer than the other
+# two on purpose: it makes one unauthenticated GitHub API call per run, and the
+# limit is 60/hour per IP.
+cat > /etc/systemd/system/lebon-grace-ci-freshness.timer <<'UNIT'
+[Unit]
+Description=Check every 30 minutes that the lebon-grace CI gate is still connected
+
+[Timer]
+OnBootSec=10min
+OnUnitActiveSec=30min
+RandomizedDelaySec=120
+AccuracySec=1min
+Unit=lebon-grace-ci-freshness.service
+
+[Install]
+WantedBy=timers.target
+UNIT
+
 systemctl daemon-reload
 systemctl enable --now lebon-grace-deploy-verify.timer
+systemctl enable --now lebon-grace-ci-freshness.timer
 
 echo "installed. next runs:"
 systemctl list-timers --all | grep -E 'lebon-grace' || true

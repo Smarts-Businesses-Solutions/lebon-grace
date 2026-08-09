@@ -1,12 +1,13 @@
 # Scheduled health checks
 
-Two systemd timers on cx53. Free: a box that is already paid for, alerting into
+Three systemd timers on cx53. Free: a box that is already paid for, alerting into
 the GlitchTip the app already reports to. No third-party service, no tier.
 
 | Timer | Every | Answers |
 |---|---|---|
 | `lebon-grace-uptime` | 2 min | Is the shop **up**? |
 | `lebon-grace-deploy-verify` | 15 min | Is it serving **what we shipped**? |
+| `lebon-grace-ci-freshness` | 30 min | Is the CI gate still **watching**? |
 
 ## Why the second one exists
 
@@ -39,10 +40,45 @@ Check 3 exists because without it, "a bogus slug 404s" would also pass on a shop
 that 404s *everything* — L-2, pair every absence assertion with proof the thing
 could have been present.
 
+## Why the third one exists
+
+`.forgejo/workflows/ci.yml` was committed, and described in four documents as
+this project's quality gate. **It had never executed once.** The repository did
+not exist in Forgejo, so nothing was listening.
+
+Nothing reported that, and nothing could have: a pipeline that never runs
+produces no failures — and neither does a healthy one. The two are
+indistinguishable from the outside, which is the same shape as the uptime check
+passing on a shop that sells nothing.
+
+So this check deliberately does **not** ask "did the last run pass". A red run
+is loud and someone is looking at it. It asks whether the gate is still
+connected to anything:
+
+1. Forgejo answers, the repo exists, and it has run the workflow **at least
+   once** — the precondition, without which every assertion below is vacuously
+   true on a repo that does no work at all.
+2. A runner is **online**. With none, jobs are accepted and queue forever; the
+   UI shows them pending and nothing ever fails.
+3. The **mirror is not stale** — a commit that has been on GitHub longer than
+   `MAX_MIRROR_LAG_MIN` must have reached Forgejo. If the mirror breaks, CI goes
+   on passing against whatever it last pulled, which is worse than no CI: it
+   reports success about code nobody is running.
+4. **Nothing is stuck** — a job waiting or running past `MAX_STUCK_MIN` will
+   never turn red by itself.
+
+It does *not* assert "there is a run for the current HEAD": `ci.yml` has a
+`paths-ignore` for `docs/**` and `**.md`, so a documentation commit correctly
+produces no run, and asserting otherwise would cry wolf on every markdown edit.
+
+Staleness is compared by **commit age**, not "the SHAs differ", so a push thirty
+seconds ago does not read as a broken mirror.
+
 ## Install / update
 
 ```bash
 scp ops/health/deploy-verify.sh root@116.203.242.215:/usr/local/bin/lebon-grace-deploy-verify.sh
+scp ops/health/ci-freshness.sh root@116.203.242.215:/usr/local/bin/lebon-grace-ci-freshness.sh
 ssh root@116.203.242.215 'bash -s' < ops/health/install.sh    # idempotent
 ```
 
@@ -65,6 +101,27 @@ A monitor that cannot fail is decoration, so each was forced:
 | `EXPECTED_DPL` wrong | exit 1 — "serving build …, expected …" |
 | Build id forced backwards | exit 1 — "build id WENT BACKWARDS" |
 | Host unresolvable | exit 1, no hang |
+
+`ci-freshness.sh`, forced the same way on 2026-08-09:
+
+| Scenario | Result |
+|---|---|
+| Healthy | **exit 0** — "2 runs, mirror current" |
+| Repo absent from Forgejo (*the original fault*) | exit 1 — "does not exist in Forgejo" |
+| Forgejo API unreachable | exit 1 — "the CI gate cannot be running" |
+| A run stuck (threshold forced to 0m) | exit 1 — "will never go red by themselves" |
+| Mirror stale (HEADs differ, commit 36m old) | exit 1 — "CI is checking code nobody is running" |
+| Token missing | exit 1 — "UNVERIFIED this run", not a silent skip |
+| Real repo at a 1-minute lag threshold | **exit 0** — no false alarm |
+
+That last row matters as much as the failures: the first attempt to force the
+stale path reported OK, and the script was right — the commit was 40 minutes old
+against a 45-minute threshold. The test was wrong, not the check. Re-run at a
+1-minute threshold it failed correctly, and the real repo still passed.
+
+**Runner-offline is the one path not forced**, deliberately: the act_runner is
+shared with seven other projects, and stopping it to prove a message would take
+their CI down too.
 
 ## Two traps this script already fell into
 
