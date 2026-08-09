@@ -73,6 +73,18 @@ jobs:
       - name: Typecheck
         run: npx tsc --noEmit
 
+      # The step above checks NONE of the E2E harness. tsconfig.json excludes
+      # ops/qa, playwright.config.ts and tests/** so that `next build` does not
+      # fail on type errors in code this app does not own — and Playwright
+      # transpiles specs with esbuild without type-checking them. So a type
+      # error in the vendored QA kit or in any spec passed typecheck, passed
+      # lint, and was invisible until it broke at runtime.
+      #
+      # tsconfig.e2e.json exists precisely to cover that gap and nothing had
+      # ever invoked it. Same shape as the workflow itself: written, never run.
+      - name: Typecheck the E2E harness
+        run: npm run typecheck:e2e
+
       - name: Unit tests
         run: npm test
 

@@ -48,6 +48,21 @@ const eslintConfig = defineConfig([
     "test-screenshots/**",
     "screenshots/**",
 
+    // The shared QA harness, vendored so a clone can run its own E2E suite
+    // (playwright.config.ts imported it from OUTSIDE the repo until 2026-08-09,
+    // which is why CI could not run Playwright at all).
+    //
+    // Not this project's code to lint. It is shared, deliberately untyped
+    // JS-style code — three `no-explicit-any` errors on arrival — and it is
+    // already excluded from tsconfig.json for the same reason, with
+    // tsconfig.e2e.json type-checking it at `strict: false`.
+    //
+    // Fixing the `any`s here would be worse than ignoring them: the vendored
+    // copy must stay byte-identical to the shared kit (src/lib/qa-kit-drift.test.ts
+    // enforces that), so a local fix would show up as drift on the next run.
+    // Corrections belong in aprojects/ops/qa, then get copied back down.
+    "ops/qa/**",
+
     // Git worktrees live under .claude/worktrees/, i.e. INSIDE the repository.
     // Without this, eslint walks into them and lints a second full copy of the
     // codebase: 116 of the 167 problems remaining after the first pass were
