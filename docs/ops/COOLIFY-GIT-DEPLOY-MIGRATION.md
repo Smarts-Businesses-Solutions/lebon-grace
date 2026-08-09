@@ -1,7 +1,16 @@
 # Moving lebon-grace from a Coolify *service* to a git-backed *application*
 
-**Status:** prerequisites done and tested; the registration change itself needs a
-Coolify SaaS API token that is not recorded anywhere on this machine.
+**Status:** the git-backed application exists and is configured. It cannot
+deploy yet: Coolify will not attach the deploy key over its API, which is an
+upstream bug and needs one click in the UI. Details under *Where it stands*.
+
+| | |
+|---|---|
+| application uuid | `m11i6a5ekwhbflhnfb9ipr48` (name `lebon-grace-git`) |
+| old service uuid | `lixqbqbkz39l0bnz9xv2227t` — still serving all traffic |
+| project / server | `lacyl74b0vxk0e30v5hx8c34` / `z27mmhwdcrjul0h7olool629` |
+| deploy key | Coolify `s161t6sy0krhqhim9mc0a9tm`, GitHub key id `159716243`, read-only |
+| temporary FQDN | `m11i6a5ekwhbflhnfb9ipr48.116.203.242.215.sslip.io` |
 
 ---
 
@@ -120,6 +129,40 @@ That is not squeamishness. Those keys are being rotated anyway: several were
 printed into terminal output on 2026-08-09 while reading the service's compose
 file. Copying the current values into the new application would migrate the
 compromised set. Enter the **new** values, once, in the UI.
+
+## Where it stands
+
+Done, on the live control plane:
+
+* Deploy key created — a dedicated read-only ed25519 key, not the existing
+  server SSH key. Reusing that one would have coupled "Coolify can reach the
+  Hetzner box" to "Coolify can read the source", which are different questions
+  and should fail independently.
+* Application `lebon-grace-git` created against `main`, build pack `dockerfile`,
+  port 3000, auto-deploy **off**, on the same project and server as the service.
+* `BUILD_ENV` set as a build-time multi-line variable: real values for the
+  `NEXT_PUBLIC_*` set and `UMAMI_ORIGIN`, placeholders for the six secrets the
+  build needs present but not real. The Dockerfile writes it to
+  `.env.production.local` in the builder stage, which is never copied into the
+  runner, so no placeholder reaches runtime.
+
+**Blocked, and not by anything in this repo.** Coolify accepts
+`private_key_uuid` on `POST /applications/private-deploy-key`, answers `201`,
+and stores nothing — the application reads back `private_key_id=null`. The
+update endpoint refuses to repair it, rejecting both `private_key_uuid` and
+`private_key_id` with *"This field is not allowed."* So there is no API path at
+all. Upstream: [coolify#2872](https://github.com/coollabsio/coolify/issues/2872)
+and [#2874](https://github.com/coollabsio/coolify/issues/2874) report the same
+validation contradiction; [#8562](https://github.com/coollabsio/coolify/issues/8562)
+is the sibling case where the key is stored but never injected.
+
+The symptom is unhelpful and worth recognising: deploys fail in about 8 seconds
+with **no build log at all**, and the helper container exits having written
+nothing. That is not a build failure — it is Coolify unable to clone.
+
+**The one manual step:** in the Coolify UI open `lebon-grace-git` → *Source* →
+select the private key `lebon-grace-github-deploy-key`, then deploy. Everything
+else is already set.
 
 ## Procedure
 

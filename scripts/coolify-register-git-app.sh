@@ -103,16 +103,30 @@ echo "==> Resolving project + server from the existing service"
 svc=$(api GET "/services/$SERVICE_UUID") || {
   echo "Could not read service $SERVICE_UUID. Is the token scoped to this team?" >&2; exit 1; }
 server_uuid=$(printf '%s' "$svc" | jq -r '.destination.server.uuid // .server.uuid // empty')
-project_uuid=$(printf '%s' "$svc" | jq -r '.environment.project.uuid // empty')
-env_name=$(printf '%s' "$svc" | jq -r '.environment.name // "production"')
+
+# The service payload carries a numeric environment_id and no nested project,
+# so the project has to be found by walking projects and matching that id.
+# Measured against the live API on 2026-08-09 -- do not "simplify" this back to
+# .environment.project.uuid, which is not in the response.
+env_id=$(printf '%s' "$svc" | jq -r '.environment_id // empty')
+project_uuid=""; env_name="production"
+if [[ -n "$env_id" ]]; then
+  for p in $(api GET "/projects" | jq -r '.[].uuid'); do
+    match=$(api GET "/projects/$p" \
+      | jq -r --argjson e "$env_id" '.environments[]? | select(.id == $e) | .name')
+    if [[ -n "$match" ]]; then project_uuid="$p"; env_name="$match"; break; fi
+  done
+fi
 echo "    server_uuid : ${server_uuid:-<UNRESOLVED>}"
 echo "    project_uuid: ${project_uuid:-<UNRESOLVED>}"
 echo "    environment : $env_name"
 if [[ -z "$server_uuid" || -z "$project_uuid" ]]; then
   echo >&2
   echo "ERROR: could not resolve server/project from the service payload." >&2
-  echo "  Re-run with the shape printed below and adjust the jq paths:" >&2
-  printf '%s' "$svc" | jq 'del(.docker_compose, .docker_compose_raw)' >&2
+  echo "  Key paths in the response, so the jq above can be corrected." >&2
+  echo "  NAMES ONLY -- a service payload carries env values, and dumping it" >&2
+  echo "  is how live Stripe keys ended up in a transcript on 2026-08-09:" >&2
+  printf '%s' "$svc" | jq -r '[paths(scalars) | join(".")] | unique | .[]' >&2
   exit 1
 fi
 
@@ -169,6 +183,31 @@ resp=$(api POST "/applications/private-deploy-key" "$body")
 app_uuid=$(printf '%s' "$resp" | jq -r '.uuid // empty')
 [[ -n "$app_uuid" ]] || { echo "No uuid returned:" >&2; printf '%s' "$resp" >&2; exit 1; }
 echo "    created application uuid: $app_uuid"
+
+# Coolify 4.1.2 accepts private_key_uuid here, returns 201, and does not store
+# it -- the application comes back with private_key_id=null and every deploy
+# fails in ~8s with no build log, because it cannot clone a private repo.
+# PATCH cannot repair it either: both private_key_uuid and private_key_id are
+# rejected with "This field is not allowed."  Upstream, see coollabsio/coolify
+# issues 2872 and 2874 (same validation contradiction) and 8562 (key present
+# but not injected). Detect it rather than hand back a resource that looks
+# created and cannot ever deploy.
+attached=$(api GET "/applications/$app_uuid" | jq -r '.private_key_id // "null"')
+if [[ "$attached" == "null" ]]; then
+  cat >&2 <<MSG
+
+  !! DEPLOY KEY NOT ATTACHED -- one manual step needed !!
+
+     Coolify did not persist the deploy key. This is an upstream API bug,
+     not a bad request: the create call returned 201 and the field is
+     refused by the update endpoint, so there is no API path to fix it.
+
+     In the Coolify UI, open the application
+       -> Source -> select the private key '$APP_NAME-github-deploy-key'
+     then deploy. Everything else on this application is already correct.
+
+MSG
+fi
 
 # --- 4. Non-secret env vars only ---------------------------------------------
 # Every value below is already public: it ships in the browser bundle, appears on
@@ -232,5 +271,20 @@ cat <<EOF
   4. Only then move shop.lebon-grace.com to the new application and
      stop the old service. Keep the service stopped, not deleted, until
      a real order has been placed end-to-end.
+
+  !! DO NOT CUT OVER UNTIL $GIT_BRANCH IS CURRENT !!
+     This application tracks '$GIT_BRANCH'. The live container was built
+     from the working tree of a feature branch, and $GIT_BRANCH is a long
+     way behind it. Moving the domain across while that is true would not
+     be a deploy -- it would be a silent rollback of every fix on that
+     branch, on a shop taking live card payments. Merge first.
+
+     Check before step 4, and expect 0:
+       git rev-list --count origin/$GIT_BRANCH..HEAD
+
+     Building from a stale branch NOW is harmless and worth doing: the new
+     application has no domain, so it serves nobody. The build succeeding
+     is the proof that the git pipeline works, which is the thing being
+     fixed here.
 ===================================================================
 EOF
