@@ -110,11 +110,43 @@ your phone number. If the order is not there, contact us — do not pay again.
 **You cannot find your order number.** It is in the confirmation email. If that
 is gone, use **Account** with your email and phone instead.
 
-## Contact
+## Getting in touch — for enquirers
 
-The phone number, WhatsApp and email are on the **Contact** page. They are
-revealed on request rather than printed in the page source, which keeps them out
-of the hands of scrapers — you may need to click once to see them.
+You do not need to have ordered anything. Three ways in, all on the **Contact**
+page:
+
+| Route | What happens |
+|---|---|
+| **The contact form** | Goes straight to the workshop's inbox, with your address set as the reply-to, so a reply lands back with you |
+| **WhatsApp** | Opens a chat with a message already written; usually the fastest answer |
+| **Phone / email** | Shown on request — see below |
+
+**Why the phone number is not just printed.** It is revealed when you ask for
+it, rather than sitting in the page source where address-harvesting crawlers
+read it. You may need one click to see it. Nothing is hidden from you; it is
+hidden from robots.
+
+**If the form does not send.** You will be told, and asked to try again — the
+shop does not claim your message went through when it did not. Try WhatsApp if
+it keeps failing.
+
+**Limits worth knowing.** The form accepts three messages an hour from the same
+connection, and the reveal twenty. Both are generous for a person and useless to
+a spammer. If you hit one, wait a little or use WhatsApp.
+
+**Your email address has to be one that works.** As of 2026-08-09 the same check
+runs on the contact form, the newsletter and checkout: an address with no
+domain ending, a doubled dot, or a dot at the start or end is refused, because a
+reply that bounces helps nobody. Ordinary addresses — including
+`you+shop@gmail.com` and company subdomains — are fine.
+
+## The newsletter
+
+Subscribe from the footer; unsubscribe at `/unsubscribe` with the same address.
+
+Unsubscribing always says the same thing whether or not the address was on the
+list. That is deliberate — otherwise the page could be used to work out who has
+subscribed.
 
 ---
 
