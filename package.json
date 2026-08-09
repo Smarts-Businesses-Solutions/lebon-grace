@@ -13,7 +13,8 @@
     "verify:deploy": "node scripts/verify-deploy.mjs",
     "audit:contrast": "node scripts/contrast-audit.mjs",
     "start:standalone": "node scripts/serve-standalone.mjs",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "qa:report": "node scripts/qa-report.mjs"
   },
   "dependencies": {
     "@sentry/nextjs": "^10.62.0",
