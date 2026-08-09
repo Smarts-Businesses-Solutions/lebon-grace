@@ -136,3 +136,47 @@ own header says it does not target the estate, and `PROJECT-CONTEXT.md` records
 that this app deploys via Coolify with no deploy script at all. Fixing only what
 the task named would have produced a verification that never ran against
 production.
+
+## L-12 · A probe that assumes DOM structure invents its own bugs
+
+Added 2026-08-09, from the anonymous-visitor walkthrough. Three of the findings
+raised during it were **my own tooling**, not the app:
+
+- `/track` "gave no clear message". The page has three visible inputs; the
+  first is the header **search box**. Filling inputs 0 and 1 filled search and
+  the order id, leaving the phone blank. Reading the form first — placeholders
+  `Search puzzles`, `e.g. abc12345`, `+971 5X XXX XXXX` — showed the refusal
+  works exactly as intended.
+- A cart "money mismatch". The label and the amount are on separate lines, so a
+  single-line regex read `subtotal=null` and reported arithmetic that was in
+  fact correct at every step, including the AED 150 boundary.
+- "The B-1 fix is not deployed", inferred from commit timestamps. The live image
+  had been built from a **working tree**, so it contained changes committed
+  hours later. No commit identified what was live.
+
+The shape is identical each time: **asserting against assumed structure instead
+of reading it.** L-2 says pair every "X is absent" with proof X could have been
+present; this is its sibling — pair every "the app did Y" with proof you drove
+the app, not something adjacent to it.
+
+The habit that caught all three was the same: when a result is surprising, dump
+the raw evidence — the form's actual inputs, the raw text, the served bundle —
+before writing it down as a defect.
+
+## L-13 · Correct behaviour resting on an undocumented property is not correct
+
+`clientIp()` bucketed rate limits on the leftmost, attacker-controlled entry of
+`X-Forwarded-For` (B-15). Every public limiter should have been bypassable with
+one header. It was not, because Traefik overwrites the header before the app
+sees it.
+
+Two things follow. First, the code was wrong and the deployment happened to
+save it — a `forwardedHeaders.trustedIPs` change would have removed the
+guarantee silently, with no code change and no test failure. Second, the file
+credited a *different* mitigation entirely: "the container binds to loopback and
+is only reachable through the tunnel", describing a Caddy/SSH deployment that
+had already been decommissioned.
+
+> A comment explaining why something unsafe is safe is a liability once the
+> architecture it describes is gone. Either the app enforces the property
+> itself, or the comment names the exact external setting it depends on.

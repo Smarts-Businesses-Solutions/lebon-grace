@@ -149,6 +149,74 @@ running when someone shipped. The weakness was invisible from the configuration.
 
 ---
 
+# Found walking production as an anonymous visitor (2026-08-09)
+
+Four more, from driving the live site in Edge rather than reading the code.
+None were caught by the existing suite, because a passing suite finds nothing
+new — the value was in probing what it did not cover.
+
+## B-13 · A product that does not exist returned 200
+
+**Severity:** Medium (High operationally) · **Found by:** live crawl · **Fixed**
+
+`/shop/<anything>` rendered "Product Not Found" inside a **200 OK**. `notFound()`
+was used nowhere in the app and there was no `not-found.tsx`.
+
+The SEO argument is the obvious one — crawlers indexing unlimited fake product
+URLs. The operational one is worse: `verify-deploy.mjs` and the uptime timer
+both assert `status < 400`, so a broken or withdrawn product link was invisible
+to the exact tooling built to catch broken deploys.
+
+**Fix:** the 757-line client component moved byte-for-byte to
+`ProductDetailClient.tsx` with a server wrapper in front that calls
+`notFound()`. No props, so no serialisation boundary. **Regression:**
+`tests/e2e/seo/status-codes.spec.ts`, verified failing against production and
+again with the guard removed and rebuilt.
+
+## B-14 · "Subtotal (1 items)" on the last screen before payment
+
+**Severity:** Low · **Found by:** driving the cart · **Fixed**
+
+The string was not the bug; hand-writing it was. The same shape — `{n} things`
+with no branch for one — was in three other places.
+
+**Fix:** `countOf()` with a unit test written first. **Regression:**
+`src/lib/plural.test.ts`.
+
+## B-15 · Rate limiting bucketed on the spoofable end of X-Forwarded-For
+
+**Severity:** Medium · **Found by:** reading `clientIp` during the refusal-path
+review · **Fixed**
+
+`clientIp()` read `xff.split(",")[0]`. Proxies append, so the leftmost entry is
+the one value a caller controls — a random header per request would have meant
+a fresh bucket per request across all nine public limiters.
+
+**It was not exploitable.** Tested against production and again straight at the
+origin with the Traefik router's own Host header: three distinct spoofed values
+all landed in the same already-tripped bucket, because Traefik overwrites the
+header first. The code was wrong and the deployment saved it — and the file
+credited a mitigation ("binds to loopback… through the tunnel") that described
+the decommissioned Caddy/SSH setup.
+
+**Fix:** `cf-connecting-ip` → `x-real-ip` → rightmost valid hop → `"unknown"`.
+**Regression:** `src/lib/rate-limit.test.ts`, 4 of 6 red against the old code.
+
+## B-16 · Header controls and grid Add-to-cart below the 44×44 floor
+
+**Severity:** Low–Medium · **Found by:** measuring at 390px · **Fixed**
+
+Header search 36×36, cart 36×36, menu toggle 40×40, and the shop grid's Add to
+cart **87×28** — repeated once per product, on the money path, on the viewport
+most customers arrive on. Same class as B-9 and B-10, against the 44×44 floor
+DESIGN.md sets for this project.
+
+**Fix:** `min-h-11`/`min-w-11` with inline-flex centring, the B-9 pattern, not
+padding — padding on an icon button depends on the glyph, which is how these
+drifted. **Regression:** `tests/e2e/mobile/tap-targets.spec.ts`.
+
+---
+
 ## Still open
 
 | Bug | Where |
