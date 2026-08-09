@@ -1,59 +1,71 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Lebon Grace
 
-## Getting Started
+Hand-made laser-cut wooden puzzles, made to order in Dubai and sold to UAE
+consumers. Next.js 16 storefront with live Stripe payments, a self-hosted
+Postgres behind it, and a workshop console that tells the maker what to cut.
 
-First, run the development server:
+---
+
+## Start here
+
+| If you want to | Read |
+|---|---|
+| Understand the whole system | [FOR-EVARISTE.md](FOR-EVARISTE.md) — the guided tour, 15 sections |
+| Deploy or roll back | [DEPLOYMENT-GUIDE.md](DEPLOYMENT-GUIDE.md) |
+| Find an operational document | [OPERATIONS.md](OPERATIONS.md) |
+| Know why something is the way it is | [DECISIONS.md](DECISIONS.md) |
+| See what shipped and what is in flight | [PROGRESS.md](PROGRESS.md) |
+| Know what is next | [whatnext.md](whatnext.md) · [ENHANCEMENTS.md](ENHANCEMENTS.md) |
+| Change how it looks | [DESIGN.md](DESIGN.md) |
+| Know who can do what | [docs/QA/ACTORS.md](docs/QA/ACTORS.md) |
+
+## Develop
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local     # then fill it in — see DEPLOYMENT-GUIDE.md
+npm run dev                    # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Six environment variables are genuinely required: `SUPABASE_SERVICE_ROLE_KEY`,
+`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `ADMIN_PASSWORD`,
+`ADMIN_SESSION_SECRET`. The rest degrade a feature rather than breaking the shop.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Verify
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npx tsc --noEmit          # types
+npx vitest run            # 138 unit tests
+npx eslint src/           # must be 0 — hard CI gate
+npx playwright test       # 14 routes x 3 viewports, incl. axe-core
+npm run verify:deploy     # did a deploy actually reach production?
+```
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+CI runs all of these in `.forgejo/workflows/ci.yml`. **GitHub Actions does not
+run** — the account is halted, so the `Vercel` check you may see failing on a PR
+is dead and carries no signal.
 
 ## Deploy
 
 Self-hosted. Not Vercel, not Supabase cloud, not Hostinger.
 
-The app runs as a Docker container on the machine described in
-`aprojects/ops/selfhost/`, behind Caddy over an SSH reverse tunnel, and stores
-orders in a self-hosted Postgres reached through PostgREST. Analytics go to a
-self-hosted PostHog and errors to GlitchTip.
+The app runs as a Docker container on a Hetzner **cx53** (`116.203.242.215`)
+behind Coolify's Traefik proxy, with Postgres reached through PostgREST.
+Analytics go to a self-hosted **Umami**; errors to GlitchTip.
 
-```bash
-# Build and (re)deploy the container
-aprojects/ops/selfhost/scripts/build-apps.sh lebon-grace
+> **Read the deployment guide before deploying.** The app is registered in
+> Coolify as a *service*, not a git-backed application, so "Deploy" recreates the
+> container from an image built by hand — it does not build from source. That is
+> being fixed; see [docs/ops/COOLIFY-GIT-DEPLOY-MIGRATION.md](docs/ops/COOLIFY-GIT-DEPLOY-MIGRATION.md).
 
-# Unit tests (geometry, validators)
-npm test
+The public shop is **`shop.lebon-grace.com`**. `lebon-grace.com` is a different
+site entirely.
 
-# Stripe go-live readiness, read-only
-node scripts/stripe/preflight.mjs
-```
+## A note on stale history
 
-Environment is supplied at runtime from
-`aprojects/ops/selfhost/apps/lebon-grace.runtime.env`. `APP_URL` is read on every
-request, so the public domain can change with a restart rather than a rebuild.
-
-An earlier README revision described a Hostinger deploy backed by a local JSON
-store at `.data/store.json`. That was true for about a week in July 2026 and is
-not how anything works now: the JSON store was replaced by Postgres and the
-Hostinger move was abandoned.
+Earlier revisions of this file described a Hostinger deploy backed by a JSON
+store at `.data/store.json`, and later a Caddy/SSH-tunnel setup with PostHog.
+Neither is how anything works now: the JSON store was replaced by Postgres, the
+Hostinger move was abandoned, PostHog was purged, and the estate moved to
+Coolify. If a document here disagrees with the deployment guide, the deployment
+guide is newer.
