@@ -51,11 +51,11 @@ performed · ⬜ not covered.
 
 | Action | Status | Where |
 |---|---|---|
-| Track an order with id + phone | 🟡 | refusal path tested; a real order needs a fixture |
+| Track an order with id + phone | ✅ | **verified end-to-end 2026-08-09** against a seeded delivered order on production, then removed |
 | Be refused with the wrong phone | ✅ | `money-path` |
 | See a clear error when lookup fails server-side | ✅ | `failure-modes` |
-| Look orders up by email + phone (`/account`) | ⬜ | unit-covered in `store.test.ts` |
-| Leave a review for a delivered order | ⬜ | fully unit-covered (`api/reviews/route.test.ts`, 15 cases) |
+| Look orders up by email + phone (`/account`) | ✅ | **verified end-to-end 2026-08-09**; unknown email returns a merged 404 |
+| Leave a review for a delivered order | ✅ | **verified end-to-end 2026-08-09**: 201 created, 409 duplicate, 403 product not in order, 404 wrong phone |
 | Unsubscribe from the newsletter | 🟡 | page crawled |
 | Contact / WhatsApp | 🟡 | float presence and position tested |
 
@@ -80,8 +80,13 @@ product.
 
 ## Biggest remaining gaps
 
-1. **Track a real order end-to-end** — needs a seeded order fixture. Everything
-   around it is tested; the happy path is not.
-2. **Remove a line from the cart** — the only cart mutation not driven.
+1. ~~Track a real order end-to-end~~ — **closed 2026-08-09.** A `delivered`
+   order was seeded directly into production, the whole post-purchase path was
+   driven against it (track, account, review, and every refusal), and the rows
+   were deleted afterwards. Verified back to `orders=1 items=0 reviews=0`.
+   `delivered` is deliberately not a queue status, so it never entered the
+   cutting queue. Procedure in `project_lebon-grace_playbooks.md`.
+2. ~~Remove a line from the cart~~ — **closed**; decrementing at quantity 1
+   removes the line and the empty-cart state renders.
 3. **Admin order-status change in a browser** — the notify-once rule is
    unit-tested, but nobody clicks the dropdown.

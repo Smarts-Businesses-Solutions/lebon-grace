@@ -215,6 +215,47 @@ DESIGN.md sets for this project.
 padding — padding on an icon button depends on the glyph, which is how these
 drifted. **Regression:** `tests/e2e/mobile/tap-targets.spec.ts`.
 
+## B-17 · Two variants of one product merged into a single cart line
+
+**Severity:** Medium, but **dormant** · **Found by:** the Shopper walkthrough · **Fixed**
+
+Selecting a variant overrides the product's name, image and price but **not its
+slug**, and `lineId` keyed on slug alone. Picking variant A, adding it, then
+picking B and adding it produced **one line of quantity two**, showing whichever
+was added first. The customer would have received two of the wrong thing.
+
+Dormant, said plainly: **zero visible products have variants.** 5066 variant
+rows exist, but every one belongs to a hidden or retired product, and
+`/api/variants` answers `{"source":"none"}` for the live catalogue.
+
+Fixed anyway because arming it is a **data** change — unhiding a product or
+adding variant rows would enable it with no code review in the way — and the
+failure is silent, on the money path. `lineId` now includes the name; safe
+because it is derived per render and never persisted.
+
+**Still open in the same area:** the checkout route re-prices every line from
+the catalogue by slug (the B-4 guard), so a variant's own price is discarded at
+payment. That needs variant-aware pricing, not a patch to the price guard.
+
+## B-18 · A paid order with nothing to make was silent
+
+**Severity:** Medium · **Found by:** inspecting production before seeding · **Fixed**
+
+`if (items.length > 0)` in the webhook had no `else`. An order could be created,
+charged and queued with no line items and **no signal at all**; the neighbouring
+`catch` logged "Line items fetch failed" without naming the order, so even when
+it fired there was no way to tell which order to repair.
+
+Production holds one such order — real, 2026-06-28, `deposit_paid`, six weeks in
+the cutting queue with nothing to cut. That one is legacy (item-writing landed
+2026-08-01, five weeks later), but the silent path was still live.
+
+Both branches now log the order and session id at **error** level. The webhook
+still returns 200 deliberately: the customer has paid, and throwing would make
+Stripe retry forever. The requirement is loudness, not failure.
+
+Same family as B-7 — the money path succeeds and the workshop cannot act.
+
 ---
 
 ## Still open
