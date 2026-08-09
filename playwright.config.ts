@@ -1,5 +1,10 @@
 import { defineConfig, devices } from "@playwright/test";
-import { makeBaseConfig } from "../ops/qa/playwright.base.config";
+// Vendored at ops/qa/, not "../ops/qa/". The shared kit is designed to live
+// outside every project, which also means a clone of this repo alone cannot run
+// its own E2E suite: CI died with "Cannot find module
+// '../ops/qa/playwright.base.config'" the first time it got this far. The copy
+// is kept honest by src/lib/qa-kit-drift.test.ts.
+import { makeBaseConfig } from "./ops/qa/playwright.base.config";
 
 const base = makeBaseConfig(devices);
 

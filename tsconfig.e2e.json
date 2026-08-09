@@ -1,10 +1,11 @@
 {
   // Type-checks the E2E harness, which the app's tsconfig deliberately excludes.
   //
-  // Why split: playwright.config.ts imports ../ops/qa/* (the shared platform QA
-  // harness, outside this app). Pulling those files into the Next.js build made
-  // `next build` fail on type errors in code this app does not own. Excluding
-  // them from tsconfig.json fixes the build; this file keeps them checked.
+  // Why split: playwright.config.ts imports ops/qa/* (the shared platform QA
+  // harness, VENDORED into this repo — see playwright.config.ts for why).
+  // Pulling those files into the Next.js build made `next build` fail on type
+  // errors in code this app does not own. Excluding them from tsconfig.json
+  // fixes the build; this file keeps them checked.
   //
   //   npm run typecheck:e2e
   //
@@ -16,6 +17,6 @@
     "noImplicitAny": false,
     "noEmit": true
   },
-  "include": ["playwright.config.ts", "tests/**/*.ts", "../ops/qa/**/*.ts"],
+  "include": ["playwright.config.ts", "tests/**/*.ts", "ops/qa/**/*.ts"],
   "exclude": ["node_modules"]
 }
