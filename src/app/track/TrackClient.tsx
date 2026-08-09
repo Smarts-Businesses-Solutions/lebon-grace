@@ -3,6 +3,7 @@
 import { useState } from "react";
 import WhatsAppLink from "@/components/WhatsAppLink";
 import Link from "next/link";
+import { STATUS_PRESENTATION, isOrderStatus } from "@/lib/order-status";
 
 const STATUS_STEPS = [
   { key: "deposit_paid", label: "Payment Confirmed", icon: "💳" },
@@ -12,14 +13,13 @@ const STATUS_STEPS = [
   { key: "delivered", label: "Delivered", icon: "✅" },
 ];
 
-const STATUS_INDEX: Record<string, number> = {
-  deposit_paid: 0,
-  processing: 1,
-  shipped: 2,
-  out_for_delivery: 3,
-  delivered: 4,
-  completed: 4,
-};
+/**
+ * Presentation comes from STATUS_PRESENTATION, which is exhaustive over
+ * OrderStatus at compile time. The local map this replaces covered six of the
+ * ten statuses the database accepts; the other four fell to `?? -1` and drew a
+ * 0% pipeline with no step lit, so a refunded customer saw what reads as an
+ * order about to start — in the same blue used for "in progress".
+ */
 
 interface OrderData {
   id: string;
@@ -85,7 +85,11 @@ export default function TrackClient() {
       minute: "2-digit",
     });
 
-  const currentStep = order ? (STATUS_INDEX[order.status] ?? -1) : -1;
+  const presentation = order && isOrderStatus(order.status) ? STATUS_PRESENTATION[order.status] : null;
+  // null step = a terminal state that is NOT on the pipeline. Drawing one as a
+  // pipeline at 0% is the defect this replaces.
+  const currentStep = presentation?.step ?? -1;
+  const isTerminal = presentation !== null && presentation.step === null;
 
   return (
     <div className="min-h-screen bg-paper">
@@ -149,16 +153,28 @@ export default function TrackClient() {
               <div className="flex items-center justify-between mb-6">
                 <h2 className="font-semibold text-ink">Order Status</h2>
                 <span className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${
-                  order.status === "delivered" || order.status === "completed"
+                  presentation?.tone === "done"
                     ? "bg-green-50 text-green-700"
-                    : order.status === "cancelled"
+                    : presentation?.tone === "negative"
                     ? "bg-red-50 text-red-700"
+                    : presentation?.tone === "neutral"
+                    ? "bg-paper-deep text-ink-soft"
                     : "bg-blue-50 text-blue-700"
                 }`}>
                   {order.status.replace(/_/g, " ")}
                 </span>
               </div>
 
+              {isTerminal ? (
+                <div data-testid="track-terminal" className="rounded-xl border border-rule bg-paper p-5">
+                  <h3 className="font-heading text-lg font-semibold text-ink">{presentation!.terminalTitle}</h3>
+                  <p className="mt-2 text-sm text-ink-soft leading-relaxed">{presentation!.terminalBody}</p>
+                  <div className="mt-4"><WhatsAppLink message={`Hi, about order #${String(order.id).slice(0, 8)}`} className="inline-flex items-center px-5 py-2.5 bg-sand text-ink text-sm tracking-wider uppercase font-medium rounded-sm hover:bg-sand-dark transition-colors">
+                    Message us on WhatsApp
+                  </WhatsAppLink></div>
+                </div>
+              ) : (
+              <>
               {/* Progress Bar */}
               <div className="relative mb-8">
                 <div className="absolute top-5 left-0 right-0 h-1 bg-paper-deep rounded">
@@ -190,6 +206,8 @@ export default function TrackClient() {
                   })}
                 </div>
               </div>
+              </>
+              )}
 
               {/* Tracking Info */}
               {order.tracking_number && (
