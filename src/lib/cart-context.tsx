@@ -56,6 +56,20 @@ export const FREE_DELIVERY_OVER = 150;
 const CART_KEY = "lebon-grace-cart";
 const CART_EMAIL_KEY = "lebon-grace-cart-email";
 const CART_TS_KEY = "lebon-grace-cart-ts";
+/**
+ * Delivery choice, persisted alongside the cart.
+ *
+ * It used to live only in React state. The cart itself survived a reload but
+ * this did not, so a customer who chose "Deliver to me" and then refreshed —
+ * or opened /checkout directly, or came back with the browser's Back button —
+ * was silently switched to pickup. /checkout has no toggle of its own
+ * (checkout/page.tsx:172 only READS deliveryMethod), so the address fields
+ * simply vanished and the order was quoted with free collection.
+ *
+ * Found by the Module C browser suite; regression test in
+ * tests/e2e/money-path/checkout.spec.ts.
+ */
+const CART_DELIVERY_KEY = "lebon-grace-cart-delivery";
 
 function loadCart(): CartItem[] {
   if (typeof window === "undefined") return [];
@@ -66,6 +80,26 @@ function loadCart(): CartItem[] {
     // ignore corrupted data
   }
   return [];
+}
+
+function loadDeliveryMethod(): DeliveryMethod {
+  if (typeof window === "undefined") return "pickup";
+  try {
+    const stored = localStorage.getItem(CART_DELIVERY_KEY);
+    if (stored === "delivery" || stored === "pickup") return stored;
+  } catch {
+    // ignore corrupted data
+  }
+  return "pickup";
+}
+
+function saveDeliveryMethod(method: DeliveryMethod): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(CART_DELIVERY_KEY, method);
+  } catch {
+    // ignore storage errors
+  }
 }
 
 function saveCart(items: CartItem[]): void {
@@ -127,8 +161,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
         // SSR, and hydrating a server-empty cart over a client-full one mismatches.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setItems(loadCart());
+    // Restored here too, for the same reason and in the same breath: the cart
+    // surviving a reload while the delivery choice did not is what silently
+    // reverted customers to pickup.
+    setDeliveryMethod(loadDeliveryMethod());
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (mounted) saveDeliveryMethod(deliveryMethod);
+  }, [deliveryMethod, mounted]);
 
   useEffect(() => {
     if (mounted) {

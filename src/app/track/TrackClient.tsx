@@ -104,6 +104,7 @@ export default function TrackClient() {
             <div>
               <label className="block text-sm font-medium text-ink-soft mb-1">Order ID</label>
               <input
+                data-testid="track-order-id"
                 type="text"
                 value={orderId}
                 onChange={(e) => setOrderId(e.target.value)}
@@ -114,6 +115,7 @@ export default function TrackClient() {
             <div>
               <label className="block text-sm font-medium text-ink-soft mb-1">Phone Number</label>
               <input
+                data-testid="track-phone"
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
@@ -123,6 +125,7 @@ export default function TrackClient() {
             </div>
           </div>
           <button
+            data-testid="track-submit"
             type="submit"
             disabled={loading}
             className="w-full py-3.5 bg-ink text-paper text-sm tracking-wide hover:bg-sand-dark transition-colors disabled:opacity-50"
@@ -133,7 +136,7 @@ export default function TrackClient() {
 
         {/* Error */}
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm mb-6">
+          <div data-testid="track-error" className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm mb-6">
             {error}
           </div>
         )}

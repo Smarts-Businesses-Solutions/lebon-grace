@@ -58,7 +58,7 @@ elaborate tests for personas and pages that will never exist.
 | Gap | Why it matters |
 |---|---|
 | ~~Playwright does not run in CI~~ | ✅ **CLOSED 2026-08-08.** `.forgejo/workflows/ci.yml` now installs Chromium, builds, and runs the smoke suite as a hard gate, uploading trace/video/screenshots on failure. Verified it *catches* defects rather than merely passing: a 404ing asset injected into `/about` was reported by name. **The first attempt at that check was invalid** — the string it patched (`<main`) does not appear in that file, so nothing was injected and the resulting 14-pass proved nothing. Re-run with both preconditions asserted (present in source, present in `.next/server/app/about.html`). |
-| Module C — user action coverage | The money path (add to cart → checkout → track) has strong *unit* coverage but no browser-level test. |
+| ~~Module C — user action coverage~~ | ✅ **CLOSED 2026-08-08.** `tests/e2e/money-path/checkout.spec.ts` — 12 tests over add-to-cart, cart arithmetic, the free-delivery boundary at exactly AED 150, persistence, the checkout payload, and the `/track` refusal. `/api/checkout` is intercepted at the browser so a suite running on every push never creates a real Stripe session; what is asserted instead is the payload the client *asks* to be charged, with the server's refusal to trust it already covered by A-4. **Found a live defect** — see below. |
 | Module E — failure modes | Offline, slow network, forced 500 on `/api/checkout`. None automated. |
 | Mobile viewport runs | The kit configures three viewports; no test exercises the mobile ones. |
 | `docs/QA/` artifacts | `SYSTEM_MAP.md`, `COVERAGE_INVENTORY.md`, `ROUTE_COVERAGE_REPORT.md`, `BUGS.md`, `LESSONS_LEARNED.md` do not exist. Much of their content lives in `CODEBASE_AUDIT.md` and `ACTION_PLAN.md` under different names. |
@@ -102,7 +102,21 @@ In order:
 1. ~~Put the existing smoke suite into CI.~~ ✅ Done.
 2. **Resolve Edge-vs-Chrome in the kit**, so the other fourteen projects do not
    each rediscover it.
-3. **Add Module C for the money path only** — cart → checkout → track. That is
-   where the revenue is; the rest of the crawl is already covered by smoke.
+3. ~~Add Module C for the money path.~~ ✅ Done — and it earned its keep on the
+   first run by finding a defect no unit test could see (below).
 4. Leave Modules A/B-per-persona and everything in §2.2 alone until this shop
    has accounts or plans. Today it has neither.
+
+## 6. What Module C found on its first run
+
+`deliveryMethod` lived only in React state while the cart itself was persisted
+to localStorage. So a customer who chose **"Deliver to me"** and then reloaded —
+or opened `/checkout` directly, or came back with the Back button — was silently
+returned to pickup. `/checkout` has no toggle of its own (it only *reads*
+`deliveryMethod`), so the address fields simply vanished and the order was
+quoted with free collection.
+
+No unit test could have caught it: each piece was individually correct, and the
+defect only exists across a page load. Fixed in `cart-context.tsx`, with a
+regression test that was verified to fail without the fix — reporting the exact
+customer-facing symptom, `Expected "20", Received "Free"`.

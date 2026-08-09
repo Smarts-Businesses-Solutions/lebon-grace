@@ -72,7 +72,7 @@ export default function CartPage() {
                   <div className="flex items-center border border-rule">
                     <button onClick={() => updateQuantity(lineId(item), item.quantity - 1)} className="px-2.5 py-1.5 text-gray-500 hover:text-gray-700 transition-colors text-sm">−</button>
                     <span className="px-3 py-1.5 text-sm font-medium">{item.quantity}</span>
-                    <button onClick={() => updateQuantity(lineId(item), item.quantity + 1)} className="px-2.5 py-1.5 text-gray-500 hover:text-gray-700 transition-colors text-sm">+</button>
+                    <button data-testid="cart-qty-inc" onClick={() => updateQuantity(lineId(item), item.quantity + 1)} className="px-2.5 py-1.5 text-gray-500 hover:text-gray-700 transition-colors text-sm">+</button>
                   </div>
                   <button onClick={() => removeItem(lineId(item))} className="text-gray-400 text-xs hover:text-red-500 transition-colors">Remove</button>
                 </div>
@@ -129,17 +129,17 @@ export default function CartPage() {
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-400">Subtotal ({items.length} items)</span>
-                <span className="text-gray-900">{formatPrice(subtotal)}</span>
+                <span data-testid="cart-subtotal" className="text-gray-900">{formatPrice(subtotal)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-400">{deliveryMethod === "pickup" ? "Pickup" : "Shipping"}</span>
                 <span className={shipping === 0 ? "text-[#A8874D] font-medium" : "text-gray-900"}>
-                  {shipping === 0 ? "Free" : formatPrice(shipping)}
+                  <span data-testid="cart-shipping">{shipping === 0 ? "Free" : formatPrice(shipping)}</span>
                 </span>
               </div>
               <div className="border-t border-gray-100 pt-3 flex justify-between font-semibold">
                 <span className="text-gray-900">Total</span>
-                <span className="text-gray-900">{formatPrice(total)}</span>
+                <span data-testid="cart-total" className="text-gray-900">{formatPrice(total)}</span>
               </div>
             </div>
 

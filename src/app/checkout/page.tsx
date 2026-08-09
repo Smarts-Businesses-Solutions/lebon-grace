@@ -229,7 +229,7 @@ export default function CheckoutPage() {
             {errors.terms && <p className="mt-1 text-red-500 text-xs">{errors.terms}</p>}
           </div>
 
-          <button type="submit" disabled={submitting} className="w-full py-4 bg-ink text-paper text-sm tracking-wider uppercase hover:bg-sand-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
+          <button data-testid="place-order" type="submit" disabled={submitting} className="w-full py-4 bg-ink text-paper text-sm tracking-wider uppercase hover:bg-sand-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
             {submitting ? "Processing..." : "Pay " + formatPrice(depositNow) + " & Place Order"}
           </button>
         </form>
