@@ -285,6 +285,34 @@ negative — the money went back, which is an outcome, not an error.
 TypeScript set against the CHECK in migration 0002, parsed from the file so it
 needs no database.
 
+## B-20 · Nobody told the operator an order arrived
+
+**Severity:** High (operational) · **Found by:** the operator asking why they get no notifications · **Fixed**
+
+`sendOrderEmail()` addressed `order.customer_email`; `notifyWhatsApp()`
+addressed the customer's phone. **Both went to the customer.** There was no
+admin recipient anywhere in `src/`. The maker learned an order existed by
+opening `/admin` and looking. `.env.example` had documented
+`ORDER_NOTIFY_EMAIL` from the start and no code ever read it.
+
+Compounding: the WhatsApp credentials are unset in production, so
+`sendWhatsAppMessage` returns false and `notifyWhatsApp` logs a wa.me link to
+**container stdout** for manual sending — a path assuming someone reads
+container logs. So the customer's WhatsApp was not going out either.
+
+Third in the family after B-7 and B-18: the money path succeeds and the person
+who has to act is the one nobody told.
+
+**Fix:** `sendOperatorOrderAlert()`, to `ORDER_NOTIFY_EMAIL || CONTACT_EMAIL`,
+carrying the order, value, pieces, engraving and delivery method so the
+operator can act without opening `/admin`. Fire-and-forget with an error-level
+catch — failing the webhook would make Stripe retry, and the retry
+short-circuits on the idempotency check, so the alert would be **skipped
+permanently** rather than resent.
+
+**Still open:** WhatsApp Business credentials are unconfigured, so customer
+WhatsApp messages remain undelivered. Operator task, not a code change.
+
 ---
 
 ## Still open
