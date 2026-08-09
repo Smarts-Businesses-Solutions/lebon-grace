@@ -180,3 +180,49 @@ had already been decommissioned.
 > A comment explaining why something unsafe is safe is a liability once the
 > architecture it describes is gone. Either the app enforces the property
 > itself, or the comment names the exact external setting it depends on.
+
+## L-14 · `set -o pipefail` plus `grep -q` is a false-negative factory
+
+Writing the deployment-correctness check, this line reported that the homepage
+had no `<title>` — while, three lines later, successfully reading the build id
+out of that same response:
+
+```bash
+printf '%s' "$home" | grep -qF "<title>Lebon Grace"
+```
+
+`grep -q` exits the instant it matches. `printf` is then killed by SIGPIPE and
+exits non-zero, and `pipefail` takes the pipeline's status from the rightmost
+non-zero command. **The match succeeding is what makes the pipeline fail.** The
+bigger the input, the more reliably it happens.
+
+The same shell tested it correctly in isolation, because the isolated version
+had no `pipefail`. That is what made it confusing rather than obvious.
+
+Use `case "$s" in *pattern*)` for string conditions in shell: no subprocess, no
+pipe, cannot SIGPIPE, and faster.
+
+## L-15 · A monitor asserting liveness will pass every correctness failure
+
+The uptime check asserts HTTP 200, a `<title>`, and a `dpl=` build id. Every
+fault found walking production on 2026-08-09 satisfied all three: the stale
+deploy, the dead Clearance link, the soft 404. **The monitor was green for the
+entire period the shop was wrong.**
+
+`verify-deploy.mjs` shares the flaw from the other end — it asserts
+`status < 400`, so a soft 404 (B-13) was invisible to the tool built to detect
+bad deploys, *by construction*.
+
+> "Is it up?" and "is it serving what we shipped?" are different questions, and
+> a check that answers the first tells you nothing about the second.
+
+Two corollaries, both learned by shipping them wrong first:
+
+- **Every absence assertion needs its precondition** (L-2 again). "A bogus slug
+  404s" also passes on a shop that 404s everything, so it is paired with "a
+  known product returns 200".
+- **Test a monitor in both directions before trusting it.** All four assertions
+  here were forced to fail — wrong expected build, build id moved backwards,
+  host unresolvable — because a monitor that cannot fail is decoration. Two of
+  them were still wrong on the first attempt and alerted confidently about a
+  perfectly healthy shop.
