@@ -21,6 +21,7 @@ import {
   type EnrichedProduct,
 } from "@/lib/product-filters";
 import { Suspense } from "react";
+import { countOf } from "@/lib/plural";
 
 const sortOptions = [
   { value: "featured", label: "Featured" },
@@ -458,7 +459,7 @@ function ShopContent() {
                   />
                 </div>
                 <span className="text-ink-muted text-xs">
-                  {Math.min(visibleCount, filteredProducts.length)} of {filteredProducts.length} products
+                  {Math.min(visibleCount, filteredProducts.length)} of {countOf(filteredProducts.length, "product")}
                 </span>
                 <select
                   aria-label="Sort products"
@@ -498,7 +499,7 @@ function ShopContent() {
                   Load More Products
                 </button>
                 <p className="mt-2 text-ink-muted text-xs">
-                  Showing {Math.min(visibleCount, filteredProducts.length)} of {filteredProducts.length} products
+                  Showing {Math.min(visibleCount, filteredProducts.length)} of {countOf(filteredProducts.length, "product")}
                 </p>
               </div>
             )}

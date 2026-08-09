@@ -5,6 +5,7 @@ import ProductImage from "@/components/ProductImage";
 import { useCart, lineId, UAE_DELIVERY, FREE_DELIVERY_OVER} from "@/lib/cart-context";
 import { formatPrice } from "@/lib/products";
 import CartRecoveryBanner from "@/components/CartRecoveryBanner";
+import { countOf } from "@/lib/plural";
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity, deliveryMethod, setDeliveryMethod, subtotal, shipping, total, depositNow } = useCart();
@@ -128,7 +129,7 @@ export default function CartPage() {
 
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-ink-muted">Subtotal ({items.length} items)</span>
+                <span className="text-ink-muted">Subtotal ({countOf(items.length, "item")})</span>
                 <span data-testid="cart-subtotal" className="text-gray-900">{formatPrice(subtotal)}</span>
               </div>
               <div className="flex justify-between">
