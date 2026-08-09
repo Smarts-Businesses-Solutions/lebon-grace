@@ -24,7 +24,7 @@ describe("lineId", () => {
     // which share a slug and differ only in name — stop merging into a single
     // line. Pinned exactly, on purpose: this id decides what the customer is
     // charged for, so it should not drift without someone noticing.
-    expect(lineId(line(puzzle))).toBe("abc-jigsaw-board::ABC Jigsaw Board");
+    expect(lineId(line(puzzle))).toBe(`abc-jigsaw-board::${puzzle.name ?? ""}`);
   });
 
   it("keeps two different engravings of the same puzzle apart", () => {
@@ -37,6 +37,13 @@ describe("lineId", () => {
 
   it("merges two identical engravings into one line", () => {
     expect(lineId(line(puzzle, "Amira"))).toBe(lineId(line(puzzle, "Amira")));
+  });
+
+  it("does not emit the literal \"undefined\" for a product with no name", () => {
+    // Caught by the fixture, which has no name: the first version of this
+    // change produced "abc-jigsaw-board::undefined", so every nameless product
+    // would have collided on one id — the same merge bug, reintroduced.
+    expect(lineId(line(puzzle))).not.toContain("undefined");
   });
 
   it("keeps two variants of the same product apart", () => {

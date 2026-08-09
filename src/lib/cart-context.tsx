@@ -21,12 +21,10 @@ export interface CartItem {
 }
 
 /**
- * Cart lines are keyed by this, not by slug alone: the same puzzle ordered
- * twice with two different names is two different products to make, and must
- * not collapse into one line with quantity 2.
- */
-/**
  * Identity of a cart line.
+ *
+ * The same puzzle ordered twice with two different engraved names is two
+ * different things to make, and must not collapse into one line of quantity 2.
  *
  * Slug AND name, because a selected variant overrides the product's name,
  * image and price but NOT its slug (`ProductDetailClient.handleAddToCart`).
@@ -48,7 +46,10 @@ export interface CartItem {
  * where the alternative is shipping the wrong item.
  */
 export function lineId(item: CartItem): string {
-  const base = `${item.product.slug}::${item.product.name}`;
+  // `?? ""` is load-bearing: a product with no name would otherwise key on the
+  // literal "undefined", so every nameless item would collide on the same id —
+  // reintroducing exactly the merge bug this function was changed to stop.
+  const base = `${item.product.slug}::${item.product.name ?? ""}`;
   return item.personalisation ? `${base}::${item.personalisation}` : base;
 }
 
