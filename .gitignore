@@ -69,3 +69,6 @@ shopnode.json
 HOSTINGER_*.md
 SESSION_RESUME.md
 whatnext.md
+
+# Playwright HTML report (test-results/ is already ignored above).
+playwright-report/

@@ -1,6 +1,7 @@
 name: CI — Forgejo
 
-# The quality gate for lebon-grace: typecheck + unit tests + build.
+# The quality gate for lebon-grace: typecheck + unit tests + lint + build +
+# Playwright smoke.
 #
 # WHY FORGEJO AND NOT GITHUB ACTIONS
 # GitHub Actions is halted account-wide following a $256.70 bill, so anything
@@ -44,7 +45,8 @@ jobs:
   check:
     name: Typecheck, test, build
     runs-on: docker
-    timeout-minutes: 20
+    # Raised from 20: the browser install and E2E run add a few minutes.
+    timeout-minutes: 30
     steps:
       - uses: https://code.forgejo.org/actions/checkout@v4
 
@@ -63,24 +65,11 @@ jobs:
       - name: Unit tests
         run: npm test
 
-      # ── Informational, deliberately ────────────────────────────────────────
-      # `npx eslint` currently exits 1 on 51 problems in src/ (32 errors, 19
-      # warnings). Making that a hard gate would put this pipeline red from its
-      # first run, and a permanently-red pipeline is one people learn to ignore
-      # — which is exactly how the (dead) Vercel check on PR #1 ended up being
-      # scrolled past for days.
-      #
-      # The count is already down from 233: eslint.config.mjs now excludes the
-      # one-shot scripts and the in-repo git worktree under .claude/worktrees/,
-      # which was causing a second full copy of src/ to be linted.
-      #
-      # HARDEN THIS once the 51 are cleared: drop the `|| true`. See
-      # ACTION_PLAN.md A-3. Of them, react-hooks/set-state-in-effect (13) is the
-      # group worth reading first — it usually signals a render loop or state
-      # that should be derived rather than synced.
-      # Was `|| true` because 51 pre-existing problems would have made CI red on
-      # arrival. src/ is at zero now, so this is a real gate: the next problem
-      # introduced fails the build instead of scrolling past.
+      # Was `|| true` while 51 pre-existing problems would have made this red on
+      # arrival — and a permanently-red pipeline is one people learn to ignore,
+      # which is how the dead Vercel check on PR #1 got scrolled past for days.
+      # src/ is at zero now, so it is a real gate. --report-unused-disable-
+      # directives so the suppressions cannot quietly rot either.
       - name: Lint
         run: npx eslint --report-unused-disable-directives
 
@@ -98,3 +87,43 @@ jobs:
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+
+      # ── E2E smoke (MASTER-QA-PROTOCOL §6 Module B / §7 release gate) ────────
+      # The suite and the shared kit already existed; nothing ran them, which is
+      # the same failure class as a green build that never deployed — a check
+      # that reports nothing is indistinguishable from a check that passes.
+      #
+      # BUNDLED CHROMIUM, NOT EDGE. ops/qa pins `channel: "msedge"` and calls it
+      # non-negotiable, but a channel names the *installed* browser and this
+      # container has no Edge, so every test would fail at launch and read as an
+      # outage rather than a failure. CLAUDE.md also supersedes the Edge-only
+      # rule in favour of Chrome. playwright.config.ts therefore leaves `channel`
+      # unset unless QA_BROWSER_CHANNEL says otherwise.
+      #
+      # --with-deps installs the system libraries headless Chromium needs; the
+      # node:20-bookworm image does not ship them.
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      # Runs the desktop project only. The two mobile viewports are configured
+      # and worth adding, but a release gate earns trust by being fast and
+      # never flaky first.
+      #
+      # Playwright starts the app itself (webServer in playwright.config.ts),
+      # serving .next/standalone — the artifact the container actually runs —
+      # so this exercises production's server, not a near-neighbour. It needs
+      # the Build step above to have produced it.
+      - name: E2E smoke
+        run: npx playwright test --project=desktop
+
+      # Evidence for a red run: trace, video, screenshots. Without this a CI
+      # failure is a stack trace and a guess.
+      - name: Upload Playwright report
+        if: failure()
+        uses: https://code.forgejo.org/actions/upload-artifact@v3
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7

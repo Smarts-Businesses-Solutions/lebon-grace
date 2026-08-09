@@ -57,14 +57,14 @@ elaborate tests for personas and pages that will never exist.
 
 | Gap | Why it matters |
 |---|---|
-| **Playwright does not run in CI** | The single biggest one. `.forgejo/workflows/ci.yml` runs typecheck, unit tests, lint and build — **zero** Playwright references. The smoke suite exists and nothing executes it, which is the same failure class as a green build that never deployed (R-2): a check that reports nothing is indistinguishable from a check that passes. §7 is unmet. |
+| ~~Playwright does not run in CI~~ | ✅ **CLOSED 2026-08-08.** `.forgejo/workflows/ci.yml` now installs Chromium, builds, and runs the smoke suite as a hard gate, uploading trace/video/screenshots on failure. Verified it *catches* defects rather than merely passing: a 404ing asset injected into `/about` was reported by name. **The first attempt at that check was invalid** — the string it patched (`<main`) does not appear in that file, so nothing was injected and the resulting 14-pass proved nothing. Re-run with both preconditions asserted (present in source, present in `.next/server/app/about.html`). |
 | Module C — user action coverage | The money path (add to cart → checkout → track) has strong *unit* coverage but no browser-level test. |
 | Module E — failure modes | Offline, slow network, forced 500 on `/api/checkout`. None automated. |
 | Mobile viewport runs | The kit configures three viewports; no test exercises the mobile ones. |
 | `docs/QA/` artifacts | `SYSTEM_MAP.md`, `COVERAGE_INVENTORY.md`, `ROUTE_COVERAGE_REPORT.md`, `BUGS.md`, `LESSONS_LEARNED.md` do not exist. Much of their content lives in `CODEBASE_AUDIT.md` and `ACTION_PLAN.md` under different names. |
 | Automated a11y sweep | A static WCAG audit exists (`npm run audit:contrast`, 24 pairs) but it checks declared colour pairs, not the rendered DOM. |
 
-## 4. One conflict that needs a decision
+## 4. One conflict — resolved here, still open in the kit
 
 **The protocol mandates Microsoft Edge exclusively.** `ops/qa/playwright.base.config.ts`
 repeats it: *"EDGE-ONLY is non-negotiable per the protocol."*
@@ -81,18 +81,27 @@ real profile, either of which disturbs the operator's open tabs. `launch()`
 starts a throwaway profile and touches nothing, whichever channel it uses.
 
 So two authorities disagree, the newer one is reasoned, and the QA kit still
-carries the older. **This needs an explicit call**, because Edge-only has a real
-operational cost: `channel: "msedge"` uses the *installed* Edge binary, so any CI
+carries the older. Edge-only has a real operational cost: `channel: "msedge"` uses the *installed* Edge binary, so any CI
 image without Edge fails at launch — every test at once, reading as an outage
 rather than a failure.
+
+**Resolved for this project.** `playwright.config.ts` overrides the kit's channel
+to Playwright's bundled Chromium — which `playwright install` guarantees is
+present — and honours `QA_BROWSER_CHANNEL=msedge|chrome` for anyone who wants an
+installed browser. That unblocked CI without editing shared tooling.
+
+**Still open estate-wide.** `ops/qa/playwright.base.config.ts` still pins msedge
+for the other fourteen projects, so each hits the same wall the first time it
+wires up CI. Fixing it once in the kit is the better answer, but that is a change
+to shared tooling and belongs to whoever owns it.
 
 ## 5. Recommendation
 
 In order:
 
-1. **Put the existing smoke suite into CI.** It is written, it is wired, nothing
-   runs it. Highest value for the least work.
-2. **Resolve the Edge-vs-Chrome conflict** and make the kit say one thing.
+1. ~~Put the existing smoke suite into CI.~~ ✅ Done.
+2. **Resolve Edge-vs-Chrome in the kit**, so the other fourteen projects do not
+   each rediscover it.
 3. **Add Module C for the money path only** — cart → checkout → track. That is
    where the revenue is; the rest of the crawl is already covered by smoke.
 4. Leave Modules A/B-per-persona and everything in §2.2 alone until this shop
