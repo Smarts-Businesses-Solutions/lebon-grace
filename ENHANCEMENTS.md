@@ -1,8 +1,13 @@
 # Lebon Grace — Enhancements Parking Lot
 
 **Purpose:** Unranked ideas. Nothing here is committed to. Items get triaged into
-`whatnext.md` when they earn a priority; until then they sit here so they stop
-occupying anyone's head.
+the ranked queue when they earn a priority; until then they sit here so they
+stop occupying anyone's head.
+
+> That ranked queue is `whatnext.md`, which is **gitignored** (`.gitignore:71`)
+> and therefore local to the working machine — it will not be in a fresh clone.
+> This file is the versioned half, so anything that must survive a clone belongs
+> here, not there.
 **Last Updated:** 2026-08-09
 
 **Template**

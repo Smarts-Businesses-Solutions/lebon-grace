@@ -15,7 +15,7 @@ Postgres behind it, and a workshop console that tells the maker what to cut.
 | Find an operational document | [OPERATIONS.md](OPERATIONS.md) |
 | Know why something is the way it is | [DECISIONS.md](DECISIONS.md) |
 | See what shipped and what is in flight | [PROGRESS.md](PROGRESS.md) |
-| Know what is next | [whatnext.md](whatnext.md) · [ENHANCEMENTS.md](ENHANCEMENTS.md) |
+| Know what is next | [ENHANCEMENTS.md](ENHANCEMENTS.md) — parked ideas. The ranked queue lives in `whatnext.md`, which is **gitignored**, so it exists only on the working machine |
 | Change how it looks | [DESIGN.md](DESIGN.md) |
 | Know who can do what | [docs/QA/ACTORS.md](docs/QA/ACTORS.md) |
 
