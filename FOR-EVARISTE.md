@@ -220,7 +220,7 @@ Prevention: the constraint now rejects it.
 ```bash
 npx tsc --noEmit          # types
 npx vitest run            # 138 unit tests
-npx eslint src/           # must be 0 — it is a hard CI gate
+npx eslint src/           # must be 0 — run it yourself; see D-013, there is no CI
 npx playwright test       # 14 routes × 3 viewports + axe-core
 npm run verify:deploy     # did the deploy actually reach production?
 ```

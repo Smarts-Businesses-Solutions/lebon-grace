@@ -19,7 +19,7 @@ lives.
 | user action suites | ✅ | `tests/e2e/money-path/` — Module C |
 | failure mode suites | ✅ | `tests/e2e/failure-modes/` — Module E |
 | security baseline | ✅ | authorization boundaries, IDOR (found one), rate limiting — see `BUGS.md` B-3, B-11, B-12 |
-| CI/CD integration | ✅ | `.forgejo/workflows/ci.yml` — typecheck, unit, lint, build, E2E × 3 viewports |
+| CI/CD integration | ⚠️ **written, never run** | `.forgejo/workflows/ci.yml` exists — typecheck, lockfile gate, unit, lint, build, E2E × 3 viewports — but **this project is in neither Forgejo instance**, so the workflow has never executed. There is no `.github/workflows` either, and no git hooks. Every gate is run by hand. See `DECISIONS.md` D-013. |
 | production safe run | ✅ | read-only walkthrough; `npm run verify:deploy` checks the served build id |
 | bug fixes + regressions | ✅ | 12 in `BUGS.md`, each with a regression test verified to fail without its fix |
 | final report | ✅ | `docs/QA-PROTOCOL-GAP-ANALYSIS.md` |

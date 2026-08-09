@@ -94,7 +94,11 @@ thing cut irreversibly into wood was not. Now it is.
 "5 attempts per 15 minutes" — only to still be running when someone shipped
 (B-12). The weakness was invisible from the configuration.
 
-## D-008 — Playwright as a hard CI gate, added only once green
+## D-008 — Playwright as a CI gate, added only once green
+
+> **Correction, 2026-08-09.** This says "CI gate" and there is no CI. The
+> workflow was written but has never run — see D-013. The reasoning below about
+> not shipping a red gate still stands; the enforcement claimed does not.
 
 **Decision.** Run the browser suite in Forgejo CI across 3 viewports, and harden
 lint from `|| true` to a real gate in the same change that reached zero problems.
@@ -153,6 +157,73 @@ the unread ones are credentials, including `GitHub_PAT_classic` — which is
 A-0b's "exposed PAT in nine containers". Mirroring would carry all of it into the
 replacement. Slower, and the only version that does not migrate a compromised set.
 
+## D-013 — Keep GitHub; the question was wrong, and the answer is that there is no CI
+
+**Context.** The question asked was "why do we still need GitHub when we have
+Forgejo?" Investigating it found something more important than the answer.
+
+**What is actually true**, verified on the box rather than assumed:
+
+| Claim | Reality |
+|---|---|
+| Forgejo runs this project's CI | **False.** lebon-grace is in *neither* Forgejo instance. Their repos are mirrortales, ci-pilot, axiom-synapse, ops-toolkit, vouchnexus, eliania-house, company-os-business. |
+| The act_runner has run our pipeline | **False.** Zero mentions of "lebon" in its logs. |
+| GitHub Actions is halted for this repo | **Misleading.** There is no `.github/workflows` directory and zero run history — it was never configured here. |
+| Something enforces the gates | **False.** No git hooks, no husky, no lint-staged. PRs report no checks. |
+
+So `.forgejo/workflows/ci.yml` — typecheck, lockfile gate, unit, lint, build,
+Playwright across three viewports — **has never executed**. Every gate this
+project relies on is run by hand.
+
+I had repeated the "CI lives in Forgejo" premise throughout this engagement,
+including when hardening lint from `|| true` and when adding the lockfile gate.
+Those changes are still right; the enforcement they claimed does not exist.
+D-008 and the README have been corrected.
+
+**Decision. Keep GitHub.** Not because it beats Forgejo, but because Forgejo
+currently gives this project *nothing*, while GitHub is:
+
+1. the **only copy of the code that is not on cx53** — the same box that runs
+   the shop and its database;
+2. the review surface (PRs #1–#3 and the `gh` tooling used throughout);
+3. the target of the read-only deploy key the git-backed Coolify application
+   uses to clone.
+
+Dropping it would remove the off-box copy and break the deploy path, to gain
+nothing.
+
+**Alternatives considered.**
+
+| Option | Verdict |
+|---|---|
+| Consolidate onto self-hosted Forgejo | Rejected. Puts source, CI, app and database on one machine, and Forgejo hosts nothing for this project today. |
+| **Keep GitHub for hosting + review** | ✅ Picked |
+| Mirror to Forgejo as a second copy | Reasonable later; it is a second copy *on the same box*, so it adds little against the risk that matters. |
+
+**Consequences.** *Easier:* nothing changes; the deploy key and PR flow keep
+working. *Harder:* the real gap is untouched — this project still has no
+automated CI, so quality depends on someone remembering to run five commands.
+
+**The follow-up this actually generated**, and it is worth more than the ADR:
+get CI running. OpenAI argued for GitHub Actions and against running it on cx53,
+because `next build` and Playwright are memory-hungry and that box already runs
+~128 containers plus this shop — persuasive, with the caveat that Actions has a
+billing history here ($256.70). Adding lebon-grace to the existing Forgejo is
+free and the runner already exists, at the cost of contending with production
+for memory. Either beats the present state of nothing.
+
+**On backups**, since the council raised it: MiniMax argued the single-box risk
+dwarfs this decision and assumed there were no off-server backups. That
+assumption is **wrong** — `backup-cx53.timer` runs a nightly restic backup to
+Cloudflare R2 with 14/8/36 retention and `restic check --read-data-subset=2%`.
+Whether it covers this project's Postgres volume is **not verified**: the paths
+are discovered dynamically and the script names no database explicitly. Worth
+confirming, and not a reason to change this decision.
+
+**Revisit if** GitHub starts charging for what is used here, if lebon-grace is
+added to Forgejo and CI actually runs there, or if a second person joins and the
+review surface has to change.
+
 ---
 
 ## Index
@@ -171,3 +242,4 @@ replacement. Slower, and the only version that does not migrate a compromised se
 | D-010 | Dedicated deploy key | Active |
 | D-011 | Merge pivot last | Done (2026-08-09) |
 | D-012 | Do not copy env vars forward | In flight |
+| D-013 | Keep GitHub; there is no CI | Active |

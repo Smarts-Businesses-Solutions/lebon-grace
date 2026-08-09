@@ -36,14 +36,16 @@ Six environment variables are genuinely required: `SUPABASE_SERVICE_ROLE_KEY`,
 ```bash
 npx tsc --noEmit          # types
 npx vitest run            # 138 unit tests
-npx eslint src/           # must be 0 — hard CI gate
+npx eslint src/           # must be 0
 npx playwright test       # 14 routes x 3 viewports, incl. axe-core
 npm run verify:deploy     # did a deploy actually reach production?
 ```
 
-CI runs all of these in `.forgejo/workflows/ci.yml`. **GitHub Actions does not
-run** — the account is halted, so the `Vercel` check you may see failing on a PR
-is dead and carries no signal.
+> **Run these yourself — nothing else does.** `.forgejo/workflows/ci.yml` is
+> written but has **never executed**: this project exists in neither Forgejo
+> instance, there is no `.github/workflows`, and there are no git hooks. The
+> `Vercel` check you may see failing on a PR is a dead integration and carries
+> no signal either. See [DECISIONS.md](DECISIONS.md) D-013.
 
 ## Deploy
 
