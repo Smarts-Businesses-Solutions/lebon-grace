@@ -19,8 +19,12 @@ const line = (product: Product, personalisation?: string): CartItem =>
   ({ product, quantity: 1, personalisation });
 
 describe("lineId", () => {
-  it("keys a plain item by its slug", () => {
-    expect(lineId(line(puzzle))).toBe("abc-jigsaw-board");
+  it("keys a plain item by slug AND name", () => {
+    // Was `slug` alone. Name joined it so that two variants of one product —
+    // which share a slug and differ only in name — stop merging into a single
+    // line. Pinned exactly, on purpose: this id decides what the customer is
+    // charged for, so it should not drift without someone noticing.
+    expect(lineId(line(puzzle))).toBe("abc-jigsaw-board::ABC Jigsaw Board");
   });
 
   it("keeps two different engravings of the same puzzle apart", () => {
@@ -34,6 +38,27 @@ describe("lineId", () => {
   it("merges two identical engravings into one line", () => {
     expect(lineId(line(puzzle, "Amira"))).toBe(lineId(line(puzzle, "Amira")));
   });
+
+  it("keeps two variants of the same product apart", () => {
+    // Selecting a variant overrides name/image/price on the product object but
+    // NOT the slug (ProductDetailClient.handleAddToCart), and lineId keyed on
+    // slug alone — so picking variant A, adding, then variant B, adding, merged
+    // them into ONE line of quantity 2 showing whichever was added first. The
+    // customer would receive two of the wrong thing.
+    //
+    // Dormant today: zero VISIBLE products have variants and /api/variants
+    // returns {"source":"none"}. This pins the contract so re-enabling variants
+    // cannot quietly reintroduce it.
+    const red = { ...puzzle, name: puzzle.name + " — Red" };
+    const blue = { ...puzzle, name: puzzle.name + " — Blue" };
+    expect(lineId(line(red))).not.toBe(lineId(line(blue)));
+  });
+
+  it("still merges genuinely identical lines", () => {
+    // The other direction: the fix must not turn every add into a new line.
+    expect(lineId(line(puzzle))).toBe(lineId(line(puzzle)));
+  });
+
 
   it("keeps different products apart", () => {
     expect(lineId(line(puzzle))).not.toBe(lineId(line(other)));

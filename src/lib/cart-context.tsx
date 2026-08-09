@@ -25,8 +25,31 @@ export interface CartItem {
  * twice with two different names is two different products to make, and must
  * not collapse into one line with quantity 2.
  */
+/**
+ * Identity of a cart line.
+ *
+ * Slug AND name, because a selected variant overrides the product's name,
+ * image and price but NOT its slug (`ProductDetailClient.handleAddToCart`).
+ * Keyed on slug alone, picking variant A and then variant B merged them into a
+ * single line of quantity two, showing whichever was added first — the
+ * customer would have received two of the wrong thing.
+ *
+ * Dormant when written: no VISIBLE product has variants and `/api/variants`
+ * answers `{"source":"none"}`. Fixed anyway because the failure is silent, is
+ * on the money path, and re-enabling variants is a data change that would not
+ * obviously call for a code review.
+ *
+ * Safe to change: `lineId` is derived on every render and never persisted —
+ * `saveCart` stores the item array itself — so no stored cart needs migrating.
+ *
+ * The trade-off, stated: renaming a product in the catalogue changes the id, so
+ * a line already in someone's basket stops merging with a freshly added one.
+ * That is a rare event with a harmless outcome (two lines instead of one),
+ * where the alternative is shipping the wrong item.
+ */
 export function lineId(item: CartItem): string {
-  return item.personalisation ? `${item.product.slug}::${item.personalisation}` : item.product.slug;
+  const base = `${item.product.slug}::${item.product.name}`;
+  return item.personalisation ? `${base}::${item.personalisation}` : base;
 }
 
 interface CartContextType {
