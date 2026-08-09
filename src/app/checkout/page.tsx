@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import ProductImage from "@/components/ProductImage";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useCart, saveCartEmail, clearCartRecovery } from "@/lib/cart-context";
 import { formatPrice } from "@/lib/products";
 
 const emirates = ["Dubai", "Abu Dhabi", "Sharjah", "Ajman", "Ras Al Khaimah", "Fujairah", "Umm Al Quwain"];
 
 export default function CheckoutPage() {
-  const { items, subtotal, deliveryMethod, shipping, total, depositNow, payOnDelivery, clearCart } = useCart();
+  const { items, subtotal, deliveryMethod, shipping, total, depositNow, payOnDelivery, clearCart, ready } = useCart();
 
   const [form, setForm] = useState({
     email: "", phone: "+971", firstName: "", lastName: "",
@@ -19,6 +19,24 @@ export default function CheckoutPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
+
+  // Stripe returns here as /checkout?success=true&session_id=… (the success_url
+  // set in api/checkout). Nothing read it, so a customer who had actually paid
+  // came back to the checkout form with their basket still full and no
+  // confirmation. Read from window rather than useSearchParams to avoid
+  // wrapping this whole page in a Suspense boundary for one query parameter.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (new URLSearchParams(window.location.search).get("success") !== "true") return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setOrderPlaced(true);
+    // Waits for `ready`. Effects run child-before-parent, so clearing here on
+    // first mount happened BEFORE CartProvider restored from localStorage — and
+    // the restore then put the paid-for basket straight back.
+    if (!ready) return;
+    clearCart();
+    clearCartRecovery();
+  }, [clearCart, ready]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -83,24 +101,45 @@ export default function CheckoutPage() {
       const data = await res.json();
       
       if (data.url) {
-        // Redirect to Stripe Checkout
-        window.location.href = data.url;
-      } else {
-        // Fallback: mark order as placed without Stripe
-        console.error("Stripe checkout failed:", data.error);
-        clearCart();
-        clearCartRecovery();
-        setOrderPlaced(true);
-        setSubmitting(false);
+        // Redirect to Stripe Checkout. The cart is NOT cleared here — the
+        // customer has not paid yet, and clearing it now would lose the order
+        // if they abandon Stripe's page or press Back.
+        // assign(), not `location.href = `: the React Compiler lint rejects
+        // writing to a value defined outside the component.
+        window.location.assign(data.url);
+        return;
       }
+
+      // No URL means Stripe never issued a session.
+      failCheckout(data.error);
     } catch {
-      // Fallback if API fails
-      clearCart();
-      clearCartRecovery();
-      setOrderPlaced(true);
-      setSubmitting(false);
+      // Network failure, timeout, the app being offline.
+      failCheckout();
     }
   };
+
+  /**
+   * A checkout that did not start.
+   *
+   * This used to `clearCart()` and `setOrderPlaced(true)` — on BOTH failure
+   * paths. So when /api/checkout returned an error, or the network dropped, the
+   * customer was shown "Order Confirmed — Your piece is now in the making
+   * queue" with a Track Your Order link, their cart was emptied, and they had
+   * not paid. No order existed. They would have waited for a puzzle nobody was
+   * ever going to make, and could not even retry because the cart was gone.
+   *
+   * A failure now says so, keeps the cart, and re-enables the button so the
+   * customer can try again — which is the whole of the protocol's "no silent
+   * failures; user gets a clear error and a retry path".
+   */
+  function failCheckout(reason?: string) {
+    console.error("Checkout could not be started:", reason ?? "network error");
+    setErrors({
+      submit:
+        "We could not start the payment just now. Nothing has been charged and your basket is safe — please try again, or contact us if it keeps happening.",
+    });
+    setSubmitting(false);
+  }
 
   if (items.length === 0 && !orderPlaced) {
     return (
@@ -228,6 +267,18 @@ export default function CheckoutPage() {
             </label>
             {errors.terms && <p className="mt-1 text-red-500 text-xs">{errors.terms}</p>}
           </div>
+
+          {/* A failed checkout has to be visible. It previously rendered the
+              "Order Confirmed" screen instead — see failCheckout(). */}
+          {errors.submit && (
+            <div
+              data-testid="checkout-error"
+              role="alert"
+              className="border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+            >
+              {errors.submit}
+            </div>
+          )}
 
           <button data-testid="place-order" type="submit" disabled={submitting} className="w-full py-4 bg-ink text-paper text-sm tracking-wider uppercase hover:bg-sand-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
             {submitting ? "Processing..." : "Pay " + formatPrice(depositNow) + " & Place Order"}

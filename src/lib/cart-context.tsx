@@ -37,6 +37,15 @@ interface CartContextType {
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
+  /**
+   * True once the cart has been restored from localStorage.
+   *
+   * Exposed because effect order is child-then-parent: a page's effect runs
+   * BEFORE this provider's restore effect, so a page that cleared the cart on
+   * mount had its clear immediately undone by the restore that followed. The
+   * checkout success handler waits on this.
+   */
+  ready: boolean;
   totalItems: number;
   subtotal: number;
   shipping: number;
@@ -251,6 +260,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       removeItem,
       updateQuantity,
       clearCart,
+      ready: mounted,
       totalItems,
       subtotal,
       shipping,
@@ -258,7 +268,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       depositNow,
       payOnDelivery,
     }),
-    [items, deliveryMethod, addItem, removeItem, updateQuantity, clearCart, totalItems, subtotal, shipping, total, depositNow, payOnDelivery]
+    [items, deliveryMethod, addItem, removeItem, updateQuantity, clearCart, mounted, totalItems, subtotal, shipping, total, depositNow, payOnDelivery]
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

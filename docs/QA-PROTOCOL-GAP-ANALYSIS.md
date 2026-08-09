@@ -59,7 +59,7 @@ elaborate tests for personas and pages that will never exist.
 |---|---|
 | ~~Playwright does not run in CI~~ | ✅ **CLOSED 2026-08-08.** `.forgejo/workflows/ci.yml` now installs Chromium, builds, and runs the smoke suite as a hard gate, uploading trace/video/screenshots on failure. Verified it *catches* defects rather than merely passing: a 404ing asset injected into `/about` was reported by name. **The first attempt at that check was invalid** — the string it patched (`<main`) does not appear in that file, so nothing was injected and the resulting 14-pass proved nothing. Re-run with both preconditions asserted (present in source, present in `.next/server/app/about.html`). |
 | ~~Module C — user action coverage~~ | ✅ **CLOSED 2026-08-08.** `tests/e2e/money-path/checkout.spec.ts` — 12 tests over add-to-cart, cart arithmetic, the free-delivery boundary at exactly AED 150, persistence, the checkout payload, and the `/track` refusal. `/api/checkout` is intercepted at the browser so a suite running on every push never creates a real Stripe session; what is asserted instead is the payload the client *asks* to be charged, with the server's refusal to trust it already covered by A-4. **Found a live defect** — see below. |
-| Module E — failure modes | Offline, slow network, forced 500 on `/api/checkout`. None automated. |
+| ~~Module E — failure modes~~ | ✅ **CLOSED 2026-08-08.** `tests/e2e/failure-modes/resilience.spec.ts` — 8 tests: forced 500, dropped connection, retry-after-failure, degraded `/api/variants`, order-lookup failure, and the 10s spinner gate. All failures injected with `page.route`, so nothing depends on timing luck. **Found the worst defect of the engagement** — see §7. |
 | Mobile viewport runs | The kit configures three viewports; no test exercises the mobile ones. |
 | `docs/QA/` artifacts | `SYSTEM_MAP.md`, `COVERAGE_INVENTORY.md`, `ROUTE_COVERAGE_REPORT.md`, `BUGS.md`, `LESSONS_LEARNED.md` do not exist. Much of their content lives in `CODEBASE_AUDIT.md` and `ACTION_PLAN.md` under different names. |
 | Automated a11y sweep | A static WCAG audit exists (`npm run audit:contrast`, 24 pairs) but it checks declared colour pairs, not the rendered DOM. |
@@ -107,7 +107,37 @@ In order:
 4. Leave Modules A/B-per-persona and everything in §2.2 alone until this shop
    has accounts or plans. Today it has neither.
 
-## 6. What Module C found on its first run
+## 6. What Module E found — a failed payment that said "Order Confirmed"
+
+Both failure branches in `checkout/page.tsx` called `clearCart()` and
+`setOrderPlaced(true)`. So when `/api/checkout` returned an error, or the
+network dropped, the customer was shown:
+
+> **Order Confirmed** — Thank you for your order. You will receive a
+> confirmation email shortly. Your piece is now in the making queue.
+
+…with a *Track Your Order* link. Their basket was emptied. **Nothing had been
+charged and no order existed.** They would have waited for a puzzle nobody was
+going to make, and could not retry, because the thing they were buying had been
+thrown away.
+
+The mirror image was also missing: Stripe returns the customer to
+`/checkout?success=true`, and nothing read that parameter — so a customer who
+*had* paid came back to the checkout form with a full basket and no
+confirmation. The only code that cleared the cart was the code that ran when
+checkout **failed**.
+
+Both fixed. A failure now says so, keeps the basket and re-enables the button;
+success confirms the order and clears the basket. Four regression tests, two of
+which were verified to fail against the original behaviour.
+
+Fixing the success path surfaced a second, subtler bug in the fix itself:
+effects run child-before-parent, so clearing the cart on the checkout page ran
+*before* `CartProvider` restored it from localStorage, and the restore put the
+paid-for basket straight back. The provider now exposes `ready`, and the success
+handler waits for it.
+
+## 7. What Module C found on its first run
 
 `deliveryMethod` lived only in React state while the cart itself was persisted
 to localStorage. So a customer who chose **"Deliver to me"** and then reloaded —
