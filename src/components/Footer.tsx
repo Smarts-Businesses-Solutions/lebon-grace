@@ -2,13 +2,19 @@ import Link from "next/link";
 
 const quickLinks = [
   { href: "/shop", label: "Shop All" },
-  { href: "/shop?category=Home+Decor", label: "Home Decor" },
-  { href: "/shop?category=Fashion+%26+Accessories", label: "Fashion" },
-  { href: "/shop?category=Jewelry", label: "Jewelry" },
-  { href: "/shop?category=Pet+Supplies", label: "Pets" },
-  { href: "/shop?category=Kitchen+%26+Dining", label: "Kitchen" },
-  { href: "/shop?category=Beauty+%26+Grooming", label: "Beauty" },
-  { href: "/shop?category=Bags+%26+Travel", label: "Travel" },
+  { href: "/shop?category=Alphabet+%26+Literacy", label: "Alphabet & Literacy" },
+  { href: "/shop?category=Numbers+%26+Counting", label: "Numbers & Counting" },
+  { href: "/shop?category=Shapes+%26+Montessori", label: "Shapes & Montessori" },
+  { href: "/shop?category=Animals+%26+Nature", label: "Animals & Nature" },
+  { href: "/shop?category=Vehicles+%26+Making", label: "Vehicles & Making" },
+  { href: "/shop?category=3D+%26+Architecture", label: "3D & Architecture" },
+  // Clearance lives here rather than in the main navigation: it is stock being
+  // emptied, not part of the made-to-order range.
+  // Removed 2026-08-09 with the listing itself (A-16). The category is hidden
+  // pending a recount, so this link led every visitor to an empty grid — the
+  // clearance stock is materially misdescribed and must not be advertised while
+  // that is unresolved. Restore this line when the listing is republished.
+  // { href: "/shop?category=Clearance", label: "Clearance" },
 ];
 
 const policyLinks = [
@@ -32,30 +38,19 @@ export default function Footer() {
             <span className="font-heading text-xl tracking-[0.2em] text-offwhite font-semibold">
               LEBON GRACE
             </span>
-            <p className="mt-4 text-warm-gray text-sm leading-relaxed max-w-xs">
-              Affordable workspace, travel, and home
-              accessories with quality picks and honest prices.
+            <p className="mt-4 text-offwhite/70 text-sm leading-relaxed max-w-xs">
+              Wooden puzzles for children, cut and finished by hand in our
+              workshop. Made to order, with a name engraved free.
             </p>
+            {/* The Instagram icon that used to sit here linked to "#", so it looked
+                like a social presence and went nowhere. Add it back with a real
+                handle when there is one. */}
             <div className="mt-6 flex gap-4">
-              {/* Instagram */}
-              <a
-                href="#"
-                className="text-warm-gray hover:text-sand transition-colors"
-                aria-label="Follow us on Instagram"
-              >
-                <svg
-                  className="h-5 w-5"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
-                </svg>
-              </a>
               {/* Email */}
               <a
-                href="mailto:care@lebon-grace.com"
-                className="text-warm-gray hover:text-sand transition-colors"
-                aria-label="Email us"
+                href="/contact"
+                className="text-offwhite/70 hover:text-sand transition-colors"
+                aria-label="Contact us"
               >
                 <svg
                   className="h-5 w-5"
@@ -72,19 +67,19 @@ export default function Footer() {
                 </svg>
               </a>
             </div>
-            <div className="mt-4 flex items-center gap-3 text-warm-gray text-sm">
+            <div className="mt-4 flex items-center gap-3 text-offwhite/70 text-sm">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
               </svg>
               <span className="select-none">+971 58 ••• ••30</span>
-              <span className="text-warm-gray/40">|</span>
+              <span className="text-offwhite/70/40">|</span>
               <span>WhatsApp available</span>
             </div>
           </div>
 
           {/* Quick links */}
           <div>
-            <h3 className="font-heading text-sm tracking-wider uppercase text-warm-gray mb-4">
+            <h3 className="font-heading text-sm tracking-wider uppercase text-offwhite/70 mb-4">
               Quick Links
             </h3>
             <ul className="space-y-3">
@@ -103,7 +98,7 @@ export default function Footer() {
 
           {/* Policies */}
           <div>
-            <h3 className="font-heading text-sm tracking-wider uppercase text-warm-gray mb-4">
+            <h3 className="font-heading text-sm tracking-wider uppercase text-offwhite/70 mb-4">
               Information
             </h3>
             <ul className="space-y-3">
@@ -123,10 +118,10 @@ export default function Footer() {
 
         {/* Bottom bar */}
         <div className="border-t border-offwhite/10 py-6 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-warm-gray text-xs tracking-wide">
+          <p className="text-offwhite/70 text-xs tracking-wide">
             &copy; 2026 Lebon Grace. All rights reserved.
           </p>
-          <p className="text-warm-gray/60 text-xs text-center sm:text-right">
+          <p className="text-offwhite/70/60 text-xs text-center sm:text-right">
             Sharjah Media City, Al Messaned, Al Bataeh, Sharjah, UAE
           </p>
         </div>

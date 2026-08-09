@@ -129,16 +129,25 @@ export const COLORS = Array.from(new Set(enrichedProducts.map((p) => p.color).fi
 export const SIZES = Array.from(new Set(enrichedProducts.map((p) => p.size).filter(Boolean))).sort();
 export const MATERIALS = Array.from(new Set(enrichedProducts.map((p) => p.material).filter(Boolean))).sort();
 export const BRANDS = Array.from(new Set(enrichedProducts.map((p) => p.brand).filter(Boolean))).sort();
+// Tiers track the real catalogue, which runs AED 1–25 since the MDF range
+// landed. The previous set topped out at "AED 35+", a bucket nothing has ever
+// fallen into — it rendered as a filter that always returned an empty grid.
+//
+// These are still hand-written because the labels want to read well, so they
+// can drift again. The shop sidebar therefore hides any tier that matches no
+// products, which makes a stale entry invisible rather than broken.
 export const PRICE_TIERS = [
-  { label: "Under AED 10", min: 0, max: 10 },
+  { label: "Under AED 5", min: 0, max: 5 },
+  { label: "AED 5 – 10", min: 5, max: 10 },
   { label: "AED 10 – 20", min: 10, max: 20 },
-  { label: "AED 20 – 35", min: 20, max: 35 },
-  { label: "AED 35+", min: 35, max: Infinity },
+  { label: "AED 20+", min: 20, max: Infinity },
 ];
 
 // --- Filter state type ---
 export interface FilterState {
   category: string;
+  /** Age bands the product suits, e.g. "1-3". Parents shop by child age. */
+  ages: string[];
   colors: string[];
   sizes: string[];
   materials: string[];
@@ -148,8 +157,15 @@ export interface FilterState {
   sortBy: string;
 }
 
+/** The one category held out of the default browse. */
+export const CLEARANCE_CATEGORY = "Clearance";
+
+/** Age bands offered in the shop sidebar, in the order parents think about them. */
+export const AGE_BANDS = ["1-3", "2-4", "2-5", "3-6", "4+"];
+
 export const DEFAULT_FILTERS: FilterState = {
   category: "All",
+  ages: [],
   colors: [],
   sizes: [],
   materials: [],
@@ -161,11 +177,34 @@ export const DEFAULT_FILTERS: FilterState = {
 
 // --- Apply filters ---
 export function applyFilters(products: EnrichedProduct[], filters: FilterState): EnrichedProduct[] {
-  let result = [...products];
+  let result = products.filter((p) => !p.hidden);
 
-  // Category
+  // Category. "All" deliberately excludes Clearance: it is stock being emptied,
+  // not part of the made-to-order range, and a phone case sitting between two
+  // toddler puzzles reads as a jumble sale. It stays reachable by asking for
+  // the Clearance category directly, which the footer link does.
   if (filters.category && filters.category !== "All") {
     result = result.filter((p) => p.category === filters.category);
+  } else {
+    result = result.filter((p) => p.category !== CLEARANCE_CATEGORY);
+  }
+
+  // Age band. A product tagged "1-3" should appear under both "1-3" and any
+  // overlapping band, so bands are compared as ranges rather than strings:
+  // "4+" is stored as 4 to 99 and matches a parent browsing for a five year old.
+  if (filters.ages.length > 0) {
+    const parse = (band: string): [number, number] => {
+      if (band.endsWith("+")) return [parseInt(band, 10), 99];
+      const [a, b] = band.split("-").map((n) => parseInt(n, 10));
+      return [a, isNaN(b) ? a : b];
+    };
+    const wanted = filters.ages.map(parse);
+    result = result.filter((p) => {
+      const raw = (p.details as { age?: string })?.age;
+      if (!raw) return false;
+      const [lo, hi] = parse(raw);
+      return wanted.some(([wlo, whi]) => lo <= whi && hi >= wlo);
+    });
   }
 
   // Colors
@@ -183,8 +222,15 @@ export function applyFilters(products: EnrichedProduct[], filters: FilterState):
     result = result.filter((p) => filters.materials.includes(p.material));
   }
 
-  // Price range
-  result = result.filter((p) => p.price >= filters.priceMin && p.price <= filters.priceMax);
+  // Price range, half-open: [min, max).
+  //
+  // This used to be inclusive at both ends, which made the tiers overlap at
+  // every boundary — a AED 5 product matched both "Under AED 5" and
+  // "AED 5 – 10", so the two tiers returned overlapping grids and the counts
+  // summed to more than the catalogue. Half-open makes PRICE_TIERS an actual
+  // partition. Infinity still works as the open upper bound, since every finite
+  // price is < Infinity.
+  result = result.filter((p) => p.price >= filters.priceMin && p.price < filters.priceMax);
 
   // Search
   if (filters.search) {

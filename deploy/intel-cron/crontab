@@ -1,0 +1,11 @@
+# lebon-grace product intelligence — nightly inventory snapshot.
+#
+# Schedule is UTC (matches the rest of the estate). 02:00 UTC = 06:00 Gulf time,
+# deliberately BEFORE the 03:30 UTC selfhost-backup-stacks run so the new rows
+# are captured in that night's backup, and after midnight so each calendar day
+# gets exactly one reading.
+#
+# Runs the script directly rather than via an HTTP endpoint: a full 515-product
+# sweep takes 4-5 minutes at the 2 req/s throttle, which would sit right on the
+# estate cron's 300s CRON_TIMEOUT.
+0 2 * * * cd /app && node scripts/intel/snapshot.mjs

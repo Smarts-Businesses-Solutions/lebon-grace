@@ -10,10 +10,14 @@ export default function CartRecoveryBanner() {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
 
+  // Same reason as cart-context: cart age and the saved email live in
+  // localStorage, which is unavailable until the client has mounted.
   useEffect(() => {
     // Show banner if cart has items and is > 60 min old
     const age = getCartAge();
     if (items.length > 0 && age > 60) {
+      // Cart age comes from localStorage — unavailable until the client mounts.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowBanner(true);
       const savedEmail = getCartEmail();
       if (savedEmail) setEmail(savedEmail);

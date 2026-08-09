@@ -1,8 +1,12 @@
 import Link from "next/link";
 
 export const metadata = {
+  // The description was still selling the dropship catalogue: "Affordable
+  // workspace, travel, and home accessories." That is the line Google showed
+  // under a link to a children's puzzle workshop.
   title: "About — Lebon Grace",
-  description: "Affordable workspace, travel, and home accessories. Quality picks, honest prices.",
+  description:
+    "A small UAE workshop making wooden puzzles for children. Cut, sanded and finished by hand, made to order, with a name engraved free.",
 };
 
 export default function AboutPage() {
@@ -11,7 +15,9 @@ export default function AboutPage() {
       <section className="bg-offwhite border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
           <h1 className="font-heading text-3xl lg:text-4xl font-semibold tracking-tight">About Lebon Grace</h1>
-          <p className="mt-3 text-warm-gray text-sm tracking-wide">Quality picks, honest prices</p>
+          {/* "Picks" was reseller language from the dropship site. Nothing here
+              is picked; it is drawn and cut. */}
+          <p className="mt-3 text-warm-gray text-sm tracking-wide">Cut by hand in the UAE, honest prices</p>
         </div>
       </section>
 
@@ -21,13 +27,12 @@ export default function AboutPage() {
           <h2 className="font-heading text-2xl lg:text-3xl font-semibold tracking-tight mb-6">Our Story</h2>
           <div className="space-y-4 text-charcoal text-sm leading-relaxed">
             <p>
-              Lebon Grace was born from a simple idea: everyday essentials should look good and cost less. In a market where Amazon offers quantity but not quality, and luxury brands charge ten times the real cost, we chose a different path.
+              Lebon Grace started with a laser cutter and a simple thought: a wooden toy that teaches a child their letters should not cost a hundred dirhams, and it should not be made on the other side of the world either. So we draw them, cut them and sand them here, one order at a time.</p>
+            <p>
+              We are a small workshop in the UAE making wooden puzzles for children. Everything here is drawn as a cutting file, cut from MDF on our own laser, sanded by hand and checked before it goes out. Nothing is bought in and relabelled, and nothing sits in a warehouse waiting for someone to want it. Your puzzle does not exist until you order it, which is why it takes two or three days and why we can put your child’s name on it for nothing.
             </p>
             <p>
-              Founded in the UAE, we source workspace, travel, home, jewelry, and drinkware accessories directly from verified suppliers. We cut out the middlemen, skip the markup, and pass the savings to you. Every product is selected for its design, durability, and honest price.
-            </p>
-            <p>
-              Our name reflects our approach. "Lebon" means good in French. "Grace" means doing it with style. Together — good things, done well, at fair prices.
+              Our name reflects our approach. “Lebon” means good in French. “Grace” means doing it with style. Together: good things, done well, at fair prices.
             </p>
           </div>
         </div>
@@ -35,8 +40,8 @@ export default function AboutPage() {
         {/* Mission */}
         <div className="bg-charcoal text-offwhite rounded-sm p-8 lg:p-12">
           <h2 className="font-heading text-2xl font-semibold tracking-tight mb-4">Our Mission</h2>
-          <p className="text-warm-gray text-sm leading-relaxed">
-            To be the go-to destination for affordable everyday essentials in the UAE. We believe quality products shouldn't cost a fortune. Through direct sourcing and honest pricing, we make it easy to upgrade your workspace, travel gear, home, and style — all under AED 50.
+          <p className="text-paper/90 text-sm leading-relaxed">
+            To make toys that are worth keeping, at a price that does not make you think twice. A wooden alphabet board should not cost a hundred dirhams, and it should not fall apart either. Every puzzle we make is AED 15, with the name engraving included.
           </p>
         </div>
 
@@ -51,8 +56,8 @@ export default function AboutPage() {
                 </svg>
               </div>
               <h3 className="font-heading text-lg font-semibold tracking-tight">Honest Pricing</h3>
-              <p className="mt-3 text-warm-gray text-sm leading-relaxed">
-                We source directly and skip the middlemen. You pay what the product is worth — not 5x markup. Our 50/50 payment model means you trust us before we trust you.
+              <p className="mt-3 text-paper/90 text-sm leading-relaxed">
+                There is no middleman because there is no supplier. Every piece is drawn, cut, sanded and finished here, so you pay for the wood and the work, nothing else.
               </p>
             </div>
             <div className="text-center">
@@ -62,9 +67,9 @@ export default function AboutPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
               </div>
-              <h3 className="font-heading text-lg font-semibold tracking-tight">Direct Sourcing</h3>
-              <p className="mt-3 text-warm-gray text-sm leading-relaxed">
-                No middlemen, no inflated prices. We source directly from verified suppliers and ship to your door. That's how we keep prices low.
+              <h3 className="font-heading text-lg font-semibold tracking-tight">Made to Order</h3>
+              <p className="mt-3 text-paper/90 text-sm leading-relaxed">
+                We hold no stock, so nothing is ever discontinued or out of stock. You order it, we make it, you collect it or we send it. Two to three working days, every time.
               </p>
             </div>
             <div className="text-center">
@@ -74,8 +79,8 @@ export default function AboutPage() {
                 </svg>
               </div>
               <h3 className="font-heading text-lg font-semibold tracking-tight">Customer First</h3>
-              <p className="mt-3 text-warm-gray text-sm leading-relaxed">
-                Free pickup option, WhatsApp support, honest pricing. We treat every order like it matters — because it does.
+              <p className="mt-3 text-paper/90 text-sm leading-relaxed">
+                Free collection, WhatsApp support, and a free replacement within 7 days if anything arrives faulty. You do not send it back; we just make you another one.
               </p>
             </div>
           </div>
@@ -83,8 +88,8 @@ export default function AboutPage() {
 
         {/* CTA */}
         <div className="text-center">
-          <p className="text-warm-gray text-sm mb-4">Ready to explore our curated collection?</p>
-          <Link href="/shop" className="inline-flex items-center px-8 py-3.5 bg-sand text-white text-sm tracking-wider uppercase font-medium rounded-sm hover:bg-sand-dark transition-colors">
+          <p className="text-warm-gray text-sm mb-4">Come and see what we make</p>
+          <Link href="/shop" className="inline-flex items-center px-8 py-3.5 bg-sand text-ink text-sm tracking-wider uppercase font-medium rounded-sm hover:bg-sand-dark transition-colors">
             Shop the Collection
           </Link>
         </div>

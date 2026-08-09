@@ -1,8 +1,9 @@
 import type { MetadataRoute } from "next";
+import { getAppUrl } from "@/lib/app-url";
 import { products } from "@/lib/products";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://shop.lebon-grace.com";
+  const baseUrl = getAppUrl();
 
   const staticPages: MetadataRoute.Sitemap = [
     { url: baseUrl, lastModified: new Date(), changeFrequency: "daily", priority: 1 },

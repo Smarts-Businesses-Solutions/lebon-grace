@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo } from "react";
+import ProductImage from "@/components/ProductImage";
 import { useRouter } from "next/navigation";
 import { products as enrichedProducts } from "@/lib/product-filters";
 import { categories, formatPrice } from "@/lib/products";
@@ -142,7 +143,7 @@ export default function SearchBar({ variant = "header", onClose, autoFocus }: Se
     return (
       <>
         {text.slice(0, idx)}
-        <span className="font-semibold text-[#16A34A]">{text.slice(idx, idx + q.length)}</span>
+        <span className="font-semibold text-[#A8874D]">{text.slice(idx, idx + q.length)}</span>
         {text.slice(idx + q.length)}
       </>
     );
@@ -154,25 +155,30 @@ export default function SearchBar({ variant = "header", onClose, autoFocus }: Se
     <div className={`relative ${isOverlay ? "w-full" : ""}`}>
       <form onSubmit={handleSubmit} className={isOverlay ? "w-full" : ""}>
         <div className={`relative ${isOverlay ? "w-full" : ""}`}>
-          <svg className={`absolute left-4 top-1/2 -translate-y-1/2 ${isOverlay ? "w-5 h-5" : "w-5 h-5"} text-gray-400`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg className={`absolute left-4 top-1/2 -translate-y-1/2 ${isOverlay ? "w-5 h-5" : "w-5 h-5"} text-ink-muted`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
           </svg>
           <input
             ref={inputRef}
+            // aria-expanded is not valid on the implicit `textbox` role. This
+            // input drives a suggestion list, which is precisely `combobox`.
+            role="combobox"
+            aria-autocomplete="list"
             type="text"
             value={query}
             onChange={(e) => { setQuery(e.target.value); setSelectedIndex(-1); }}
             onFocus={() => setFocused(true)}
             onKeyDown={handleKeyDown}
             placeholder="Search products, categories..."
-            className={`w-full ${isOverlay ? "pl-14 pr-14 py-4 text-lg" : "pl-12 pr-12 py-3 text-base"} bg-gray-50 border border-gray-200 rounded-2xl focus:border-[#C9A96E] focus:ring-2 focus:ring-[#C9A96E]/20 outline-none transition-all placeholder:text-gray-400`}
+            className={`w-full ${isOverlay ? "pl-14 pr-14 py-4 text-lg" : "pl-12 pr-12 py-3 text-base"} bg-gray-50 border border-gray-200 rounded-2xl focus:border-[#C9A96E] focus:ring-2 focus:ring-[#C9A96E]/20 outline-none transition-all placeholder:text-ink-muted`}
             aria-label="Search products"
             aria-expanded={showDropdown}
+            aria-controls="search-suggestions"
             aria-haspopup="listbox"
           />
           {/* Loading / Clear button */}
           {query && (
-            <button type="button" onClick={() => { setQuery(""); inputRef.current?.focus(); }} className={`absolute ${isOverlay ? "right-4" : "right-4"} top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-600`}>
+            <button type="button" onClick={() => { setQuery(""); inputRef.current?.focus(); }} className={`absolute ${isOverlay ? "right-4" : "right-4"} top-1/2 -translate-y-1/2 p-1.5 text-ink-muted hover:text-gray-600`}>
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -186,24 +192,25 @@ export default function SearchBar({ variant = "header", onClose, autoFocus }: Se
         <div
           ref={dropdownRef}
           className={`absolute ${isOverlay ? "left-0 right-0" : "left-0 right-0 sm:left-auto sm:right-auto sm:w-[480px]"} top-full mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 max-h-[70vh] overflow-y-auto`}
+          id="search-suggestions"
           role="listbox"
         >
           {/* Category matches */}
           {categoryMatches.length > 0 && (
             <div className="px-4 pt-4 pb-2">
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Categories</p>
+              <p className="text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-2">Categories</p>
               {categoryMatches.map((cat) => {
                 const globalIdx = allItems.findIndex((i) => i.type === "category" && i.value === cat.name);
                 return (
                   <button
                     key={cat.name}
                     onClick={() => navigateTo(`/shop?category=${encodeURIComponent(cat.name)}`)}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-colors ${selectedIndex === globalIdx ? "bg-[#16A34A]/5" : "hover:bg-gray-50"}`}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-colors ${selectedIndex === globalIdx ? "bg-[#23201C]/5" : "hover:bg-gray-50"}`}
                   >
                     <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center text-sm">{cat.icon}</div>
                     <div>
                       <p className="text-sm font-medium text-gray-800">{highlightMatch(cat.name, query)}</p>
-                      <p className="text-[11px] text-gray-400">{cat.description}</p>
+                      <p className="text-[11px] text-ink-muted">{cat.description}</p>
                     </div>
                   </button>
                 );
@@ -214,43 +221,27 @@ export default function SearchBar({ variant = "header", onClose, autoFocus }: Se
           {/* Product results */}
           {results.length > 0 && (
             <div className={`px-4 ${categoryMatches.length > 0 ? "pt-2" : "pt-4"} pb-2`}>
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Products</p>
+              <p className="text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-2">Products</p>
               {results.map((product, i) => {
                 const globalIdx = categoryMatches.length + i;
                 return (
                   <button
                     key={product.slug}
                     onClick={() => navigateTo(`/shop/${product.slug}`)}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-colors ${selectedIndex === globalIdx ? "bg-[#16A34A]/5" : "hover:bg-gray-50"}`}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-colors ${selectedIndex === globalIdx ? "bg-[#23201C]/5" : "hover:bg-gray-50"}`}
                   >
-                    <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                      <img
-                        src={product.imageUrl}
-                        alt={product.name}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                        onError={(e) => {
-                          const t = e.target as HTMLImageElement;
-                          t.style.display = "none";
-                          const p = t.parentElement;
-                          if (p) {
-                            p.style.backgroundColor = product.imagePlaceholder.bg;
-                            p.style.display = "flex";
-                            p.style.alignItems = "center";
-                            p.style.justifyContent = "center";
-                            const s = document.createElement("span");
-                            s.className = "text-xs font-bold opacity-60";
-                            s.textContent = product.imagePlaceholder.initials;
-                            p.appendChild(s);
-                          }
-                        }}
-                      />
+                    <div
+                      className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center"
+                      style={{ backgroundColor: product.imagePlaceholder.bg }}
+                    >
+                      <span className="text-xs font-bold opacity-60">{product.imagePlaceholder.initials}</span>
+                      <ProductImage src={product.imageUrl} alt={product.name} sizes="48px" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-800 truncate">{highlightMatch(product.name, query)}</p>
                       <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-sm font-bold text-[#16A34A]">{formatPrice(product.price)}</span>
-                        <span className="text-[11px] text-gray-400">{product.category}</span>
+                        <span className="text-sm font-bold text-[#A8874D]">{formatPrice(product.price)}</span>
+                        <span className="text-[11px] text-ink-muted">{product.category}</span>
                       </div>
                     </div>
                     {product.color && (
@@ -265,7 +256,7 @@ export default function SearchBar({ variant = "header", onClose, autoFocus }: Se
           {/* No results */}
           {query.trim().length >= 2 && results.length === 0 && categoryMatches.length === 0 && (
             <div className="px-4 py-8 text-center">
-              <p className="text-gray-400 text-sm">No results for &ldquo;{query}&rdquo;</p>
+              <p className="text-ink-muted text-sm">No results for &ldquo;{query}&rdquo;</p>
               <p className="text-gray-300 text-xs mt-1">Try a different search term</p>
             </div>
           )}
@@ -276,8 +267,8 @@ export default function SearchBar({ variant = "header", onClose, autoFocus }: Se
               {recentSearches.length > 0 && (
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Recent Searches</p>
-                    <button onClick={() => { localStorage.removeItem(RECENT_KEY); }} className="text-[10px] text-gray-400 hover:text-gray-600">Clear</button>
+                    <p className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">Recent Searches</p>
+                    <button onClick={() => { localStorage.removeItem(RECENT_KEY); }} className="text-[10px] text-ink-muted hover:text-gray-600">Clear</button>
                   </div>
                   {recentSearches.map((term) => (
                     <button
@@ -294,7 +285,7 @@ export default function SearchBar({ variant = "header", onClose, autoFocus }: Se
                 </div>
               )}
               <div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Trending</p>
+                <p className="text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-2">Trending</p>
                 <div className="flex flex-wrap gap-2">
                   {TRENDING.map((term) => (
                     <button
@@ -312,10 +303,10 @@ export default function SearchBar({ variant = "header", onClose, autoFocus }: Se
 
           {/* Footer hint */}
           <div className="px-4 py-2.5 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
-            <span className="text-[10px] text-gray-400">
+            <span className="text-[10px] text-ink-muted">
               {results.length > 0 ? `${results.length} results` : "Type to search"}
             </span>
-            <div className="flex items-center gap-2 text-[10px] text-gray-400">
+            <div className="flex items-center gap-2 text-[10px] text-ink-muted">
               <kbd className="px-1.5 py-0.5 bg-white border border-gray-200 rounded text-[9px]">↑↓</kbd> navigate
               <kbd className="px-1.5 py-0.5 bg-white border border-gray-200 rounded text-[9px]">↵</kbd> select
               <kbd className="px-1.5 py-0.5 bg-white border border-gray-200 rounded text-[9px]">esc</kbd> close

@@ -11,7 +11,7 @@ export default function PrivacyPage() {
       <section className="bg-offwhite border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
           <h1 className="font-heading text-3xl lg:text-4xl font-semibold tracking-tight">Privacy Policy</h1>
-          <p className="mt-3 text-warm-gray text-sm tracking-wide">Last updated: June 2026</p>
+          <p className="mt-3 text-warm-gray text-sm tracking-wide">Last updated: August 2026</p>
         </div>
       </section>
 
@@ -19,7 +19,7 @@ export default function PrivacyPage() {
         <div>
           <h2 className="font-heading text-xl font-semibold tracking-tight mb-3">1. Information We Collect</h2>
           <p className="text-charcoal text-sm leading-relaxed">
-            We collect information you provide directly to us, including your name, email address, phone number, shipping address, and payment information. We also collect certain information automatically when you visit our website, such as your IP address, browser type, and browsing activity.
+            We collect information you provide directly to us, including your name, email address, phone number, shipping address, and any name you ask us to engrave. If you join our mailing list we store the email address you give us, and nothing else. We also collect certain information automatically when you visit our website, such as your IP address, browser type, and browsing activity. We never see or store your card details: those go directly to Stripe.
           </p>
         </div>
 
@@ -33,7 +33,7 @@ export default function PrivacyPage() {
         <div>
           <h2 className="font-heading text-xl font-semibold tracking-tight mb-3">3. Information Sharing</h2>
           <p className="text-charcoal text-sm leading-relaxed">
-            We do not sell or rent your personal information to third parties. We share your information only with service providers who assist us in operating our business, such as payment processors (Stripe), shipping carriers, and email service providers. These providers are contractually obligated to protect your information.
+            We do not sell or rent your personal information to third parties. We share it only with the providers we need to run the shop: Stripe for payments, couriers for delivery, and our email provider for order messages. Our order database and our website analytics run on our own infrastructure rather than a third-party cloud service, so that data is not shared with anyone.
           </p>
         </div>
 
@@ -54,7 +54,8 @@ export default function PrivacyPage() {
         <div>
           <h2 className="font-heading text-xl font-semibold tracking-tight mb-3">6. Your Rights</h2>
           <p className="text-charcoal text-sm leading-relaxed">
-            You have the right to access, correct, or delete your personal information. You can update your account information at any time by contacting us. You may also opt out of marketing communications by clicking the unsubscribe link in our emails.
+            Under UAE Federal Decree-Law No. 45 of 2021 on the Protection of Personal Data you have the right to access the personal data we hold about you, to have it corrected, and to ask us to delete it. Contact us and we will action it. If you have joined our mailing list you can remove yourself at any time on our{" "}
+            <a href="/unsubscribe" className="text-sand hover:text-sand-dark underline">unsubscribe page</a>, which deletes your address from the list outright. Removing yourself from the mailing list does not affect emails about orders you have already placed, which we have to send in order to fulfil them.
           </p>
         </div>
 
@@ -66,7 +67,7 @@ export default function PrivacyPage() {
         </div>
 
         <div>
-          <h2 className="font-heading text-xl font-semibold tracking-tight mb-3">8. Children's Privacy</h2>
+          <h2 className="font-heading text-xl font-semibold tracking-tight mb-3">8. Children’s Privacy</h2>
           <p className="text-charcoal text-sm leading-relaxed">
             Our services are not intended for individuals under the age of 18. We do not knowingly collect personal information from children. If we become aware that we have collected information from a child, we will take steps to delete it promptly.
           </p>
@@ -75,7 +76,7 @@ export default function PrivacyPage() {
         <div>
           <h2 className="font-heading text-xl font-semibold tracking-tight mb-3">9. Changes to This Policy</h2>
           <p className="text-charcoal text-sm leading-relaxed">
-            We may update this Privacy Policy from time to time. We will notify you of any material changes by posting the new policy on this page and updating the "Last updated" date. Your continued use of our services after any changes constitutes acceptance of the updated policy.
+            We may update this Privacy Policy from time to time. We will notify you of any material changes by posting the new policy on this page and updating the “Last updated” date. Your continued use of our services after any changes constitutes acceptance of the updated policy.
           </p>
         </div>
 
@@ -83,7 +84,7 @@ export default function PrivacyPage() {
           <h2 className="font-heading text-xl font-semibold tracking-tight mb-3">10. Contact Us</h2>
           <p className="text-charcoal text-sm leading-relaxed">
             If you have any questions about this Privacy Policy or how we handle your data, please contact us at{" "}
-            <a href="mailto:care@lebon-grace.com" className="text-sand hover:text-sand-dark underline">care@lebon-grace.com</a>{" "}
+            <a href="/contact" className="text-sand hover:text-sand-dark underline">our contact form</a>{" "}
             or write to: Sharjah Media City, Al Messaned, Al Bataeh, Sharjah, UAE.
           </p>
         </div>

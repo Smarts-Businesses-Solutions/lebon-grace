@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import ProductImage from "@/components/ProductImage";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useCart } from "@/lib/cart-context";
@@ -12,6 +13,8 @@ import {
   MATERIALS,
   PRICE_TIERS,
   applyFilters,
+  AGE_BANDS,
+  CLEARANCE_CATEGORY,
   getFilterCounts,
   DEFAULT_FILTERS,
   type FilterState,
@@ -28,53 +31,11 @@ const sortOptions = [
 ];
 
 /* ─── Star Rating ─── */
-function StarRating({ rating, count }: { rating: number; count: number }) {
-  return (
-    <div className="flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map((i) => (
-        <svg key={i} className={`w-3 h-3 ${i <= Math.floor(rating) ? "text-yellow-400" : i - 0.5 <= rating ? "text-yellow-300" : "text-gray-200"}`} fill="currentColor" viewBox="0 0 20 20">
-          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-        </svg>
-      ))}
-      <span className="text-gray-400 text-[11px] ml-0.5">({count})</span>
-    </div>
-  );
-}
+/* No StarRating. See the note in src/app/page.tsx: the ratings and review
+   counts rendered here were computed from each product's index in the grid, on
+   a shop that has never taken an order. */
 
 /* ─── Category Showcase ─── */
-function CategoryShowcase() {
-  const topCategories = categories.slice(0, 8);
-  const categoryImages: Record<string, string> = {
-    Jewelry: "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=200&h=200&fit=crop",
-    "Home Decor": "https://images.unsplash.com/photo-1616486029423-aaa4789e8c9a?w=200&h=200&fit=crop",
-    "Fashion & Accessories": "https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=200&h=200&fit=crop",
-    "Pet Supplies": "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=200&h=200&fit=crop",
-    "Kitchen & Dining": "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=200&h=200&fit=crop",
-    "Beauty & Grooming": "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=200&h=200&fit=crop",
-    "Home Storage": "https://images.unsplash.com/photo-1631679706909-1844bbd07221?w=200&h=200&fit=crop",
-    "Bags & Travel": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=200&h=200&fit=crop",
-  };
-  return (
-    <section className="bg-white border-b border-gray-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-8 gap-4">
-          {topCategories.map((cat) => (
-            <Link key={cat.name} href={"/shop?category=" + encodeURIComponent(cat.name)} className="group flex flex-col items-center gap-2 text-center">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden bg-gray-100 border-2 border-transparent group-hover:border-[#16A34A] transition-colors duration-200">
-                {categoryImages[cat.name] ? (
-                  <img src={categoryImages[cat.name]} alt={cat.name} className="w-full h-full object-cover" loading="lazy" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gray-100 text-xl">{cat.icon}</div>
-                )}
-              </div>
-              <span className="text-xs font-medium text-gray-700 group-hover:text-[#16A34A] transition-colors leading-tight">{cat.name}</span>
-            </Link>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
 
 /* ─── Filter Section Component ─── */
 function FilterSection({ title, children, defaultOpen = true }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
@@ -83,7 +44,7 @@ function FilterSection({ title, children, defaultOpen = true }: { title: string;
     <div className="border-b border-gray-100 py-4">
       <button onClick={() => setOpen(!open)} className="flex items-center justify-between w-full text-left">
         <span className="text-sm font-semibold text-gray-800">{title}</span>
-        <svg className={`w-4 h-4 text-gray-400 transition-transform ${open ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <svg className={`w-4 h-4 text-ink-muted transition-transform ${open ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
         </svg>
       </button>
@@ -93,60 +54,56 @@ function FilterSection({ title, children, defaultOpen = true }: { title: string;
 }
 
 /* ─── Product Card ─── */
-function ProductCard({ product, index, onAdd }: { product: EnrichedProduct; index: number; onAdd: () => void }) {
-  const rating = 3.5 + (index % 3) * 0.5;
-  const reviewCount = (index * 7 + 12) % 50 + 5;
-
+function ProductCard({ product, onAdd }: { product: EnrichedProduct; onAdd: () => void }) {
   return (
-    <div className="group relative bg-white rounded-xl overflow-hidden border border-gray-100 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
+    // Frameless, matching the homepage grid: the white card and its border were
+    // drawing a box around photography that already has its own edge, and forty
+    // of them tiled read as a spreadsheet. The photograph is the card.
+    <div className="group relative">
       {/* Color badge */}
       {product.color && (
         <div className="absolute top-2 left-2 z-10">
-          <span className="px-2 py-0.5 bg-white/90 text-gray-600 text-[10px] font-medium rounded-full border border-gray-200 backdrop-blur-sm">{product.color}</span>
+          <span className="px-2 py-0.5 bg-bone/90 text-ink-soft text-[10px] tracking-wide rounded-full backdrop-blur-sm">{product.color}</span>
         </div>
       )}
 
       {/* Image */}
       <Link href={"/shop/" + product.slug} className="block">
-        <div className="aspect-square overflow-hidden bg-gray-50">
-          <img
+        {/* Placeholder initials sit beneath; ProductImage renders nothing if the
+            file 404s, which replaces the imperative DOM-poking onError. */}
+        <div
+          className="relative aspect-square overflow-hidden flex items-center justify-center"
+          style={{ backgroundColor: product.imagePlaceholder.bg }}
+        >
+          <span
+            className="font-bold text-2xl opacity-60"
+            style={{ color: ["#C9A96E", "#D4BA85"].includes(product.imagePlaceholder.bg) ? "#2D2D2D" : "#FAF8F5" }}
+          >
+            {product.imagePlaceholder.initials}
+          </span>
+          <ProductImage
             src={product.imageUrl}
             alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            loading="lazy"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.style.display = "none";
-              const parent = target.parentElement;
-              if (parent) {
-                parent.style.backgroundColor = product.imagePlaceholder.bg;
-                parent.style.display = "flex";
-                parent.style.alignItems = "center";
-                parent.style.justifyContent = "center";
-                const span = document.createElement("span");
-                span.className = "font-bold text-2xl opacity-60";
-                span.style.color = product.imagePlaceholder.bg === "#C9A96E" || product.imagePlaceholder.bg === "#D4BA85" ? "#2D2D2D" : "#FAF8F5";
-                span.textContent = product.imagePlaceholder.initials;
-                parent.appendChild(span);
-              }
-            }}
+            sizes="(min-width: 1024px) 320px, (min-width: 640px) 45vw, 90vw"
+            className="object-contain group-hover:scale-105 transition-transform duration-500"
           />
         </div>
       </Link>
 
       {/* Info */}
-      <div className="p-3">
+      <div className="pt-3">
         <Link href={"/shop/" + product.slug}>
-          <h3 className="text-[13px] font-medium text-gray-800 leading-snug line-clamp-2 hover:text-[#16A34A] transition-colors mb-1">{product.name}</h3>
+          <h3 className="font-heading text-sm text-ink leading-snug line-clamp-2 group-hover:text-sand-dark transition-colors">{product.name}</h3>
         </Link>
-        <StarRating rating={rating} count={reviewCount} />
-        <div className="flex items-center justify-between mt-2.5">
-          <span className="text-gray-900 font-bold text-base">{formatPrice(product.price)}</span>
-          <button onClick={onAdd} className="flex items-center gap-1 px-3 py-1.5 bg-[#16A34A] text-white text-xs font-semibold tracking-wide rounded-lg hover:bg-[#15803D] active:scale-95 transition-all">
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
-            Add
+        <div className="flex items-center justify-between mt-1.5 min-h-8">
+          <span className="text-sm text-ink-soft tabular-nums">{formatPrice(product.price)}</span>
+          {/* Revealed on hover, as on the homepage. Kept reachable by keyboard
+              and on touch — opacity alone would hide it from neither. */}
+          <button
+            onClick={onAdd}
+            className="px-3 py-1.5 bg-ink text-paper text-xs tracking-wide opacity-0 group-hover:opacity-100 focus-visible:opacity-100 max-sm:opacity-100 hover:bg-sand-dark active:scale-95 transition-all"
+          >
+            Add to cart
           </button>
         </div>
       </div>
@@ -161,6 +118,12 @@ function ShopContent() {
   const initialSearch = searchParams.get("search") || "";
   const { addItem } = useCart();
 
+  // Clearance is not a puzzle, so it must not be counted as one.
+  const puzzleCount = useMemo(
+    () => products.filter((p) => !p.hidden && p.category !== CLEARANCE_CATEGORY).length,
+    []
+  );
+
   // Filter state
   const [filters, setFilters] = useState<FilterState>({
     ...DEFAULT_FILTERS,
@@ -170,17 +133,27 @@ function ShopContent() {
   const [visibleCount, setVisibleCount] = useState(24);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
+  // Extracted so the dependency is a plain value rather than a call expression.
+  const paramsKey = searchParams.toString();
+
   // Sync URL params with filter state on full page load
   useEffect(() => {
     const cat = searchParams.get("category");
     const q = searchParams.get("search");
+    // Re-syncs filters when the URL changes (a category link elsewhere on the
+          // site navigates here with ?category=). Deriving instead would drop that.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFilters((prev) => ({
       ...prev,
       category: cat || "All",
       ...(q ? { search: q } : {}),
     }));
     setVisibleCount(24);
-  }, [searchParams.toString()]);
+    // Depends on the SERIALISED params, not the object: Next returns a new
+    // searchParams identity most renders, so depending on it directly would
+    // re-run this on every render. The string is the stable value.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paramsKey]);
 
   // Update a single filter field
   const updateFilter = useCallback(
@@ -246,9 +219,9 @@ function ShopContent() {
       <FilterSection title="Category">
         <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
           <button onClick={() => updateFilter("category", "All")} className={`block w-full text-left px-3 py-1.5 rounded-lg text-xs transition-colors ${filters.category === "All" ? "bg-gray-900 text-white" : "text-gray-600 hover:bg-gray-50"}`}>
-            All ({products.length})
+            All ({puzzleCount})
           </button>
-          {categories.map((cat) => {
+          {categories.filter((c) => !c.hidden && c.name !== "Clearance").map((cat) => {
             const count = products.filter((p) => p.category === cat.name).length;
             return (
               <button key={cat.name} onClick={() => updateFilter("category", cat.name)} className={`block w-full text-left px-3 py-1.5 rounded-lg text-xs transition-colors ${filters.category === cat.name ? "bg-gray-900 text-white" : "text-gray-600 hover:bg-gray-50"}`}>
@@ -259,10 +232,46 @@ function ShopContent() {
         </div>
       </FilterSection>
 
-      {/* Price */}
+      {/* Age. Placed above Price deliberately: at a single AED 15 price the
+          price filter is meaningless, and a parent shops by how old the child
+          is, not by cost. */}
+      <FilterSection title="Age">
+        <div className="flex flex-wrap gap-2">
+          {AGE_BANDS.map((band) => {
+            const isActive = filters.ages.includes(band);
+            return (
+              <button
+                key={band}
+                onClick={() =>
+                  updateFilter(
+                    "ages",
+                    isActive ? filters.ages.filter((a) => a !== band) : [...filters.ages, band]
+                  )
+                }
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                  isActive
+                    ? "bg-[#C9A96E] text-white border-[#C9A96E]"
+                    : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
+                }`}
+              >
+                {band === "4+" ? "4 years +" : band.replace("-", " to ") + " years"}
+              </button>
+            );
+          })}
+        </div>
+      </FilterSection>
+
+      {/* Price.
+          Tiers that match nothing are not rendered. PRICE_TIERS is hand-written
+          so it drifts behind the catalogue — "AED 35+" sat here long after the
+          most expensive item was AED 25, offering a filter that could only ever
+          return an empty grid. Counting against the same half-open predicate
+          applyFilters uses means the option disappears instead. */}
       <FilterSection title="Price">
         <div className="space-y-1">
-          {PRICE_TIERS.map((tier) => {
+          {PRICE_TIERS.filter((tier) =>
+            products.some((p) => p.price >= tier.min && p.price < tier.max)
+          ).map((tier) => {
             const isActive = filters.priceMin === tier.min && filters.priceMax === tier.max;
             return (
               <button
@@ -276,7 +285,7 @@ function ShopContent() {
                     updateFilter("priceMax", tier.max);
                   }
                 }}
-                className={`block w-full text-left px-3 py-1.5 rounded-lg text-xs transition-colors ${isActive ? "bg-[#16A34A] text-white" : "text-gray-600 hover:bg-gray-50"}`}
+                className={`block w-full text-left px-3 py-1.5 rounded-lg text-xs transition-colors ${isActive ? "bg-[#23201C] text-white" : "text-gray-600 hover:bg-gray-50"}`}
               >
                 {tier.label}
               </button>
@@ -343,10 +352,10 @@ function ShopContent() {
                     type="checkbox"
                     checked={isActive}
                     onChange={() => toggleArrayFilter("materials", mat)}
-                    className="w-3.5 h-3.5 rounded border-gray-300 text-[#16A34A] focus:ring-[#16A34A]"
+                    className="w-3.5 h-3.5 rounded border-gray-300 text-[#A8874D] focus:ring-[#A8874D]"
                   />
                   <span className="text-xs text-gray-600">{mat}</span>
-                  <span className="text-[10px] text-gray-400 ml-auto">{count}</span>
+                  <span className="text-[10px] text-ink-muted ml-auto">{count}</span>
                 </label>
               );
             })}
@@ -358,20 +367,25 @@ function ShopContent() {
 
   return (
     <>
-      {/* Hero Banner */}
-      <section className="bg-gradient-to-r from-gray-900 to-gray-800 text-white overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-14">
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
-            <div className="text-center lg:text-left">
-              <h1 className="text-3xl lg:text-4xl font-bold tracking-tight">Shop All Products</h1>
-              <p className="mt-2 text-gray-300 text-sm lg:text-base max-w-lg">
-                Browse {products.length} everyday essentials across {categories.length} categories. All under AED 50.
+      {/* Page head.
+          Was a dark grey gradient with three emoji chips — the last stretch of
+          the old marketplace template, and it fought the paper ground the rest
+          of the site sits on. Set as type on paper instead, with the three
+          promises as a plain ruled line rather than pills. */}
+      <section className="bg-paper border-b border-rule overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
+            <div>
+              <span className="eyebrow text-ink-muted">The full range</span>
+              <h1 className="font-heading text-4xl lg:text-5xl text-ink mt-3">Everything we make</h1>
+              <p className="mt-3 text-ink-soft/80 text-sm max-w-md leading-relaxed">
+                Cut and finished by hand in our Dubai workshop. Every piece is made to order.
               </p>
             </div>
-            <div className="flex flex-wrap items-center justify-center gap-2 lg:gap-3">
-              <span className="px-3 py-1.5 bg-white/10 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap">🚚 Free Shipping</span>
-              <span className="px-3 py-1.5 bg-white/10 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap">💳 Pay 50% Now</span>
-              <span className="px-3 py-1.5 bg-white/10 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap">📦 10-14 Days</span>
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 lg:justify-end">
+              {["Free collection", "Made to order", "Ready in 2–3 days"].map((t) => (
+                <span key={t} className="text-xs tracking-wide text-ink-soft border-t border-ink pt-2">{t}</span>
+              ))}
             </div>
           </div>
         </div>
@@ -386,7 +400,7 @@ function ShopContent() {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Filters</h2>
                 {activeFilterCount > 0 && (
-                  <button onClick={clearFilters} className="text-xs text-[#16A34A] hover:underline font-medium">
+                  <button onClick={clearFilters} className="text-xs text-[#A8874D] hover:underline font-medium">
                     Clear all
                   </button>
                 )}
@@ -409,7 +423,7 @@ function ShopContent() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                   </svg>
                   Filters
-                  {activeFilterCount > 0 && <span className="w-5 h-5 bg-[#16A34A] text-white rounded-full flex items-center justify-center text-[10px]">{activeFilterCount}</span>}
+                  {activeFilterCount > 0 && <span className="w-5 h-5 bg-[#23201C] text-white rounded-full flex items-center justify-center text-[10px]">{activeFilterCount}</span>}
                 </button>
 
                 {/* Active filter chips */}
@@ -423,7 +437,7 @@ function ShopContent() {
                         </svg>
                       </button>
                     ))}
-                    <button onClick={clearFilters} className="text-[11px] text-gray-400 hover:text-gray-600 ml-1">Clear all</button>
+                    <button onClick={clearFilters} className="text-[11px] text-ink-muted hover:text-gray-600 ml-1">Clear all</button>
                   </div>
                 )}
               </div>
@@ -432,7 +446,7 @@ function ShopContent() {
               <div className="flex items-center gap-3 flex-shrink-0">
                 {/* Inline search (visible on md+ where header search is shown, but useful here too) */}
                 <div className="relative hidden sm:block">
-                  <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
                   </svg>
                   <input
@@ -440,16 +454,17 @@ function ShopContent() {
                     value={filters.search}
                     onChange={(e) => updateFilter("search", e.target.value)}
                     placeholder="Search..."
-                    className="pl-8 pr-3 py-1.5 text-xs border border-gray-200 rounded-lg bg-white text-gray-700 focus:border-[#16A34A] focus:ring-1 focus:ring-[#16A34A] outline-none w-36"
+                    className="pl-8 pr-3 py-1.5 text-xs border border-gray-200 rounded-lg bg-white text-gray-700 focus:border-[#A8874D] focus:ring-1 focus:ring-[#A8874D] outline-none w-36"
                   />
                 </div>
-                <span className="text-gray-400 text-xs">
+                <span className="text-ink-muted text-xs">
                   {Math.min(visibleCount, filteredProducts.length)} of {filteredProducts.length} products
                 </span>
                 <select
+                  aria-label="Sort products"
                   value={filters.sortBy}
                   onChange={(e) => updateFilter("sortBy", e.target.value)}
-                  className="border border-gray-200 rounded-lg px-3 py-1.5 text-xs bg-white text-gray-700 focus:border-[#16A34A] focus:ring-1 focus:ring-[#16A34A] outline-none cursor-pointer"
+                  className="border border-gray-200 rounded-lg px-3 py-1.5 text-xs bg-white text-gray-700 focus:border-[#A8874D] focus:ring-1 focus:ring-[#A8874D] outline-none cursor-pointer"
                 >
                   {sortOptions.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -461,16 +476,16 @@ function ShopContent() {
             </div>
 
             {/* Product Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 lg:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
               {visibleProducts.map((product, index) => (
-                <ProductCard key={product.slug + index} product={product} index={index} onAdd={() => addItem(product)} />
+                <ProductCard key={product.slug + index} product={product} onAdd={() => addItem(product)} />
               ))}
             </div>
 
             {filteredProducts.length === 0 && (
               <div className="text-center py-20">
-                <p className="text-gray-400 text-lg">No products match your filters</p>
-                <button onClick={clearFilters} className="mt-4 text-[#16A34A] text-sm font-medium hover:underline">
+                <p className="text-ink-muted text-lg">No products match your filters</p>
+                <button onClick={clearFilters} className="mt-4 text-[#A8874D] text-sm font-medium hover:underline">
                   Clear all filters
                 </button>
               </div>
@@ -482,7 +497,7 @@ function ShopContent() {
                 <button onClick={() => setVisibleCount((prev) => prev + 24)} className="px-10 py-3.5 bg-gray-900 text-white text-sm font-semibold tracking-wide rounded-lg hover:bg-gray-800 transition-colors">
                   Load More Products
                 </button>
-                <p className="mt-2 text-gray-400 text-xs">
+                <p className="mt-2 text-ink-muted text-xs">
                   Showing {Math.min(visibleCount, filteredProducts.length)} of {filteredProducts.length} products
                 </p>
               </div>
@@ -492,24 +507,20 @@ function ShopContent() {
             <div className="mt-12 pt-8 border-t border-gray-100">
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 text-center">
                 <div>
-                  <div className="text-2xl mb-2">🚚</div>
                   <p className="text-sm font-medium text-gray-800">Free Pickup</p>
-                  <p className="text-xs text-gray-400 mt-0.5">Or AED 25 delivery</p>
+                  <p className="text-xs text-ink-muted mt-0.5">Or AED 20 UAE delivery, free over AED 150</p>
                 </div>
                 <div>
-                  <div className="text-2xl mb-2">💳</div>
-                  <p className="text-sm font-medium text-gray-800">Pay 50% Now</p>
-                  <p className="text-xs text-gray-400 mt-0.5">50% on delivery</p>
+                  <p className="text-sm font-medium text-gray-800">Made to Order</p>
+                  <p className="text-xs text-ink-muted mt-0.5">Cut to order in 2 to 3 days</p>
                 </div>
                 <div>
-                  <div className="text-2xl mb-2">🔒</div>
                   <p className="text-sm font-medium text-gray-800">Secure Payment</p>
-                  <p className="text-xs text-gray-400 mt-0.5">Via Stripe</p>
+                  <p className="text-xs text-ink-muted mt-0.5">Via Stripe</p>
                 </div>
                 <div>
-                  <div className="text-2xl mb-2">📦</div>
-                  <p className="text-sm font-medium text-gray-800">All Sales Final</p>
-                  <p className="text-xs text-gray-400 mt-0.5">Review before buying</p>
+                  <p className="text-sm font-medium text-gray-800">Faulty? Replaced Free</p>
+                  <p className="text-xs text-ink-muted mt-0.5">Send a photo within 7 days</p>
                 </div>
               </div>
             </div>
@@ -548,7 +559,7 @@ function ShopContent() {
 
 export default function ShopPage() {
   return (
-    <Suspense fallback={<div className="max-w-7xl mx-auto px-4 py-16 text-center text-gray-400">Loading...</div>}>
+    <Suspense fallback={<div className="max-w-7xl mx-auto px-4 py-16 text-center text-ink-muted">Loading...</div>}>
       <ShopContent />
     </Suspense>
   );

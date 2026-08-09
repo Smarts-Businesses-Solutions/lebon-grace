@@ -6,28 +6,36 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "typecheck:e2e": "tsc -p tsconfig.e2e.json",
+    "test": "vitest run",
+    "verify:deploy": "node scripts/verify-deploy.mjs",
+    "audit:contrast": "node scripts/contrast-audit.mjs",
+    "start:standalone": "node scripts/serve-standalone.mjs",
+    "test:e2e": "playwright test",
+    "qa:report": "node scripts/qa-report.mjs"
   },
   "dependencies": {
     "@sentry/nextjs": "^10.62.0",
-    "@stripe/stripe-js": "^9.8.0",
-    "@supabase/supabase-js": "^2.108.2",
-    "next": "16.2.9",
-    "playwright": "^1.61.1",
-    "posthog-js": "^1.395.0",
+    "@supabase/supabase-js": "^2.111.0",
+    "next": "16.3.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "resend": "^6.16.0",
     "stripe": "^22.3.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
+    "@playwright/test": "^1.62.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.2.9",
+    "eslint-config-next": "16.3.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.2.7"
   }
 }

@@ -1,0 +1,38 @@
+# Reverse tunnel: VPS(3.111.1.0):8080 -> this workstation :3105
+#
+# Why SSH rather than frp/WireGuard: port 22 is already open on the Lightsail
+# box, so this needs no extra firewall rule and no second daemon. The loop
+# reconnects whenever the session dies (network drop, VPS reboot, sleep), and
+# `restart: unless-stopped` brings it back after a host reboot — the exact
+# failure mode that took the old Hostinger deploy offline.
+#
+# The remote end binds to 127.0.0.1:8080 ON THE VPS, so only Caddy running
+# locally there can reach it; the tunnel is never exposed to the internet.
+#
+#   SSH_KEY_PATH=C:/Users/user/.ssh/lebon-grace-edge.pem \
+#   docker compose -f deploy/tunnel/docker-compose.yml up -d
+
+services:
+  tunnel:
+    image: alpine:3
+    container_name: lebon-grace-tunnel
+    restart: unless-stopped
+    volumes:
+      - ${SSH_KEY_PATH:?set SSH_KEY_PATH}:/key:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    # NOTE: keep the ssh invocation on ONE line. In a YAML folded block (>),
+    # more-indented lines keep their newlines, which would split the command
+    # and make the shell try to run "-o", "-i", "-R" as programs.
+    command:
+      - /bin/sh
+      - -c
+      - |
+        apk add --no-cache openssh-client >/dev/null 2>&1
+        cp /key /tmp/k && chmod 600 /tmp/k
+        while true; do
+          echo "connecting tunnel..."
+          ssh -N -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ExitOnForwardFailure=yes -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -i /tmp/k -R 127.0.0.1:8080:host.docker.internal:3105 ubuntu@3.111.1.0
+          echo "tunnel dropped, retrying in 5s"
+          sleep 5
+        done
