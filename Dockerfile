@@ -21,8 +21,23 @@ WORKDIR /app
 RUN apk add --no-cache libc6-compat
 COPY package.json package-lock.json .npmrc* ./
 ENV HUSKY=0
+# The `||` branch is a LAST RESORT, not a normal path. It regenerates the
+# lockfile inside the image, which means that build is no longer reproducible
+# from what is committed -- the whole point of `npm ci`. It ran silently for
+# some time while `@emnapi/core` and `@emnapi/runtime` were missing from the
+# lockfile (npm/cli#8320), and hid the fault because the build still succeeded.
+#
+# `npm run verify:lockfile` now gates this in CI, before install, so drift is
+# caught where it is cheap. If you see the drift message below in a build log,
+# the gate has been bypassed -- fix the lockfile, do not ignore it:
+#
+#   docker run --rm -v "$PWD":/w -w /w node:22-alpine \
+#     npm install --package-lock-only --ignore-scripts
+#
+# Regenerate on LINUX. A plain `npm install` on Windows drops those entries
+# straight back out.
 RUN npm ci --ignore-scripts \
- || ( echo '>> lockfile drift - regenerating in-image' \
+ || ( echo '>> LOCKFILE DRIFT - regenerating in-image; this build is NOT reproducible' \
       && npm install --package-lock-only --ignore-scripts --prefer-online \
       && npm ci --ignore-scripts )
 COPY . .

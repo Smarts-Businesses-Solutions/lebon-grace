@@ -55,6 +55,17 @@ jobs:
           node-version: "22"
           cache: "npm"
 
+      # Runs BEFORE install, because a lockfile that is broken for another
+      # platform still installs perfectly here. The container is built on
+      # node:22-alpine (musl); this runner is glibc, so npm resolves a
+      # different set of optional platform packages and CI can stay green
+      # while `docker build` fails. That is exactly what npm/cli#8320 did to
+      # us -- @emnapi/core and @emnapi/runtime were missing, only Alpine
+      # noticed, and the Dockerfile's fallback hid it by regenerating the
+      # lockfile in-image.
+      - name: Lockfile is complete for every platform
+        run: node scripts/verify-lockfile.mjs
+
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
 

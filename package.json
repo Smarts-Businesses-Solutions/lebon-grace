@@ -14,7 +14,8 @@
     "audit:contrast": "node scripts/contrast-audit.mjs",
     "start:standalone": "node scripts/serve-standalone.mjs",
     "test:e2e": "playwright test",
-    "qa:report": "node scripts/qa-report.mjs"
+    "qa:report": "node scripts/qa-report.mjs",
+    "verify:lockfile": "node scripts/verify-lockfile.mjs"
   },
   "dependencies": {
     "@sentry/nextjs": "^10.62.0",
