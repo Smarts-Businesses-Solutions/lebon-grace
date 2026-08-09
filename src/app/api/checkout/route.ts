@@ -4,6 +4,7 @@ import { stripe } from "@/lib/stripe";
 import { products } from "@/lib/products";
 import { rateLimit } from "@/lib/rate-limit";
 import { getAppUrl } from "@/lib/app-url";
+import { isDeliverableEmail } from "@/lib/email-address";
 
 export async function POST(request: NextRequest) {
   // Each call creates a Stripe Checkout Session; cap per IP to stop abuse.
@@ -23,6 +24,19 @@ export async function POST(request: NextRequest) {
   // Trimmed and capped: these are echoed into Stripe metadata and then into the
   // order the workshop reads, so they are not trusted at whatever length arrives.
   const custEmail = String(customer?.email || "").trim().slice(0, 200);
+
+  // Server-side too, not only in the browser. The client check is a courtesy
+  // to the customer; this one is the actual guarantee, because the form can be
+  // bypassed and HTML5 type="email" accepts addresses that cannot receive mail
+  // (`a@b` has no TLD). An order whose confirmation cannot be delivered leaves
+  // the customer with no way to reach it: tracking needs order-id + phone, and
+  // the account lookup needs this same email.
+  if (!isDeliverableEmail(custEmail)) {
+    return NextResponse.json(
+      { error: "Please enter an email address that can receive your order confirmation." },
+      { status: 400 }
+    );
+  }
   const custPhone = String(customer?.phone || "").trim().slice(0, 32);
   const custName = String(customer?.name || "").trim().slice(0, 120);
 

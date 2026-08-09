@@ -42,11 +42,53 @@ vi.mock("@/lib/stripe", () => ({
 
 import { POST } from "./route";
 
+describe("POST /api/checkout — email must be deliverable", () => {
+  // `a@b` reached this route from the live site: HTML5 type="email" accepts it
+  // (no TLD required) and the client only checked non-empty. The confirmation
+  // email is the only place the customer gets their order number, so an
+  // undeliverable address strands a paying customer.
+  const body = (email: string) => ({
+    items: [{ name: "ABC Jigsaw Board", price: 15, quantity: 1, slug: "abc-jigsaw-board" }],
+    customer: { email, phone: "0501234567", name: "Test Shopper" },
+  });
+  const post = (email: string) =>
+    POST(new NextRequest("https://shop.lebon-grace.com/api/checkout", {
+      method: "POST", body: JSON.stringify(body(email)),
+      headers: { "content-type": "application/json" },
+    }));
+
+  it("rejects an address with no TLD", async () => {
+    const res = await post("a@b");
+    expect(res.status).toBe(400);
+  });
+
+  it("rejects an address with a single-character TLD", async () => {
+    expect((await post("a@b.c")).status).toBe(400);
+  });
+
+  it("accepts a deliverable address — the precondition", async () => {
+    // Without this, "a@b is rejected" would also pass on a route that rejects
+    // everything, which is the failure mode L-2 keeps catching.
+    const res = await post("real@example.com");
+    expect(res.status).not.toBe(400);
+  });
+});
+
+
 function post(body: unknown) {
+  // The route now requires a deliverable email — an order whose confirmation
+  // cannot arrive strands the customer, because the confirmation is the only
+  // place the order number is given. These fixtures predate that and each one
+  // is about PRICE integrity, so a valid customer is supplied by default and
+  // any test that cares can still override it.
+  const withCustomer =
+    body && typeof body === "object" && !("customer" in (body as object))
+      ? { ...(body as object), customer: { email: "shopper@example.com", phone: "0501234567", name: "Test Shopper" } }
+      : body;
   return new NextRequest("https://shop.lebon-grace.com/api/checkout", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify(body),
+    body: JSON.stringify(withCustomer),
   });
 }
 

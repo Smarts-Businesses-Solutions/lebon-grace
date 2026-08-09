@@ -5,6 +5,7 @@ import ProductImage from "@/components/ProductImage";
 import { useEffect, useState } from "react";
 import { useCart, saveCartEmail, clearCartRecovery } from "@/lib/cart-context";
 import { formatPrice } from "@/lib/products";
+import { isDeliverableEmail } from "@/lib/email-address";
 
 const emirates = ["Dubai", "Abu Dhabi", "Sharjah", "Ajman", "Ras Al Khaimah", "Fujairah", "Umm Al Quwain"];
 
@@ -48,7 +49,12 @@ export default function CheckoutPage() {
 
   const validate = () => {
     const ne: Record<string, string> = {};
+    // Not just non-empty: `a@b` satisfied both this check and HTML5's
+    // type="email", and the confirmation email is the only place the order
+    // number reaches the customer.
     if (!form.email.trim()) ne.email = "Email is required";
+    else if (!isDeliverableEmail(form.email))
+      ne.email = "That email address will not receive your order confirmation — please check it";
     if (!form.phone.trim() || form.phone.length < 10) ne.phone = "Valid phone required";
     if (!form.firstName.trim()) ne.firstName = "Required";
     if (!form.lastName.trim()) ne.lastName = "Required";
