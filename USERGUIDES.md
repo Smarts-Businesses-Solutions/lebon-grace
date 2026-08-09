@@ -33,6 +33,45 @@ a language selector is describing something that does not exist.
 
 # For customers
 
+## Just looking
+
+You do not have to buy anything, and nothing asks you to sign up. There is no
+account, no cookie banner to dismiss, and no popup between you and the shop —
+the analytics here do not use cookies at all.
+
+**Finding a piece.** Three ways, and they end up in the same place:
+
+- **Browse by category** from the header or the shop page — Alphabet &
+  Literacy, Numbers & Counting, Shapes & Montessori, Animals & Nature, Vehicles
+  & Making, 3D & Architecture.
+- **Filter by price** on the shop page.
+- **Search** from the box in the header. It usually jumps you straight to the
+  piece or the category if it recognises what you typed, and otherwise shows
+  everything matching. Recent searches are remembered in your own browser.
+
+The shop tells you where you are — *"Showing 12 of 41 products"* — so you can
+tell a filter from an empty catalogue. **If a category shows nothing at all,
+that is worth telling us about**: it usually means stock was withdrawn and a
+link outlived it.
+
+**On a product page** you will find several photographs, the size in
+centimetres, an age guide, and a small-parts warning where one applies. The
+dimensions are measured from the piece itself rather than estimated. Engraving
+is free and optional, and shown before you pay.
+
+**Reviews.** If a piece has none, that section simply is not there — the shop
+does not print "no reviews yet". Reviews can only be left by someone whose
+delivered order actually contained that piece, so what you see is small but
+real.
+
+**If a link gives "Product Not Found"** the piece has been withdrawn or the link
+is wrong. Since 2026-08-09 that page also returns a genuine 404, so old
+bookmarks and stale search results drop out of search over time.
+
+**Contact details are revealed on request** rather than printed on the page.
+That is to keep them away from address-harvesting crawlers, not from you — one
+click shows them.
+
 ## Buying a puzzle
 
 1. Browse the shop, or filter by category and price.
