@@ -153,6 +153,7 @@ running when someone shipped. The weakness was invisible from the configuration.
 
 | Bug | Where |
 |---|---|
+| `GET /api/variants?pid=` is an unauthenticated, unthrottled proxy to the CJ API on the shop's `CJDS_API_KEY` | `docs/QA/ACTORS.md` — found while mapping the actor model; no data exposed, but anyone can spend the quota |
 | Clearance listing materially misdescribed | `ACTION_PLAN.md` A-16 — listing hidden; recount blocked on the photos |
 | Exposed GitHub PAT in nine containers | A-0b — needs the account owner |
 | Toys labelled ages 1–3 with no EN 71-1 assessment | `docs/COMPLIANCE-UAE-TOY-SAFETY.md` |
