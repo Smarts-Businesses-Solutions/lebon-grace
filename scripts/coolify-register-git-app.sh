@@ -58,10 +58,10 @@ if [[ -z "$TOKEN" ]]; then
   cat >&2 <<'MSG'
 ERROR: COOLIFY_API_TOKEN not found in .env.local
 
-  This is the one thing that cannot be discovered from the host. The tokens
-  recorded in supabase.local (COOLIFY_API_TOKEN_1 / _2) belong to the
-  axiom_synapse and mirrortales Coolify instances -- lebon-grace is on the
-  SaaS control plane at app.coolify.io, which has no recorded token.
+  This is the one thing that cannot be discovered from the host. lebon-grace
+  is controlled by the Coolify SaaS instance at app.coolify.io, and no token
+  for it is recorded. The Coolify tokens that do exist in supabase.local
+  authenticate against different Coolify instances and will not work here.
 
   Create one:  Coolify UI -> Keys & Tokens -> API tokens -> Create (read+write)
   Then add to .env.local (already gitignored):

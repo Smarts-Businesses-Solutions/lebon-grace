@@ -128,12 +128,13 @@ bash scripts/coolify-register-git-app.sh          # dry run — prints the plan
 bash scripts/coolify-register-git-app.sh --apply  # creates the application
 ```
 
-Blocked on one thing: a Coolify SaaS API token. The two tokens in
-`supabase.local` belong to the **axiom_synapse** and **mirrortales** Coolify
-instances; lebon-grace is on `app.coolify.io`, which has none recorded. Create
-one under *Keys & Tokens → API tokens* (read+write) and put it in `.env.local`
-as `COOLIFY_API_TOKEN=` — gitignored, and the script reads it from there so it
-never reaches a command line or this transcript.
+Blocked on one thing: a Coolify SaaS API token. This app is controlled by the
+SaaS instance at `app.coolify.io`, and no token for it is recorded — the Coolify
+tokens that do exist in `supabase.local` authenticate against different Coolify
+instances and will not work here. Create one under *Keys & Tokens → API tokens*
+(read+write) and put it in `.env.local` as `COOLIFY_API_TOKEN=` — gitignored,
+and the script reads it from there so it never reaches a command line or this
+transcript.
 
 You will also need a **deploy key**: add a private key under *Keys & Tokens →
 Private Keys*, then its public half to the GitHub repo under
