@@ -19,6 +19,7 @@ import { NextRequest } from "next/server";
 const m = vi.hoisted(() => ({
   getByTracking: vi.fn(async (_id: string, _phone: string) => null as Record<string, unknown> | null),
   getAllItems: vi.fn(async () => [] as Record<string, unknown>[]),
+  getItemsByOrder: vi.fn(async (_orderId: string) => [] as Record<string, unknown>[]),
   existsFor: vi.fn(async (_o: string, _s: string) => false),
   insertReview: vi.fn(async (r: Record<string, unknown>) => ({ id: "rev1", ...r })),
   getBySlug: vi.fn(async (_s: string) => [] as unknown[]),
@@ -28,7 +29,7 @@ const m = vi.hoisted(() => ({
 
 vi.mock("@/lib/store", () => ({
   orders: { getByTracking: m.getByTracking },
-  orderItems: { getAll: m.getAllItems },
+  orderItems: { getAll: m.getAllItems, getByOrder: m.getItemsByOrder },
   reviews: { existsFor: m.existsFor, insert: m.insertReview, getBySlug: m.getBySlug, aggregates: m.aggregates },
 }));
 vi.mock("@/lib/rate-limit", () => ({ rateLimit: m.rateLimit }));
@@ -54,6 +55,7 @@ beforeEach(() => {
   m.rateLimit.mockReturnValue(null);
   m.getByTracking.mockResolvedValue(delivered());
   m.getAllItems.mockResolvedValue([{ order_id: ORDER_ID, product_slug: "abc-jigsaw-board" }]);
+  m.getItemsByOrder.mockResolvedValue([{ order_id: ORDER_ID, product_slug: "abc-jigsaw-board" }]);
   m.existsFor.mockResolvedValue(false);
   // clearAllMocks resets calls but NOT implementations, so a mockRejectedValue
   // set by one test leaks into every later one. This was not hypothetical: the
@@ -89,7 +91,7 @@ describe("a review requires a real, delivered order containing the piece", () =>
   it("REGRESSION: an order cannot review a product it never contained", async () => {
     // Without this check, one delivered order could review the whole catalogue —
     // the index-derived fake ratings again, with extra steps.
-    m.getAllItems.mockResolvedValue([{ order_id: ORDER_ID, product_slug: "something-else" }]);
+    m.getItemsByOrder.mockResolvedValue([{ order_id: ORDER_ID, product_slug: "something-else" }]);
     const res = await POST(post(good));
     expect(res.status).toBe(403);
     expect(m.insertReview).not.toHaveBeenCalled();
@@ -165,5 +167,39 @@ describe("GET", () => {
     m.aggregates.mockResolvedValue({ "abc-jigsaw-board": { average: 4.5, count: 2 } });
     const res = await GET(new NextRequest("https://x.test/api/reviews"));
     expect(await res.json()).toEqual({ aggregates: { "abc-jigsaw-board": { average: 4.5, count: 2 } } });
+  });
+});
+
+/**
+ * The ownership check must ask the database for ONE order's items.
+ *
+ * It called `orderItems.getAll()` and filtered in JavaScript, reading every
+ * order item in the table into memory on each submission — while
+ * `idx_order_items_order_id` had existed since the baseline and was never
+ * asked for. Same shape as A-12, where an index existed and `.ilike` stopped
+ * the planner using it.
+ *
+ * Behaviour is identical either way, so a test that only checks the response
+ * cannot tell the two apart. This pins the query instead: the scoped fetch is
+ * used, and the whole-table read is not.
+ *
+ * Not a correctness bug today — PGRST_DB_MAX_ROWS is unset on this estate's
+ * PostgREST containers (checked, not assumed), so nothing was being silently
+ * truncated. It is the cost that was wrong.
+ */
+describe("the ownership check reads one order, not the whole table", () => {
+  it("fetches items scoped to the order and never calls getAll", async () => {
+    const res = await POST(post(good));
+    expect(res.status).toBe(201);
+    expect(m.getItemsByOrder).toHaveBeenCalledWith(ORDER_ID);
+    expect(m.getAllItems, "the whole order_items table must not be read").not.toHaveBeenCalled();
+  });
+
+  it("still refuses a piece that was not in the order", async () => {
+    // Precondition for the assertion above: the scoped fetch is doing the real
+    // gate work, not merely being called and ignored.
+    m.getItemsByOrder.mockResolvedValue([{ order_id: ORDER_ID, product_slug: "a-different-piece" }]);
+    const res = await POST(post(good));
+    expect(res.status).toBe(403);
   });
 });

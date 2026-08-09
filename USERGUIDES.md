@@ -202,11 +202,37 @@ to be broken into, and the basket lives only in your own browser.
 ## Leaving a review
 
 Once an order is delivered, you can review the pieces that were in it. Go to
-**Review** and enter your order number and phone number. You can review each
-piece once.
+**Review** and enter your order number and the phone number you ordered with.
+The page then lists the pieces from that order and marks the ones you have
+already reviewed.
 
-Reviews on this site can only be left by someone who actually received the item —
-that is enforced, not a policy.
+**Reviews here can only be left by someone who actually received the item.** That
+is enforced by the database, not promised in a policy — every review row is tied
+to an order by a foreign key. Four things must all be true before one is saved:
+
+1. the order number **and** its phone match — the same pair `/track` uses;
+2. that order is **delivered** (or completed);
+3. that order **actually contained** the piece being reviewed;
+4. you have **not already reviewed** that piece on that order.
+
+Fail (2) and you are told to come back when it arrives. Fail (3) and it is
+refused outright — otherwise one delivered order would license reviews of the
+whole catalogue.
+
+**What is published:** your rating, your comment, and **the name from the order**.
+The name is taken from the order itself and not from anything sent with the
+review, so nobody can sign someone else's name to an opinion. Your email, phone
+and address are never shown.
+
+**One review per piece per order.** Ordering the same puzzle twice earns a second
+review, because that is a second delivery.
+
+**Ten submissions an hour** — the same ceiling as the order lookup, because
+guessing an order number and phone is the same guessing game.
+
+**If the shop shows no ratings at all**, that is deliberate rather than broken: a
+piece with no reviews shows nothing, rather than an empty star row that reads as
+a bad score.
 
 ## If something goes wrong
 

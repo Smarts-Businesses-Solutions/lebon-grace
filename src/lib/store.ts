@@ -258,6 +258,30 @@ export const orderItems = {
     if (error) throw error;
     return data || [];
   },
+
+  /**
+   * The items of ONE order.
+   *
+   * `/api/reviews` answered "did this order contain this piece?" by calling
+   * `getAll()` and filtering in JavaScript — reading every order item in the
+   * database into the Node process on every review submission, to look at one
+   * order's worth of rows.
+   *
+   * `idx_order_items_order_id` has existed since the baseline (line 3100); the
+   * query simply never used it. That is A-12's shape exactly: there, an index
+   * was added and `.ilike` stopped the planner reaching it; here the column is
+   * indexed and nothing asked for it.
+   *
+   * Not a correctness bug today — `PGRST_DB_MAX_ROWS` is unset on this estate's
+   * PostgREST containers, checked rather than assumed, so nothing is silently
+   * truncated. It is the cost that is wrong, and the rate limit permits ten
+   * submissions an hour per IP.
+   */
+  async getByOrder(orderId: string): Promise<OrderItemRow[]> {
+    const { data, error } = await db().from("order_items").select("*").eq("order_id", orderId);
+    if (error) throw error;
+    return data || [];
+  },
   async insertMany(items: Partial<OrderItemRow>[]): Promise<void> {
     if (!items.length) return;
     const { error } = await db().from("order_items").insert(items);

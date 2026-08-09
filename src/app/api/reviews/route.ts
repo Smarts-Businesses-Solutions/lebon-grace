@@ -104,9 +104,14 @@ export async function POST(request: NextRequest) {
   }
 
   // (3) The order actually contained this piece.
-  const items = await orderItems.getAll();
+  //
+  // Scoped to this order in the database rather than fetched whole and filtered
+  // here. This read `orderItems.getAll()`, pulling every order item in the
+  // table into memory to inspect one order's worth — while
+  // `idx_order_items_order_id` sat unused since the baseline.
+  const items = await orderItems.getByOrder(String(order.id));
   const ownsProduct = items.some(
-    (i: Record<string, unknown>) => String(i.order_id) === String(order.id) && String(i.product_slug) === slug
+    (i: Record<string, unknown>) => String(i.product_slug) === slug
   );
   if (!ownsProduct) {
     return NextResponse.json({ error: "That order does not include this product." }, { status: 403 });
