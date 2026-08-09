@@ -207,7 +207,15 @@ Prevention: the constraint now rejects it.
 - **`NEXT_PUBLIC_*` are baked at build time.** Changing one at runtime does
   nothing. Rebuild.
 - **Module-scope SDK constructors break the build.** `new Resend(undefined)`
-  throws during page-data collection, so builds need placeholder env values.
+  throws during page-data collection — Next evaluates every route module at build
+  time — so the *build* ends up needing runtime secrets. **Fixed 2026-08-09:**
+  clients are constructed lazily (`mailer()` in `src/lib/email.ts`, matching
+  `db()` in `store.ts`), so no placeholders are needed. Build SDK clients inside
+  a function, never at module scope. Worth knowing how it was found: 201 unit
+  tests were green the entire time it was broken, because `email.test.ts` mocks
+  `resend` and a mock is registered before resolution, so the real constructor
+  never ran. The bug lived in the gap between "unit tests pass" and "it builds",
+  which is why `module-import-safety.test.ts` deliberately mocks nothing.
 - **A `CHECK` passes on `NULL`.** Always pair it with `NOT NULL`.
 - **`docker exec -i` eats the rest of a piped heredoc.** It inherits stdin.
 - **PostgREST aliases `*` to `%`** in `like`/`ilike`, and `_` matches any single

@@ -96,9 +96,10 @@ thing cut irreversibly into wood was not. Now it is.
 
 ## D-008 — Playwright as a CI gate, added only once green
 
-> **Correction, 2026-08-09.** This says "CI gate" and there is no CI. The
-> workflow was written but has never run — see D-013. The reasoning below about
-> not shipping a red gate still stands; the enforcement claimed does not.
+> **Correction, 2026-08-09.** This said "CI gate" when there was no CI: the
+> workflow was written but had never run — see D-013. **Resolved the same day**
+> by D-014; the gate now executes on every mirror sync. The reasoning below
+> about not shipping a red gate always stood; only the enforcement was missing.
 
 **Decision.** Run the browser suite in Forgejo CI across 3 viewports, and harden
 lint from `|| true` to a real gate in the same change that reached zero problems.
@@ -226,6 +227,71 @@ review surface has to change.
 
 ---
 
+## D-014 — Run CI on Forgejo, fed by a pull mirror of the public GitHub repo
+
+**Context.** D-013 established that `.forgejo/workflows/ci.yml` had never
+executed. Asked to close that gap using Forgejo.
+
+**The obstacle.** The Forgejo instance on cx53 is genuinely private:
+`ROOT_URL = http://localhost:3900/`, no published container ports, no Traefik
+route. Nothing outside the box can reach it, so "just add a second git remote"
+requires an SSH tunnel to be up for every push — friction that would rot.
+
+**The question that decided the design:** does a pull-mirror sync fire `push`
+workflows, or does Forgejo suppress it? The docs say workflows are not triggered
+for changes "authored with this token" (the automatic Actions token) and say
+nothing about mirrors. [gitea#24824] reports mirror syncs failing to trigger
+when the workflow has *branch filters*, because the mirrored code path passes
+`main` rather than `refs/heads/main` — and our `ci.yml` filters on
+`branches: ["**"]`. [gitea#32412] complains of the opposite, that mirror syncs
+*do* trigger.
+
+Rather than trust either, this was settled **empirically on the instance
+itself**: `mirrortales` is a mirror (`is_mirror=1`), and its run history shows
+`trigger_event=push`, `ref=refs/heads/main` — correct prefix. The 2023 bug is
+fixed in 11.0.16. Confirmed again by our own first sync.
+
+**Decision.** `kairos/lebon-grace` in Forgejo is a **pull mirror of the public
+GitHub repo**, 10-minute interval. GitHub stays the source of truth (D-013);
+Forgejo is the CI host only.
+
+**Why a mirror rather than a token-authenticated push:**
+
+| Option | Verdict |
+|---|---|
+| Pull mirror of the **public** repo | **Chosen.** Needs no credential at all. |
+| Pull mirror with a classic PAT | Rejected. Forgejo stores pull-mirror credentials in the remote URL, and the available classic PAT carries `repo` scope — write access to *every* repository in the account — for what is a read-only sync. |
+| Read-only deploy key | Not possible: SSH auth exists for **push** mirrors only ([forgejo#4416]); pull mirrors are HTTPS + token. |
+| Second remote pushed over an SSH tunnel | Rejected. Works, but every push depends on a tunnel being up. |
+| Timer on cx53 fetching GitHub and pushing to Forgejo | Rejected as unnecessary once the repo proved public — more moving parts for the same result. |
+
+**Verified by being made to fail first.** A deliberately failing test was pushed
+and the pipeline went **red** — and red *for the stated reason*: `1 failed | 15
+passed`, error annotation on the intended line, after checkout, the lockfile
+gate, `npm ci` and `tsc` had all passed. A pipeline that has never been seen
+failing is indistinguishable from one that does nothing, which is the entire
+finding of D-013.
+
+**It earned its keep within one run.** With the deliberate failure removed, the
+build then failed for real: `new Resend(...)` at module scope threw during
+`next build`'s page-data collection, so the build depended on production
+secrets. That had survived indefinitely because the only build that ever ran was
+the Docker one, which passes placeholders. Fixed by lazy construction rather
+than by feeding CI placeholders — see the commit; the workaround was already
+written down in FOR-EVARISTE and had been forgotten in exactly the way written-
+down workarounds are.
+
+**Detecting the gate dying silently.** A third systemd timer,
+`lebon-grace-ci-freshness`, every 30 minutes: repo exists and has run at least
+once, a runner is online, the mirror is not stale, nothing is stuck. It
+deliberately does not check whether the last run *passed* — a red run is loud.
+The failure mode being watched for is silence, because no-failures is exactly
+what a healthy pipeline looks like too.
+
+[gitea#24824]: https://github.com/go-gitea/gitea/issues/24824
+[gitea#32412]: https://github.com/go-gitea/gitea/issues/32412
+[forgejo#4416]: https://codeberg.org/forgejo/forgejo/issues/4416
+
 ## Index
 
 | ID | Decision | Status |
@@ -242,4 +308,5 @@ review surface has to change.
 | D-010 | Dedicated deploy key | Active |
 | D-011 | Merge pivot last | Done (2026-08-09) |
 | D-012 | Do not copy env vars forward | In flight |
-| D-013 | Keep GitHub; there is no CI | Active |
+| D-013 | Keep GitHub; there is no CI | Superseded in part by D-014 |
+| D-014 | CI on Forgejo via a pull mirror | Active |
