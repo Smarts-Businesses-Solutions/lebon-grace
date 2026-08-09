@@ -102,7 +102,7 @@ function ProductCard({ product, onAdd }: { product: EnrichedProduct; onAdd: () =
               and on touch — opacity alone would hide it from neither. */}
           <button
             onClick={onAdd}
-            className="px-3 py-1.5 bg-ink text-paper text-xs tracking-wide opacity-0 group-hover:opacity-100 focus-visible:opacity-100 max-sm:opacity-100 hover:bg-sand-dark active:scale-95 transition-all"
+            className="px-3 min-h-11 inline-flex items-center justify-center bg-ink text-paper text-xs tracking-wide opacity-0 group-hover:opacity-100 focus-visible:opacity-100 max-sm:opacity-100 hover:bg-sand-dark active:scale-95 transition-all"
           >
             Add to cart
           </button>
