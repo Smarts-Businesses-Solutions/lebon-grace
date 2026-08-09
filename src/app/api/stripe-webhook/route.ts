@@ -159,9 +159,23 @@ export async function POST(request: NextRequest) {
       if (items.length > 0) {
         await orderItems.insertMany(items);
         console.log(`Saved ${items.length} order items`);
+      } else {
+        // A paid order with nothing to make. It still succeeds — the customer
+        // HAS paid and throwing here would make Stripe retry forever — but it
+        // must not be silent. This branch had no else at all, and production
+        // carries a real order sitting in the cutting queue with zero items as
+        // a result. Same family as B-7: the workshop cannot make what it
+        // cannot see, and nobody finds out until a customer asks where their
+        // puzzle is. console.error so it reaches GlitchTip, not console.log.
+        console.error(
+          `[stripe-webhook] order ${orderId} has NO LINE ITEMS — paid but nothing to cut. ` +
+            `session=${session.id}. Check the Stripe session's line items and add the pieces by hand.`
+        );
       }
     } catch (err) {
-      console.error("Line items fetch failed:", err);
+      // Also names the order: "Line items fetch failed" alone left no way to
+      // find WHICH order needs repairing.
+      console.error(`[stripe-webhook] order ${orderId} has NO LINE ITEMS — fetch failed:`, err);
     }
 
     // ─── Send notifications (non-blocking, but logged) ───

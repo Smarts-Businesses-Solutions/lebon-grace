@@ -229,6 +229,35 @@ describe("POST /api/stripe-webhook — order contents", () => {
     expect(rows[0].personalisation).toBeNull();
   });
 
+  it("shouts when a paid order ends up with nothing to make", async () => {
+    // Production carries a real order from 2026-06-28 sitting in the cutting
+    // queue with ZERO line items. That one predates item-writing, but the code
+    // path that produces the state is still live and still silent:
+    // `if (items.length > 0)` has no else, so an order can be created, paid
+    // for, and queued with nothing for the workshop to cut — and nothing says
+    // so. Same family as B-7, where paid orders were invisible to the queue.
+    //
+    // The webhook must still return 200: the customer HAS paid, and failing
+    // here would make Stripe retry forever. The requirement is that it is
+    // loud, not that it fails.
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    constructEvent.mockReturnValue(completedEvent());
+    m.listLineItems.mockResolvedValue({ data: [] });
+
+    const res = await POST(post());
+    expect(res.status).toBe(200);
+    expect(m.insertMany).not.toHaveBeenCalled();
+
+    const shouted = err.mock.calls.some((c) =>
+      String(c[0] ?? "").toLowerCase().includes("no line items")
+    );
+    expect(
+      shouted,
+      "a paid order with no items must be logged as an error, or nobody finds out until a customer asks where their puzzle is"
+    ).toBe(true);
+    err.mockRestore();
+  });
+
   it("records the amount actually charged, not a doubled deposit", async () => {
     // Stripe collects the full amount now; the old 50% deposit model doubled
     // amount_total to reconstruct the order value.
