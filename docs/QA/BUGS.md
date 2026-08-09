@@ -256,6 +256,35 @@ Stripe retry forever. The requirement is loudness, not failure.
 
 Same family as B-7 — the money path succeeds and the workshop cannot act.
 
+## B-19 · A refunded order looked like one about to start
+
+**Severity:** Medium (customer-facing) · **Found by:** the Order-tracker walkthrough · **Fixed**
+
+`STATUS_INDEX` in `TrackClient` mapped six statuses; the database CHECK accepts
+ten. `paid`, `cancelled`, `failed` and `refunded` all fell to `?? -1`, drawing
+the pipeline at **0% with no step lit**. The badge was a three-way guess —
+green for delivered, red for cancelled, **blue for everything else** — so a
+refund appeared in the same colour as an order in progress, above an empty bar.
+
+An operator can set `refunded` and `failed` from the admin dropdown, so these
+were reachable states. MiniMax put the cost plainly: the customer concludes the
+site is broken and either messages in a panic or calls their bank.
+
+B-7's shape (a status nothing downstream recognises) with B-5's consequence
+(telling a refunded customer their order is on its way). **Third time** this
+project has been bitten by one status list maintained in several places.
+
+**Fix:** the list, not the four missing entries. `src/lib/order-status.ts`
+declares it once and exports `STATUS_PRESENTATION` with
+`satisfies Record<OrderStatus, StatusPresentation>`, so adding a status fails
+`tsc` until the tracker has been told what to draw. Terminal states leave the
+pipeline and carry copy inviting WhatsApp; `refunded` is toned **neutral**, not
+negative — the money went back, which is an outcome, not an error.
+
+**Regression:** `src/lib/order-status.test.ts`, including a test pinning the
+TypeScript set against the CHECK in migration 0002, parsed from the file so it
+needs no database.
+
 ---
 
 ## Still open

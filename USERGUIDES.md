@@ -80,6 +80,27 @@ item is cut to order, so it is made *after* you buy it, not taken off a shelf.
 **To check on it:** go to **Track**, and enter your order number and the phone
 number you ordered with. You will see which stage it has reached.
 
+### Reading the tracker
+
+Five stages, in order: **Payment Confirmed → Preparing → Shipped → Out for
+Delivery → Delivered.** The bar fills as your piece moves along. Checking once
+every day or two is plenty — made-to-order pieces take two to three working
+days before they ship.
+
+Once a courier has it, the **tracking number and courier name** appear on the
+same page.
+
+**If your order stopped.** Refunded, cancelled and not-completed orders leave
+the five stages entirely and show a short explanation instead, with a button to
+message us. You should never see an order sitting at an empty progress bar — if
+you do, that is a fault worth telling us about.
+
+- **Refund complete** — the money is on its way back. UAE cards usually take 5
+  to 10 working days, and it may show as a pending transaction first.
+- **Order cancelled** — nothing was charged.
+- **Order not completed** — the order could not go through, and nothing was
+  charged.
+
 **If you ordered more than once:** go to **Account** and enter your email and
 phone to see all of them together.
 
