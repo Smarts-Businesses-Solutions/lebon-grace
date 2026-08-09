@@ -19,7 +19,7 @@ lives.
 | user action suites | ✅ | `tests/e2e/money-path/` — Module C |
 | failure mode suites | ✅ | `tests/e2e/failure-modes/` — Module E |
 | security baseline | ✅ | authorization boundaries, IDOR (found one), rate limiting — see `BUGS.md` B-3, B-11, B-12 |
-| CI/CD integration | ⚠️ **written, never run** | `.forgejo/workflows/ci.yml` exists — typecheck, lockfile gate, unit, lint, build, E2E × 3 viewports — but **this project is in neither Forgejo instance**, so the workflow has never executed. There is no `.github/workflows` either, and no git hooks. Every gate is run by hand. See `DECISIONS.md` D-013. |
+| CI/CD integration | ✅ **running** (since 2026-08-09) | `.forgejo/workflows/ci.yml` — lockfile gate, typecheck, unit, lint, build, E2E × 3 viewports — executes on `kairos/lebon-grace`, a 10-minute pull mirror of GitHub on the cx53 Forgejo. Proven by pushing a deliberate failure and watching it go red, then green. Results are **not** visible on GitHub, and a push is checked within ~10 min rather than instantly. `lebon-grace-ci-freshness.timer` watches for the gate silently disconnecting. See `DECISIONS.md` D-014 (and D-013 for the 5 months it never ran). |
 | production safe run | ✅ | read-only walkthrough; `npm run verify:deploy` checks the served build id |
 | bug fixes + regressions | ✅ | 12 in `BUGS.md`, each with a regression test verified to fail without its fix |
 | final report | ✅ | `docs/QA-PROTOCOL-GAP-ANALYSIS.md` |

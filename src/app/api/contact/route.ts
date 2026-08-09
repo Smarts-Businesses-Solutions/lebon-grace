@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Resend } from "resend";
 import { rateLimit } from "@/lib/rate-limit";
 import { CONTACT } from "@/lib/contact";
-import { fromAddress, esc } from "@/lib/email";
+import { fromAddress, esc, mailer } from "@/lib/email";
 import { isDeliverableEmail } from "@/lib/email-address";
-
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 
 /**
  * Contact form.
@@ -47,7 +43,7 @@ export async function POST(request: NextRequest) {
   `;
 
   try {
-    await resend.emails.send({
+    await mailer().emails.send({
       from: fromAddress(),
       to: [CONTACT.email],
       replyTo: email,

@@ -36,6 +36,7 @@
     "test-results",
     "playwright-report",
     "playwright.config.ts",
-    "tests/**"
+    "tests/**",
+    "ops/qa/**"
   ]
 }

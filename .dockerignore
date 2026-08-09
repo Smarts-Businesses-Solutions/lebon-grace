@@ -22,14 +22,23 @@ coverage
 # of the image.
 originals
 
-# Test tooling is excluded from the production image for two reasons: it is not
-# needed at runtime, and playwright.config.ts imports the shared kit at
-# ../ops/qa/ which is OUTSIDE the build context � leaving it in makes the
-# production type-check fail with "Cannot find module '../ops/qa/...'".
+# Test tooling is not needed at runtime.
+#
+# It used to be excluded for a second reason as well: playwright.config.ts
+# imported the shared QA kit from ../ops/qa/, OUTSIDE the build context, so
+# leaving it in made the production type-check fail with "Cannot find module
+# '../ops/qa/...'". That reason is gone as of 2026-08-09 — the kit is vendored
+# at ops/qa/ and tsconfig.json excludes it — but the exclusion stays, because
+# none of this belongs in a production image.
+#
+# ops/ goes too: it holds the vendored QA kit and the health-check scripts, all
+# of which run from a checkout or from /usr/local/bin on the host, never from
+# inside the container.
 tests
 playwright.config.*
 playwright-report
 test-results
+ops
 *.tsbuildinfo
 
 .env*

@@ -41,11 +41,17 @@ npx playwright test       # 14 routes x 3 viewports, incl. axe-core
 npm run verify:deploy     # did a deploy actually reach production?
 ```
 
-> **Run these yourself — nothing else does.** `.forgejo/workflows/ci.yml` is
-> written but has **never executed**: this project exists in neither Forgejo
-> instance, there is no `.github/workflows`, and there are no git hooks. The
-> `Vercel` check you may see failing on a PR is a dead integration and carries
-> no signal either. See [DECISIONS.md](DECISIONS.md) D-013.
+> **CI runs on Forgejo, not GitHub.** `kairos/lebon-grace` on the cx53 Forgejo
+> is a pull mirror of this repo (10-minute interval); a sync fires
+> `.forgejo/workflows/ci.yml` — lockfile gate, typecheck, unit, lint, build,
+> Playwright × 3 viewports. So a push is checked **within about ten minutes**,
+> not instantly, and the result is not visible on GitHub: there is no
+> `.github/workflows` and no git hooks. The `Vercel` check you may see failing
+> on a PR is a dead integration and carries no signal.
+>
+> Run the commands above yourself before pushing if you want the answer now.
+> See [DECISIONS.md](DECISIONS.md) D-014 — and D-013 for why this had never run
+> at all until 2026-08-09.
 
 ## Deploy
 
