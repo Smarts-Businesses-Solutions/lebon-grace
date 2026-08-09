@@ -226,3 +226,111 @@ Two corollaries, both learned by shipping them wrong first:
   host unresolvable — because a monitor that cannot fail is decoration. Two of
   them were still wrong on the first attempt and alerted confidently about a
   perfectly healthy shop.
+
+## L-16 · A pipeline that has never run is indistinguishable from one that passes
+
+`.forgejo/workflows/ci.yml` was committed, hardened twice, and named in four
+documents as this project's quality gate. It had **never executed once** — the
+repository did not exist in Forgejo, so nothing was listening.
+
+Nothing reported that, and nothing could have. A pipeline that never runs
+produces no failures. Neither does a healthy one. **The two are identical from
+the outside**, which is the same shape as L-15: a liveness check passing on a
+shop that sells nothing.
+
+So a gate does not become trustworthy by being green. It becomes trustworthy by
+being **seen going red for a real defect, then green when the defect is
+removed** — in that order. A deliberately failing test was pushed for exactly
+this, and the run was checked for failing *at the right step*: a pipeline that
+dies at `npm ci` is red without telling you anything about your gate.
+
+It repaid the effort immediately. Its first full run found two genuine defects
+(L-17, L-18) that every existing check had been passing for months.
+
+**Corollary — watch for the silence, not the failure.** A red run is loud and
+someone is looking at it. A gate that has quietly stopped being connected is
+silent. `lebon-grace-ci-freshness` therefore asserts the gate is still
+*connected* — repo present, runner online, mirror fresh, nothing stuck — and
+deliberately does not care whether the last run passed.
+
+## L-17 · A mock can hide a failure that only the real thing has
+
+201 unit tests were green the entire time `next build` was broken.
+
+`src/lib/email.ts` did `const resend = new Resend(process.env.RESEND_API_KEY)`
+at module scope, which throws when the key is absent. Next evaluates every route
+module during the build to collect its config, so an absent environment variable
+became a **build** failure rather than a send failure — and the build therefore
+depended on production secrets.
+
+`email.test.ts` mocks `resend`. A mock is registered before resolution, so the
+real constructor never ran in the suite. The defect lived precisely in the gap
+between *"unit tests pass"* and *"it builds"*, and nothing occupied that gap
+because the only build that ever ran was the Docker one, which passes
+placeholders.
+
+> If your test replaces the thing that would have failed, it is not testing
+> that thing.
+
+`module-import-safety.test.ts` deliberately mocks nothing and imports the real
+route modules with **no environment at all** — the state a fresh runner is in.
+Note that *absent* and *placeholder* are different, and only one of them had
+ever been tested.
+
+**And do not fix it by feeding CI placeholders.** The trap was already written
+down in FOR-EVARISTE — "builds need placeholder env values" — and had been
+faithfully forgotten in every new build context since. A workaround that must be
+remembered is a defect with homework attached. Construct SDK clients lazily and
+the advice becomes unnecessary.
+
+## L-18 · If it imports from outside the repository, the repository is not the unit of truth
+
+`playwright.config.ts` imported `../ops/qa/playwright.base.config` — a path
+*outside* this repo, into a sibling directory that exists only on the operator's
+workstation.
+
+On that one machine it resolves. A clone does not. So the entire E2E suite — 216
+tests across three viewports, the thing D-008 calls a hard gate — had never been
+runnable anywhere but one laptop, and CI died with `Cannot find module` the
+first time it got that far.
+
+It survived because **no project in this estate had ever run Playwright in CI**.
+The only green pipeline, vouchnexus's, is typecheck + unit. Five projects share
+the same out-of-tree import and not one of them would survive a clone.
+
+> A green suite on the author's machine says the author's machine works.
+
+Vendoring buys portability and costs the risk of silent divergence, so pay the
+difference explicitly: `qa-kit-drift.test.ts` compares the vendored copy to the
+shared one byte-for-byte **when the shared one is reachable**, and *skips* when
+it is not — absent is correct in CI, and failing there would make every run red
+for a condition that is right.
+
+**Three knock-on effects, each found by the next red run**, which is the real
+argument for having the gate at all:
+
+1. `tsconfig.json` type-checks `**/*.ts` under `strict`; the vendored kit is
+   deliberately untyped, so it had to be excluded — which is why the
+   `tsconfig.e2e.json` split existed in the first place.
+2. eslint then linted it and found three `no-explicit-any`. Ignored rather than
+   fixed: a local fix would return as drift. Corrections go upstream.
+3. `npm run typecheck:e2e` — the very thing covering the excluded files — **was
+   never invoked by anything**. Written, never run, exactly like the workflow.
+
+## L-19 · Run the whole gate locally before asking CI three times
+
+Three consecutive CI rounds each failed at a later step: build, then Playwright
+resolution, then lint. Each round cost six minutes and told me one thing I could
+have learned in ninety seconds.
+
+The suite was being run selectively — `vitest`, `tsc`, `playwright --list` — and
+each time the *unrun* step was the one that failed. Running every step the
+workflow runs, in order, found the remaining failure immediately.
+
+**Flakes are not defects, and must not be reported as such.** Six of 216
+Playwright tests failed locally under default parallelism; all six passed at
+`--workers=1`. Re-running before drawing a conclusion is what separates "the
+mobile checkout is broken" from "the local server was overloaded". The shared
+kit already sets `workers: 2, retries: 2` under CI and `retries: 0` locally —
+deliberately, so flakes surface to the person who caused them rather than being
+retried into silence.
