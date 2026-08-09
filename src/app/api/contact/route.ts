@@ -3,10 +3,10 @@ import { Resend } from "resend";
 import { rateLimit } from "@/lib/rate-limit";
 import { CONTACT } from "@/lib/contact";
 import { fromAddress } from "@/lib/email";
+import { isDeliverableEmail } from "@/lib/email-address";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i;
 
 function esc(s: string): string {
   return s.replace(/[&<>"']/g, (c) =>
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
   if (!name || !email || !message) {
     return NextResponse.json({ error: "Name, email and message are required" }, { status: 400 });
   }
-  if (!EMAIL_RE.test(email) || email.length > 254) {
+  if (!isDeliverableEmail(email)) {
     return NextResponse.json({ error: "That email address does not look right" }, { status: 400 });
   }
   if (message.length > 4000 || name.length > 100) {

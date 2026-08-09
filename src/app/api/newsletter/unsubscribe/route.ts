@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { subscribers } from "@/lib/store";
 import { rateLimit } from "@/lib/rate-limit";
+import { isDeliverableEmail } from "@/lib/email-address";
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i;
 
 /**
  * Newsletter opt-out.
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => ({}));
   const { email } = body as Record<string, string>;
 
-  if (!email || !EMAIL_RE.test(email)) {
+  if (!email || !isDeliverableEmail(email)) {
     return NextResponse.json({ error: "Please enter a valid email address" }, { status: 400 });
   }
 

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { subscribers } from "@/lib/store";
 import { rateLimit } from "@/lib/rate-limit";
+import { isDeliverableEmail } from "@/lib/email-address";
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i;
 
 /**
  * Newsletter signup.
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
   // A bot gets a 200 and no row, so it does not learn to try again differently.
   if (website) return NextResponse.json({ success: true });
 
-  if (!email || !EMAIL_RE.test(email)) {
+  if (!email || !isDeliverableEmail(email)) {
     return NextResponse.json({ error: "Please enter a valid email address" }, { status: 400 });
   }
 

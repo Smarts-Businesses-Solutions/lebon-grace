@@ -3,6 +3,7 @@ import { Resend } from "resend";
 import { fromAddress } from "@/lib/email";
 import { rateLimit } from "@/lib/rate-limit";
 import { getProductBySlug } from "@/lib/products";
+import { isDeliverableEmail } from "@/lib/email-address";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -11,7 +12,6 @@ interface CartItem {
   quantity: number;
 }
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i;
 
 // Escape anything that reaches the email HTML. Belt-and-braces: the product
 // fields below already come from our own catalog, never the request.
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
   if (!email || !items || items.length === 0) {
     return NextResponse.json({ error: "Email and cart items required" }, { status: 400 });
   }
-  if (typeof email !== "string" || email.length > 254 || !EMAIL_RE.test(email)) {
+  if (typeof email !== "string" || !isDeliverableEmail(email)) {
     return NextResponse.json({ error: "Invalid email" }, { status: 400 });
   }
   if (!Array.isArray(items) || items.length > 50) {

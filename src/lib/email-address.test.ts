@@ -74,3 +74,53 @@ describe("isDeliverableEmail", () => {
     expect(isDeliverableEmail(null as unknown as string)).toBe(false);
   });
 });
+
+/**
+ * What changes if the three copies of the legacy regex adopt this validator.
+ *
+ * `/api/contact`, `/api/newsletter` and `/api/newsletter/unsubscribe` each
+ * declare their own verbatim copy of:
+ *
+ *     /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i
+ *
+ * The council's caution was that on a contact form a FALSE REJECTION costs more
+ * than a bounce — the shop loses an enquiry from someone trying to give them
+ * money. MiniMax named the shapes strict validators typically break:
+ * plus-addressing, subdomains, new TLDs, long local parts.
+ *
+ * So this pins the delta instead of assuming it. Every shape below that the
+ * legacy regex accepts and a real person could plausibly own must still be
+ * accepted; only genuinely undeliverable ones may newly fail.
+ */
+describe("consolidation delta vs the legacy per-route regex", () => {
+  const LEGACY = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i;
+
+  const mustStayAccepted = [
+    "user+tag@gmail.com",        // plus-addressing — named by the council
+    "first.last@company.co.uk",  // dots + multi-label TLD
+    "user123@domain.com",
+    "user@sub.domain.com",       // subdomain
+    "user@domain.io",            // newer gTLD
+    "user@domain.mov",
+    "a".repeat(64) + "@example.com", // RFC 5321 local-part limit, exactly
+  ];
+  for (const e of mustStayAccepted) {
+    it(`does not newly reject ${e.length > 30 ? "a 64-character local part" : e}`, () => {
+      expect(LEGACY.test(e), "precondition: the legacy regex accepts this").toBe(true);
+      expect(isDeliverableEmail(e), "and so must the shared validator").toBe(true);
+    });
+  }
+
+  const newlyRejected = [
+    ["john..doe@example.com", "consecutive dots"],
+    [".john@example.com", "leading dot"],
+    ["john.@example.com", "trailing dot in the local part"],
+    ["用户@example.com", "raw unicode — punycode it first; <0.01% of real addresses"],
+  ];
+  for (const [e, why] of newlyRejected) {
+    it(`newly rejects ${JSON.stringify(e)} (${why})`, () => {
+      expect(LEGACY.test(e), "precondition: the legacy regex let this through").toBe(true);
+      expect(isDeliverableEmail(e)).toBe(false);
+    });
+  }
+});
