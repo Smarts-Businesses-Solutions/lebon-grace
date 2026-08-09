@@ -36,3 +36,9 @@ test-results
 !.env.example
 npm-debug.log*
 *.md
+
+# Screenshot dumps from QA and earlier sessions: 107 MB that was travelling into
+# every build context for nothing. Nothing in the image references them.
+test-screenshots
+screenshots
+_pw_shots

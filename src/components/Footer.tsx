@@ -10,7 +10,11 @@ const quickLinks = [
   { href: "/shop?category=3D+%26+Architecture", label: "3D & Architecture" },
   // Clearance lives here rather than in the main navigation: it is stock being
   // emptied, not part of the made-to-order range.
-  { href: "/shop?category=Clearance", label: "Clearance" },
+  // Removed 2026-08-09 with the listing itself (A-16). The category is hidden
+  // pending a recount, so this link led every visitor to an empty grid — the
+  // clearance stock is materially misdescribed and must not be advertised while
+  // that is unresolved. Restore this line when the listing is republished.
+  // { href: "/shop?category=Clearance", label: "Clearance" },
 ];
 
 const policyLinks = [
