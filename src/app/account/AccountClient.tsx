@@ -96,30 +96,53 @@ export default function AccountClient() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
+                  data-testid="account-email"
                   className="w-full px-4 py-3 border border-rule text-sm focus:border-[#C9A96E] focus:ring-2 focus:ring-[#C9A96E]/20 outline-none transition-all"
                   autoFocus
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-ink-soft mb-1">Phone Number</label>
+                {/*
+                  The placeholder read "WhatsApp us" — copy from the contact
+                  widget that had leaked into the one field where the format
+                  actually matters. This lookup has no account behind it: the
+                  number must be the one used at checkout, and it is matched on
+                  the last eight digits, so an example is the useful thing to
+                  show. Mirrors "you@example.com" above.
+                */}
                 <input
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  placeholder="WhatsApp us"
+                  placeholder="050 123 4567"
+                  data-testid="account-phone"
                   className="w-full px-4 py-3 border border-rule text-sm focus:border-[#C9A96E] focus:ring-2 focus:ring-[#C9A96E]/20 outline-none transition-all"
                 />
               </div>
             </div>
 
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm mb-4">
+              <div
+                data-testid="account-error"
+                className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm mb-4"
+              >
                 {error}
               </div>
             )}
 
+            {/*
+              Test ids, matching TrackClient. /account had none, and no e2e test
+              touched it — the page that returns the LARGEST payload on the site
+              (every order for an email and phone, with addresses) had no
+              end-to-end coverage at all, while /track next door had five ids and
+              a suite. Targeting it by input type is not viable: the header
+              search box is also a text input and the WhatsApp float is another
+              tel input, so a type selector matches the wrong element.
+            */}
             <button
               type="submit"
+              data-testid="account-submit"
               disabled={loading}
               className="w-full py-3.5 bg-ink text-paper text-sm tracking-wide hover:bg-sand-dark transition-colors disabled:opacity-50"
             >
