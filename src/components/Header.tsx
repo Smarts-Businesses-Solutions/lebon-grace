@@ -43,8 +43,8 @@ export default function Header() {
   // Search state
   const [query, setQuery] = useState("");
   const [focused, setFocused] = useState(false);
-  const [selectedCat, setSelectedCat] = useState("All");
-  const [catOpen, setCatOpen] = useState(false);
+  const [selectedCat] = useState("All");
+  const [, setCatOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);

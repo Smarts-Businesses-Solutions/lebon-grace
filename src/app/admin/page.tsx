@@ -34,13 +34,6 @@ const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
   refunded: { bg: "bg-paper", text: "text-ink-soft" },
 };
 
-const STATUS_BAR_COLORS: Record<string, string> = {
-  deposit_paid: "bg-yellow-400", processing: "bg-blue-400",
-  shipped: "bg-indigo-400", out_for_delivery: "bg-purple-400",
-  delivered: "bg-green-400", completed: "bg-emerald-400",
-  failed: "bg-red-400", refunded: "bg-ink-muted",
-};
-
 interface Product { slug: string; name: string; price: number; category: string; stock: number; imageUrl: string; cjPid?: string; cjPrice?: string; description?: string; }
 interface Order { id: string; stripe_session_id?: string; customer_name: string; customer_email?: string; customer_phone: string; total: number; deposit_amount: number; cod_amount: number; status: string; delivery_method?: string; tracking_number?: string; courier_name?: string; created_at: string; }
 type TabType = "dashboard" | "products" | "orders" | "analytics";
@@ -110,6 +103,10 @@ export default function AdminPage() {
     catch { /* no orders yet */ }
   };
 
+  // Fetch-on-authenticate. The setState the rule objects to is `setLoading(true)`
+  // inside loadProducts; there is no render-time equivalent because the request
+  // must not fire until the session exists.
+  // eslint-disable-next-line react-hooks/set-state-in-effect, react-hooks/exhaustive-deps
   useEffect(() => { if (authenticated) { loadProducts(); loadOrders(); } }, [authenticated]);
 
   const saveProduct = async (slug: string, updates: Partial<Product>) => {
@@ -141,16 +138,6 @@ export default function AdminPage() {
   const catCounts: Record<string, number> = useMemo(() => {
     const c: Record<string, number> = {}; products.forEach((p) => { c[p.category] = (c[p.category] || 0) + 1; }); return c;
   }, [products]);
-  const totalRevenue = useMemo(() => orders.reduce((s, o) => s + (o.total || 0), 0), [orders]);
-  const totalDeposits = useMemo(() => orders.reduce((s, o) => s + (o.deposit_amount || 0), 0), [orders]);
-  const totalCOD = useMemo(() => orders.reduce((s, o) => s + (o.cod_amount || 0), 0), [orders]);
-  const avgPrice = useMemo(() => products.length ? Math.round(products.reduce((s, p) => s + p.price, 0) / products.length) : 0, [products]);
-  const avgOrderValue = useMemo(() => orders.length ? Math.round(totalRevenue / orders.length) : 0, [orders, totalRevenue]);
-  const statusCounts: Record<string, number> = useMemo(() => {
-    const c: Record<string, number> = {}; ORDER_STATUSES.forEach((s) => { c[s] = 0; }); orders.forEach((o) => { if (o.status && c[o.status] !== undefined) c[o.status]++; }); return c;
-  }, [orders]);
-  const lowStockProducts = useMemo(() => products.filter((p) => p.stock <= 10).sort((a, b) => a.stock - b.stock), [products]);
-  const recentOrders = useMemo(() => [...orders].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 5), [orders]);
   const filteredProducts = useMemo(() => products.filter((p) => {
     const mc = productFilter === "All" || p.category === productFilter;
     const ms = !productSearch || p.name.toLowerCase().includes(productSearch.toLowerCase());
@@ -164,7 +151,6 @@ export default function AdminPage() {
   const orderStatusCounts: Record<string, number> = useMemo(() => {
     const c: Record<string, number> = { All: orders.length }; ORDER_STATUSES.forEach((s) => { c[s] = 0; }); orders.forEach((o) => { if (o.status && c[o.status] !== undefined) c[o.status]++; }); return c;
   }, [orders]);
-  const maxStatusCount = useMemo(() => Math.max(...Object.values(statusCounts), 1), [statusCounts]);
   const priceRanges = useMemo(() => {
     const r = [{ l: "AED 0-25", m: 0, M: 25 }, { l: "AED 25-50", m: 25, M: 50 }, { l: "AED 50-100", m: 50, M: 100 }, { l: "AED 100-200", m: 100, M: 200 }, { l: "AED 200+", m: 200, M: 9999 }];
     return r.map((x) => ({ ...x, count: products.filter((p) => p.price >= x.m && p.price < x.M).length }));

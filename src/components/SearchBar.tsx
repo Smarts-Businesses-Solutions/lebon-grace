@@ -160,6 +160,10 @@ export default function SearchBar({ variant = "header", onClose, autoFocus }: Se
           </svg>
           <input
             ref={inputRef}
+            // aria-expanded is not valid on the implicit `textbox` role. This
+            // input drives a suggestion list, which is precisely `combobox`.
+            role="combobox"
+            aria-autocomplete="list"
             type="text"
             value={query}
             onChange={(e) => { setQuery(e.target.value); setSelectedIndex(-1); }}
@@ -169,6 +173,7 @@ export default function SearchBar({ variant = "header", onClose, autoFocus }: Se
             className={`w-full ${isOverlay ? "pl-14 pr-14 py-4 text-lg" : "pl-12 pr-12 py-3 text-base"} bg-gray-50 border border-gray-200 rounded-2xl focus:border-[#C9A96E] focus:ring-2 focus:ring-[#C9A96E]/20 outline-none transition-all placeholder:text-gray-400`}
             aria-label="Search products"
             aria-expanded={showDropdown}
+            aria-controls="search-suggestions"
             aria-haspopup="listbox"
           />
           {/* Loading / Clear button */}
@@ -187,6 +192,7 @@ export default function SearchBar({ variant = "header", onClose, autoFocus }: Se
         <div
           ref={dropdownRef}
           className={`absolute ${isOverlay ? "left-0 right-0" : "left-0 right-0 sm:left-auto sm:right-auto sm:w-[480px]"} top-full mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 max-h-[70vh] overflow-y-auto`}
+          id="search-suggestions"
           role="listbox"
         >
           {/* Category matches */}

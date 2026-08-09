@@ -36,39 +36,6 @@ const sortOptions = [
    a shop that has never taken an order. */
 
 /* ─── Category Showcase ─── */
-function CategoryShowcase() {
-  // Same fix as the homepage category strip. This was a hardcoded map of
-  // Unsplash URLs keyed on dropship categories (MDF Cutouts, Jewelry, Pet
-  // Supplies) that no longer exist, so every circle fell through to the emoji
-  // and the page hotlinked eleven stock photos it never used. Reading the
-  // catalogue means it cannot drift again, and the picture is a real puzzle.
-  const topCategories = categories.filter((c) => !c.hidden && c.name !== CLEARANCE_CATEGORY).slice(0, 8);
-  const categoryImages: Record<string, string> = Object.fromEntries(
-    topCategories
-      .map((c) => [c.name, products.find((p) => p.category === c.name)?.imageUrl])
-      .filter(([, url]) => Boolean(url))
-  );
-  return (
-    <section className="bg-white border-b border-gray-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-5">
-          {topCategories.map((cat) => (
-            <Link key={cat.name} href={"/shop?category=" + encodeURIComponent(cat.name)} className="group flex flex-col items-center gap-2 text-center">
-              <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden bg-gray-100 border-2 border-transparent group-hover:border-[#A8874D] transition-colors duration-200">
-                {categoryImages[cat.name] ? (
-                  <ProductImage src={categoryImages[cat.name]} alt={cat.name} sizes="80px" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gray-100 text-xl">{cat.icon}</div>
-                )}
-              </div>
-              <span className="text-xs font-medium text-gray-700 group-hover:text-[#A8874D] transition-colors leading-tight">{cat.name}</span>
-            </Link>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
 
 /* ─── Filter Section Component ─── */
 function FilterSection({ title, children, defaultOpen = true }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
@@ -166,17 +133,27 @@ function ShopContent() {
   const [visibleCount, setVisibleCount] = useState(24);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
+  // Extracted so the dependency is a plain value rather than a call expression.
+  const paramsKey = searchParams.toString();
+
   // Sync URL params with filter state on full page load
   useEffect(() => {
     const cat = searchParams.get("category");
     const q = searchParams.get("search");
+    // Re-syncs filters when the URL changes (a category link elsewhere on the
+          // site navigates here with ?category=). Deriving instead would drop that.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFilters((prev) => ({
       ...prev,
       category: cat || "All",
       ...(q ? { search: q } : {}),
     }));
     setVisibleCount(24);
-  }, [searchParams.toString()]);
+    // Depends on the SERIALISED params, not the object: Next returns a new
+    // searchParams identity most renders, so depending on it directly would
+    // re-run this on every render. The string is the stable value.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paramsKey]);
 
   // Update a single filter field
   const updateFilter = useCallback(

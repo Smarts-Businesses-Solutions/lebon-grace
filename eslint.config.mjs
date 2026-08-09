@@ -54,6 +54,27 @@ const eslintConfig = defineConfig([
     // duplicates of src/ files reported at a .claude/worktrees/... path.
     ".claude/**",
   ]),
+
+  {
+    rules: {
+      // `_foo` means "this parameter exists to hold a position, and I know it is
+      // unused". It is the standard convention and eslint does not assume it by
+      // default. Without this, every mock declared to type `mock.calls` — the
+      // parameters exist ONLY so `mock.calls[0][1]` type-checks — is reported as
+      // a problem, which is 20 of the warnings in this project and none of them
+      // real. Silencing them by deleting the parameters would reintroduce the
+      // "Tuple type '[]' has no element at index 1" compile errors they fix.
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+          destructuredArrayIgnorePattern: "^_",
+        },
+      ],
+    },
+  },
 ]);
 
 export default eslintConfig;

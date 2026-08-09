@@ -5,6 +5,24 @@ import { orders as orderStore, orderItems } from "@/lib/store";
 import { buildProductionQueue } from "@/lib/production-queue";
 import { products, categories } from "@/lib/products";
 
+/**
+ * `created_at` is nullable in OrderRow, and it always was in the database — the
+ * `any` return type simply hid that `new Date(undefined)` yields Invalid Date,
+ * which then poisons every comparison it touches without throwing.
+ *
+ * Undated rows fall back to the epoch, so they sort oldest and never satisfy a
+ * "within the last N days" window. That is the safe direction: an undated order
+ * is excluded from a recency bucket rather than silently counted as today's.
+ */
+function createdAt(value: unknown): Date {
+  return new Date(typeof value === "string" && value ? value : 0);
+}
+
+/** Same reasoning for the string fields the groupings key on. */
+function str(value: unknown): string {
+  return typeof value === "string" ? value : "";
+}
+
 export async function GET(request: NextRequest) {
   // Business metrics (revenue, orders, customers) — admin only.
   if (!requireAdmin(request)) {
@@ -38,19 +56,19 @@ export async function GET(request: NextRequest) {
 
     const avgOrderValue = allOrders.length > 0 ? Math.round(totalRevenue / allOrders.length) : 0;
 
-    const ordersToday = allOrders.filter((o) => new Date(o.created_at) >= today).length;
+    const ordersToday = allOrders.filter((o) => createdAt(o.created_at) >= today).length;
     const revenueToday = allOrders
-      .filter((o) => new Date(o.created_at) >= today)
+      .filter((o) => createdAt(o.created_at) >= today)
       .reduce((s, o) => s + Number(o.total || 0), 0);
 
-    const ordersWeek = allOrders.filter((o) => new Date(o.created_at) >= weekAgo).length;
+    const ordersWeek = allOrders.filter((o) => createdAt(o.created_at) >= weekAgo).length;
     const revenueWeek = allOrders
-      .filter((o) => new Date(o.created_at) >= weekAgo)
+      .filter((o) => createdAt(o.created_at) >= weekAgo)
       .reduce((s, o) => s + Number(o.total || 0), 0);
 
-    const ordersMonth = allOrders.filter((o) => new Date(o.created_at) >= monthStart).length;
+    const ordersMonth = allOrders.filter((o) => createdAt(o.created_at) >= monthStart).length;
     const revenueMonth = allOrders
-      .filter((o) => new Date(o.created_at) >= monthStart)
+      .filter((o) => createdAt(o.created_at) >= monthStart)
       .reduce((s, o) => s + Number(o.total || 0), 0);
 
     // ─── Pipeline Metrics ───
@@ -66,8 +84,8 @@ export async function GET(request: NextRequest) {
     const fulfillmentDays = deliveredOrders
       .filter((o) => o.updated_at && o.created_at)
       .map((o) => {
-        const created = new Date(o.created_at).getTime();
-        const updated = new Date(o.updated_at).getTime();
+        const created = createdAt(o.created_at).getTime();
+        const updated = createdAt(o.updated_at).getTime();
         return (updated - created) / (24 * 60 * 60 * 1000);
       });
     const avgFulfillmentDays = fulfillmentDays.length > 0
@@ -94,7 +112,7 @@ export async function GET(request: NextRequest) {
         id: String(o.id).slice(0, 8),
         customer: o.customer_name,
         amount: Number(o.cod_amount || 0),
-        days: Math.floor((now.getTime() - new Date(o.updated_at || o.created_at).getTime()) / (24 * 60 * 60 * 1000)),
+        days: Math.floor((now.getTime() - createdAt(o.updated_at || o.created_at).getTime()) / (24 * 60 * 60 * 1000)),
       }))
       .filter((o) => o.amount > 0);
 
@@ -102,18 +120,18 @@ export async function GET(request: NextRequest) {
     const customerMap = new Map<string, { name: string; phone: string; orders: number; total: number; lastOrder: string }>();
     allOrders.forEach((o) => {
       const key = o.customer_phone || o.customer_email || o.customer_name;
-      const existing = customerMap.get(key);
+      const existing = customerMap.get(String(key));
       if (existing) {
         existing.orders++;
         existing.total += Number(o.total || 0);
-        if (o.created_at > existing.lastOrder) existing.lastOrder = o.created_at;
+        if (str(o.created_at) > existing.lastOrder) existing.lastOrder = str(o.created_at);
       } else {
-        customerMap.set(key, {
+        customerMap.set(String(key), {
           name: o.customer_name || "Unknown",
           phone: o.customer_phone || "",
           orders: 1,
           total: Number(o.total || 0),
-          lastOrder: o.created_at,
+          lastOrder: str(o.created_at),
         });
       }
     });
@@ -142,9 +160,9 @@ export async function GET(request: NextRequest) {
       revenuePerDay[key] = 0;
     }
     allOrders
-      .filter((o) => new Date(o.created_at) >= thirtyDaysAgo)
+      .filter((o) => createdAt(o.created_at) >= thirtyDaysAgo)
       .forEach((o) => {
-        const key = new Date(o.created_at).toISOString().slice(0, 10);
+        const key = createdAt(o.created_at).toISOString().slice(0, 10);
         ordersPerDay[key] = (ordersPerDay[key] || 0) + 1;
         revenuePerDay[key] = (revenuePerDay[key] || 0) + Number(o.total || 0);
       });
@@ -165,13 +183,13 @@ export async function GET(request: NextRequest) {
       if (items && items.length > 0) {
         const productSales = new Map<string, { name: string; quantity: number; revenue: number }>();
         items.forEach((item) => {
-          const existing = productSales.get(item.product_slug || item.product_name);
+          const existing = productSales.get(str(item.product_slug) || str(item.product_name));
           if (existing) {
             existing.quantity += item.quantity || 1;
             existing.revenue += Number(item.price || 0) * (item.quantity || 1);
           } else {
-            productSales.set(item.product_slug || item.product_name, {
-              name: item.product_name,
+            productSales.set(str(item.product_slug) || str(item.product_name), {
+              name: str(item.product_name),
               quantity: item.quantity || 1,
               revenue: Number(item.price || 0) * (item.quantity || 1),
             });

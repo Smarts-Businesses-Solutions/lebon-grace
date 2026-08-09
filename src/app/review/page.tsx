@@ -11,7 +11,7 @@
  * ACTION_PLAN.md A-18.
  */
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
@@ -41,6 +41,10 @@ function Stars({ value, onChange }: { value: number; onChange: (n: number) => vo
 
 function ReviewForm() {
   const params = useSearchParams();
+  // Read once from the query string. There was an effect here re-setting this
+  // from the same `params` on every change, which is a state-sync loop the
+  // initializer already covers — the link arrives from an email and the param
+  // does not change under the user.
   const [orderId, setOrderId] = useState(params.get("order") || "");
   const [phone, setPhone] = useState("");
   const [items, setItems] = useState<ReviewableItem[] | null>(null);
@@ -50,8 +54,6 @@ function ReviewForm() {
   const [ratings, setRatings] = useState<Record<string, number>>({});
   const [comments, setComments] = useState<Record<string, string>>({});
   const [done, setDone] = useState<Record<string, boolean>>({});
-
-  useEffect(() => { setOrderId(params.get("order") || ""); }, [params]);
 
   const lookup = async (e: React.FormEvent) => {
     e.preventDefault();

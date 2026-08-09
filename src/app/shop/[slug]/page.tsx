@@ -9,7 +9,7 @@ import { useParams } from "next/navigation";
 import { useState, useEffect, useMemo } from "react";
 import { useCart } from "@/lib/cart-context";
 import { getProductBySlug, formatPrice, products } from "@/lib/products";
-import { getVariantGroup, getSimilarProducts, extractColor, extractSize } from "@/lib/variants";
+import { getVariantGroup, extractColor, extractSize } from "@/lib/variants";
 
 // Extract enriched fields from product name
 function enrichProduct(p: ReturnType<typeof getProductBySlug>) {
@@ -44,7 +44,6 @@ export default function ProductDetailPage() {
   const product = useMemo(() => enrichProduct(rawProduct), [rawProduct]);
   const isMDF = rawProduct?.cjPid?.startsWith("MDF") ?? false;
   const variantGroup = useMemo(() => rawProduct ? getVariantGroup(slug) : null, [rawProduct, slug]);
-  const similarProducts = useMemo(() => rawProduct ? getSimilarProducts(rawProduct, 6) : [], [rawProduct]);
   const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
@@ -56,7 +55,8 @@ export default function ProductDetailPage() {
   const [engraveName, setEngraveName] = useState("");
   const [cjVariants, setCjVariants] = useState<{ sku: string; name: string; image: string; price: number; color?: string; size?: string }[]>([]);
   const [cjImages, setCjImages] = useState<string[]>([]);
-  const [loadingVariants, setLoadingVariants] = useState(false);
+  // Only the setter is used — the flag itself is never rendered.
+  const [, setLoadingVariants] = useState(false);
   const [selectedVariantSku, setSelectedVariantSku] = useState<string | null>(null);
   const [recentlyViewed, setRecentlyViewed] = useState<typeof products>([]);
 
@@ -70,6 +70,8 @@ export default function ProductDetailPage() {
       const filtered = viewed.filter((s) => s !== slug);
       filtered.unshift(slug);
       localStorage.setItem(key, JSON.stringify(filtered.slice(0, 8)));
+      // Recently-viewed lives in localStorage, which does not exist during SSR.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setRecentlyViewed(filtered.filter(s => s !== slug).slice(0, 6).map(s => products.find(p => p.slug === s)).filter(Boolean) as typeof products);
     } catch {}
   }, [slug]);
@@ -77,6 +79,8 @@ export default function ProductDetailPage() {
   // Fetch variants: first from local variant groups, then from CJ API
   useEffect(() => {
     if (!rawProduct) return;
+    // Marks the fetch as in-flight; there is no render-time equivalent.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoadingVariants(true);
 
     fetch(`/api/variants?slug=${slug}`)
@@ -381,7 +385,7 @@ export default function ProductDetailPage() {
               <span className="text-gray-400 text-xs">Made to order</span>
             </div>
 
-            {/* Squared, matching the homepage's "Browse the range". The rounded
+            {/* Squared, matching the homepage’s "Browse the range". The rounded
                 pills read as a different site once the rest went editorial. */}
             <button
               onClick={handleAddToCart}
@@ -413,7 +417,7 @@ export default function ProductDetailPage() {
                   </div>
                 </Link>
                 <WhatsAppLink
-                  message={"Hi, I'm interested in " + product.name + ". Can you help?"}
+                  message={"Hi, I’m interested in " + product.name + ". Can you help?"}
                   className="flex items-center gap-3 w-full px-4 py-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:border-[#25D366] hover:text-[#25D366] transition-colors"
                 >
                   <span className="text-lg">💬</span>
@@ -560,7 +564,7 @@ export default function ProductDetailPage() {
           </div>
         )}
 
-        {/* ─── MDF Tab: How It's Made ─── */}
+        {/* ─── MDF Tab: How It’s Made ─── */}
         {isMDF && activeTab === "how-its-made" && (
           <div className="max-w-3xl space-y-8">
             <div>
@@ -615,7 +619,7 @@ export default function ProductDetailPage() {
                 { icon: "📐", title: "Custom Size", desc: "Need a specific dimension? We can cut any shape to your exact size requirements — from 3cm to 60cm." },
                 { icon: "🎨", title: "Paint & Color", desc: "Choose from our range of acrylic paints or request a specific RAL/Pantone color. We can also do gradient finishes." },
                 { icon: "✍️", title: "Engraving & Text", desc: "Add names, dates, logos, or any text via laser engraving. Perfect for personalized gifts and business branding." },
-                { icon: "🧩", title: "Custom Shapes", desc: "Send us a design (DXF, SVG, or even a sketch) and we'll laser cut it. Logos, silhouettes, patterns — you name it." },
+                { icon: "🧩", title: "Custom Shapes", desc: "Send us a design (DXF, SVG, or even a sketch) and we’ll laser cut it. Logos, silhouettes, patterns — you name it." },
                 { icon: "🏠", title: "Wall Art Sets", desc: "Multi-piece wall art arrangements designed to fit your specific wall dimensions and color scheme." },
                 { icon: "🎁", title: "Gift Sets & Bundles", desc: "Curated sets of MDF cutouts, puzzles, or decor pieces — gift-wrapped and ready to give." },
               ].map((item, i) => (
@@ -631,7 +635,7 @@ export default function ProductDetailPage() {
               <div className="space-y-2">
                 <div className="flex items-start gap-2">
                   <span className="text-sm font-bold text-[#A8874D]">1.</span>
-                  <p className="text-xs text-gray-600">Click <strong>"Request Custom Design"</strong> above or <strong>WhatsApp us</strong> with your idea.</p>
+                  <p className="text-xs text-gray-600">Click <strong>“Request Custom Design”</strong> above or <strong>WhatsApp us</strong> with your idea.</p>
                 </div>
                 <div className="flex items-start gap-2">
                   <span className="text-sm font-bold text-[#A8874D]">2.</span>
@@ -736,7 +740,7 @@ export default function ProductDetailPage() {
         </div>
         {isMDF && (
           <WhatsAppLink
-            message={"Hi, I'm interested in " + product.name + ". Can you help?"}
+            message={"Hi, I’m interested in " + product.name + ". Can you help?"}
             className="p-2.5 bg-[#25D366] text-white rounded-lg hover:bg-[#1da855] transition-colors flex-shrink-0"
             aria-label="WhatsApp"
           >

@@ -118,7 +118,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>("pickup");
   const [mounted, setMounted] = useState(false);
 
+  // localStorage does not exist during SSR, so the cart CANNOT be read while
+  // rendering — reading it in an effect after mount is the correct pattern, not
+  // a workaround. Moving this into render would hydrate a server-empty cart
+  // over a client-full one and throw a hydration mismatch.
   useEffect(() => {
+    // The cart CANNOT be read while rendering: localStorage does not exist during
+        // SSR, and hydrating a server-empty cart over a client-full one mismatches.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setItems(loadCart());
     setMounted(true);
   }, []);

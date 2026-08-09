@@ -87,15 +87,19 @@ export async function PUT(request: NextRequest) {
   if (status && currentOrder && currentOrder.status !== status) {
     const notificationOrder = {
       id: updatedOrder.id,
-      customer_name: updatedOrder.customer_name,
-      customer_email: updatedOrder.customer_email,
-      customer_phone: updatedOrder.customer_phone,
+      // Coerced because the row type is honest about these being nullable.
+      // Previously `any` let a null flow into the email as the literal "null".
+      customer_name: updatedOrder.customer_name ?? "Customer",
+      customer_email: updatedOrder.customer_email ?? "",
+      customer_phone: updatedOrder.customer_phone ?? "",
       total: updatedOrder.total,
+      subtotal: updatedOrder.subtotal,
+      shipping: updatedOrder.shipping ?? undefined,
       deposit_amount: updatedOrder.deposit_amount,
       cod_amount: updatedOrder.cod_amount,
       status: status,
-      delivery_method: updatedOrder.delivery_method,
-      tracking_number: tracking_number || updatedOrder.tracking_number,
+      delivery_method: updatedOrder.delivery_method ?? "delivery",
+      tracking_number: tracking_number || updatedOrder.tracking_number || undefined,
     };
 
     sendOrderEmail(notificationOrder, status)

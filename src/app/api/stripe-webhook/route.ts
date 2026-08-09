@@ -171,6 +171,9 @@ export async function POST(request: NextRequest) {
       customer_email: order.customer_email,
       customer_phone: order.customer_phone,
       total: order.total,
+      // So the receipt states the delivery actually charged, not a constant.
+      subtotal: order.subtotal,
+      shipping: order.shipping,
       deposit_amount: order.deposit_amount,
       cod_amount: order.cod_amount,
       status: order.status,

@@ -29,10 +29,10 @@ export default function AboutPage() {
             <p>
               Lebon Grace started with a laser cutter and a simple thought: a wooden toy that teaches a child their letters should not cost a hundred dirhams, and it should not be made on the other side of the world either. So we draw them, cut them and sand them here, one order at a time.</p>
             <p>
-              We are a small workshop in the UAE making wooden puzzles for children. Everything here is drawn as a cutting file, cut from MDF on our own laser, sanded by hand and checked before it goes out. Nothing is bought in and relabelled, and nothing sits in a warehouse waiting for someone to want it. Your puzzle does not exist until you order it, which is why it takes two or three days and why we can put your child's name on it for nothing.
+              We are a small workshop in the UAE making wooden puzzles for children. Everything here is drawn as a cutting file, cut from MDF on our own laser, sanded by hand and checked before it goes out. Nothing is bought in and relabelled, and nothing sits in a warehouse waiting for someone to want it. Your puzzle does not exist until you order it, which is why it takes two or three days and why we can put your child’s name on it for nothing.
             </p>
             <p>
-              Our name reflects our approach. "Lebon" means good in French. "Grace" means doing it with style. Together: good things, done well, at fair prices.
+              Our name reflects our approach. “Lebon” means good in French. “Grace” means doing it with style. Together: good things, done well, at fair prices.
             </p>
           </div>
         </div>

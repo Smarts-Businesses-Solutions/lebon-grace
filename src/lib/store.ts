@@ -35,6 +35,96 @@ function db(): SupabaseClient {
   return _client;
 }
 
+/**
+ * A row as PostgREST returns it.
+ *
+ * `any` was used for every return type here, which is 20 of this project's lint
+ * errors and, more to the point, meant a typo in a column name compiled
+ * silently. These interfaces name the columns the application actually reads,
+ * with an `unknown` index signature so a column nobody has typed yet is still
+ * reachable — but reachable as `unknown`, which has to be narrowed rather than
+ * used by accident.
+ *
+ * Nullability mirrors the database, including the constraints added in
+ * migration 0002: `orders.status`, `subtotal`, `total`, `deposit_amount` and
+ * `cod_amount` are NOT NULL there, so they are non-optional here. Where the two
+ * disagree, the database is right and this file is the bug.
+ */
+export interface OrderRow {
+  id: string;
+  status: string;
+  subtotal: number;
+  total: number;
+  deposit_amount: number;
+  cod_amount: number;
+  shipping?: number | null;
+  stripe_session_id?: string | null;
+  stripe_payment_intent?: string | null;
+  customer_name?: string | null;
+  customer_email?: string | null;
+  customer_email_lc?: string | null;
+  customer_phone?: string | null;
+  delivery_address?: string | null;
+  emirate?: string | null;
+  delivery_method?: string | null;
+  tracking_number?: string | null;
+  courier_name?: string | null;
+  notes?: string | null;
+  metadata?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [column: string]: unknown;
+}
+
+export interface OrderItemRow {
+  id?: string;
+  order_id: string;
+  product_slug?: string | null;
+  product_name?: string | null;
+  /** Own column since migration 0004 — the workshop queue reads it. */
+  personalisation?: string | null;
+  price: number;
+  quantity: number;
+  image_url?: string | null;
+  [column: string]: unknown;
+}
+
+export interface ProductRow {
+  slug: string;
+  name?: string | null;
+  category?: string | null;
+  price: number;
+  stock?: number | null;
+  image_url?: string | null;
+  hidden?: boolean | null;
+  cj_pid?: string | null;
+  cj_price?: string | null;
+  [column: string]: unknown;
+}
+
+export interface VariantRow {
+  id?: string;
+  product_slug: string;
+  variant_sku?: string | null;
+  variant_name?: string | null;
+  variant_image?: string | null;
+  variant_color?: string | null;
+  variant_size?: string | null;
+  variant_price?: number | null;
+  [column: string]: unknown;
+}
+
+export interface ReviewRow {
+  id: string;
+  order_id?: string;
+  product_slug?: string;
+  rating: number;
+  comment?: string | null;
+  customer_name?: string;
+  created_at?: string;
+  [column: string]: unknown;
+}
+
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // What a customer may type into Track Order. The receipt shows the first eight
@@ -66,7 +156,7 @@ function phoneMatches(a: string, b: string): boolean {
 
 // ───────────────────────── orders ─────────────────────────
 export const orders = {
-  async getAll(): Promise<any[]> {
+  async getAll(): Promise<OrderRow[]> {
     const { data, error } = await db()
       .from("orders")
       .select("*")
@@ -76,7 +166,7 @@ export const orders = {
   },
 
   // Accepts a full uuid (exact) or a prefix (best-effort). Bad input → null.
-  async getById(id: string): Promise<any | null> {
+  async getById(id: string): Promise<OrderRow | null> {
     if (!id) return null;
     if (UUID_RE.test(id)) {
       const { data, error } = await db()
@@ -102,7 +192,7 @@ export const orders = {
   // Idempotency lookup for Stripe webhooks — match the Stripe session id, which
   // lives in stripe_session_id (the column also has a UNIQUE constraint, so a
   // duplicate insert is rejected atomically even if two webhooks race).
-  async getBySessionId(sessionId: string): Promise<any | null> {
+  async getBySessionId(sessionId: string): Promise<OrderRow | null> {
     if (!sessionId) return null;
     const { data, error } = await db()
       .from("orders")
@@ -113,7 +203,7 @@ export const orders = {
     return data;
   },
 
-  async getByEmailPhone(email: string, phone: string): Promise<any[]> {
+  async getByEmailPhone(email: string, phone: string): Promise<OrderRow[]> {
     // Matches on customer_email_lc, a stored generated column holding
     // lower(customer_email), indexed by 0003. This was `.ilike("customer_email",
     // email)` with no wildcards — case-insensitive equality written with a
@@ -134,14 +224,14 @@ export const orders = {
     return (data || []).filter((o) => phoneMatches(o.customer_phone || "", phone));
   },
 
-  async getByTracking(id: string, phone: string): Promise<any | null> {
+  async getByTracking(id: string, phone: string): Promise<OrderRow | null> {
     const order = await this.getById(id);
     if (!order) return null;
     if (!phoneMatches(order.customer_phone || "", phone)) return null;
     return order;
   },
 
-  async insert(order: any): Promise<any> {
+  async insert(order: Partial<OrderRow>): Promise<OrderRow> {
     // Let Postgres generate id/created_at/updated_at unless explicitly provided.
     const { data, error } = await db()
       .from("orders")
@@ -152,7 +242,7 @@ export const orders = {
     return data;
   },
 
-  async update(id: string, updates: Record<string, any>): Promise<any | null> {
+  async update(id: string, updates: Partial<OrderRow>): Promise<OrderRow | null> {
     const { data, error } = await db()
       .from("orders")
       .update({ ...updates, updated_at: new Date().toISOString() })
@@ -166,12 +256,12 @@ export const orders = {
 
 // ───────────────────────── order_items ─────────────────────────
 export const orderItems = {
-  async getAll(): Promise<any[]> {
+  async getAll(): Promise<OrderItemRow[]> {
     const { data, error } = await db().from("order_items").select("*");
     if (error) throw error;
     return data || [];
   },
-  async insertMany(items: any[]): Promise<void> {
+  async insertMany(items: Partial<OrderItemRow>[]): Promise<void> {
     if (!items.length) return;
     const { error } = await db().from("order_items").insert(items);
     if (error) throw error;
@@ -184,7 +274,7 @@ export const orderItems = {
 // promise. See src/app/page.tsx:9-25 for why that matters here.
 export const reviews = {
   /** Published reviews for one product, newest first. */
-  async getBySlug(slug: string): Promise<any[]> {
+  async getBySlug(slug: string): Promise<ReviewRow[]> {
     if (!slug) return [];
     const { data, error } = await db()
       .from("product_reviews")
@@ -222,7 +312,7 @@ export const reviews = {
   },
 
   /** Reviews already left against one order, so the form can grey them out. */
-  async getByOrder(orderId: string): Promise<any[]> {
+  async getByOrder(orderId: string): Promise<Pick<ReviewRow, "product_slug">[]> {
     if (!orderId) return [];
     const { data, error } = await db()
       .from("product_reviews")
@@ -244,7 +334,7 @@ export const reviews = {
     return !!data;
   },
 
-  async insert(review: Record<string, any>): Promise<any> {
+  async insert(review: Partial<ReviewRow>): Promise<ReviewRow> {
     const { data, error } = await db().from("product_reviews").insert(review).select().single();
     if (error) throw error;
     return data;
@@ -253,12 +343,12 @@ export const reviews = {
 
 // ───────────────────────── product_variants ─────────────────────────
 export const productVariants = {
-  async getAll(): Promise<any[]> {
+  async getAll(): Promise<VariantRow[]> {
     const { data, error } = await db().from("product_variants").select("*");
     if (error) throw error;
     return data || [];
   },
-  async getBySlug(slug: string): Promise<any[]> {
+  async getBySlug(slug: string): Promise<VariantRow[]> {
     const { data, error } = await db()
       .from("product_variants")
       .select("*")
@@ -268,7 +358,7 @@ export const productVariants = {
   },
   // Upsert on the UNIQUE (product_slug, variant_sku). Returns how many rows the
   // upsert wrote (inserts + updates) — callers only use it as a nonzero signal.
-  async upsertMany(variants: any[]): Promise<number> {
+  async upsertMany(variants: Partial<VariantRow>[]): Promise<number> {
     if (!variants.length) return 0;
     const { data, error } = await db()
       .from("product_variants")
@@ -283,12 +373,12 @@ export const productVariants = {
 // The storefront catalog also ships statically in src/lib/products.ts; this
 // table holds imported/edited products (Postgres has the full 500+ row catalog).
 export const catalog = {
-  async getAll(): Promise<any[]> {
+  async getAll(): Promise<ProductRow[]> {
     const { data, error } = await db().from("products").select("*");
     if (error) throw error;
     return data || [];
   },
-  async upsert(product: any): Promise<void> {
+  async upsert(product: Partial<ProductRow>): Promise<void> {
     const { error } = await db()
       .from("products")
       .upsert({ ...product, updated_at: new Date().toISOString() }, { onConflict: "slug" });

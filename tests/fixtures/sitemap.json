@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-30T10:39:55.138Z",
+  "generatedAt": "2026-08-09T05:26:23.757Z",
   "source": "src\\app",
   "routes": [
     "/",
@@ -11,9 +11,11 @@
     "/contact",
     "/faq",
     "/privacy",
+    "/review",
     "/shop",
     "/terms",
-    "/track"
+    "/track",
+    "/unsubscribe"
   ],
   "excludedDynamic": [
     "/shop/[slug]"

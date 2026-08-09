@@ -35,7 +35,9 @@ interface EmailOrder {
   cod_amount: number;
   status: string;
   delivery_method: string;
-  items?: Array<{ name: string; price: number; quantity: number; image?: string }>;
+  /** Real figures from the order. Without these the summary had to guess. */
+  subtotal?: number;
+  shipping?: number;
   tracking_number?: string;
 }
 
@@ -150,13 +152,31 @@ function getEmailSubject(order: EmailOrder, action: string): string {
 }
 
 function buildEmailHTML(order: EmailOrder, action: string): string {
-  const itemsList = (order.items || []).map(item =>
-    `<tr><td style="padding:12px 0;border-bottom:1px solid #eee;">${item.name}</td><td style="padding:12px 0;border-bottom:1px solid #eee;text-align:center;">${item.quantity}</td><td style="padding:12px 0;border-bottom:1px solid #eee;text-align:right;">${formatPrice(item.price * item.quantity)}</td></tr>`
-  ).join("");
+  // The per-item table that used to be built here was never inserted into the
+  // template, and neither caller passes `items` anyway — so no order email has
+  // ever listed what was ordered. Removed rather than left as dead code;
+  // restoring it means passing items from both callers, which is its own task.
 
   // No `|| TEMPLATES.confirmation` fallback: sendOrderEmail refuses unmapped
   // actions before reaching here, so an absent template can no longer be
   // silently replaced by a wrong one.
+  // Was: Subtotal printed order.total, Delivery was hardcoded to AED 25 with a
+  // "free over 300" rule, and a "Pay on delivery (COD)" row always showed
+  // AED 0.00. The shop charges AED 20, free over AED 150 (UAE_DELIVERY and
+  // FREE_DELIVERY_OVER in cart-context, pinned by its test), and COD was
+  // removed when checkout moved to full payment. So every receipt quoted a
+  // delivery price the shop does not charge, under a threshold it does not use.
+  //
+  // These now come from the order. Falling back to arithmetic on the total
+  // rather than to a constant means a missing field cannot reintroduce a
+  // made-up number.
+  const shipping = typeof order.shipping === "number" ? order.shipping : 0;
+  const subtotal = typeof order.subtotal === "number" ? order.subtotal : order.total - shipping;
+  const shippingLabel =
+    order.delivery_method === "pickup" ? "Free (workshop collection)"
+    : shipping > 0 ? formatPrice(shipping)
+    : "Free";
+
   const t = TEMPLATES[action];
   const status = { title: t.title, color: t.color, message: t.message(order) };
 
@@ -192,14 +212,9 @@ function buildEmailHTML(order: EmailOrder, action: string): string {
     <div style="background:#f9f9f9;border-radius:12px;padding:24px;margin:24px 0;">
       <h3 style="font-size:14px;color:#2D2D2D;margin:0 0 16px 0;">Payment Summary</h3>
       <table style="width:100%;font-size:13px;color:#666;">
-        <tr><td>Subtotal</td><td style="text-align:right;">${formatPrice(order.total)}</td></tr>
-        <tr><td>Shipping</td><td style="text-align:right;">${order.delivery_method === "pickup" ? "Free (Pickup)" : order.total > 300 ? "Free" : formatPrice(25)}</td></tr>
-        <tr><td style="font-weight:600;color:#2D2D2D;">Total</td><td style="text-align:right;font-weight:600;color:#2D2D2D;">${formatPrice(order.total)}</td></tr>
-      </table>
-      <hr style="border:none;border-top:1px solid #eee;margin:12px 0;" />
-      <table style="width:100%;font-size:13px;">
-        <tr><td style="color:#16A34A;">✓ Paid now (card)</td><td style="text-align:right;color:#16A34A;font-weight:600;">${formatPrice(order.deposit_amount)}</td></tr>
-        <tr><td style="color:#C9A96E;">● Pay on delivery (COD)</td><td style="text-align:right;color:#C9A96E;font-weight:600;">${formatPrice(order.cod_amount)}</td></tr>
+        <tr><td>Subtotal</td><td style="text-align:right;">${formatPrice(subtotal)}</td></tr>
+        <tr><td>Delivery</td><td style="text-align:right;">${shippingLabel}</td></tr>
+        <tr><td style="font-weight:600;color:#2D2D2D;">Total paid</td><td style="text-align:right;font-weight:600;color:#2D2D2D;">${formatPrice(order.total)}</td></tr>
       </table>
     </div>
 
