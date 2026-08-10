@@ -160,7 +160,21 @@ export default function ProductDetailPage() {
   const related = products.filter((p) => p.category === product.category && p.slug !== product.slug).slice(0, 6);
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
+    /*
+     * `pb-32 lg:pb-0` reserves room for the fixed mobile purchase bar (SH-02).
+     *
+     * That bar is `fixed bottom-0 … z-40`, so it is outside the flow and sits on
+     * top of whatever the page ends with. Measured on a real mobile viewport, it
+     * covered the engraving input: field x61–379/y801–839 against bar
+     * x275–396/y783–827. The customer could not read the name about to be cut
+     * irreversibly into the piece — and the control they could not see is the
+     * one the workshop reads.
+     *
+     * Padding rather than a margin on the bar: the content has to be able to
+     * scroll clear of it, which only bottom space in the scrolling container
+     * achieves. `lg:pb-0` because the bar is `lg:hidden`.
+     */
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10 pb-32 lg:pb-10">
       {/* Breadcrumb */}
       <nav className="mb-6 flex items-center gap-2 text-sm text-ink-muted">
         <Link href="/shop" className="hover:text-[#A8874D] transition-colors">Shop</Link>
@@ -375,7 +389,7 @@ export default function ProductDetailPage() {
                   onChange={(e) => setEngraveName(e.target.value.slice(0, 20))}
                   placeholder="e.g. Amira"
                   maxLength={20}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-[#C9A96E] focus:ring-2 focus:ring-[#C9A96E]/20 outline-none"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-[#C9A96E] focus:ring-2 focus:ring-[#C9A96E]/20 outline-none scroll-mb-40"
                 />
                 <p className="text-xs text-gray-500 mt-1.5">
                   We engrave exactly what you type, so please check the spelling. Personalised pieces cannot be returned unless faulty.

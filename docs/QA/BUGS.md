@@ -1184,3 +1184,47 @@ one click. Three smaller things came with it:
 - **TR-03** (no production regression covering a real returned order) — the
   seeded-order playbook (P-006) covers this manually; automating it would seed
   and delete live rows on every run.
+
+---
+
+## B-41 · The mobile purchase bar covered the engraving field
+
+From the shopper audit as SH-02. I had recorded this as "needs a human judging a
+rendered layout" — **that was wrong**, and worth correcting in place: an overlap
+is two rectangles intersecting, and a rectangle is four numbers. **Fixed, and
+now asserted.**
+
+Measured against production on a mobile viewport:
+
+```
+engraving field : x 61–379,  y 801.28–839.28
+purchase bar    : x 275–396, y 783–827      ← intersects on both axes
+```
+
+The bar is `fixed bottom-0 … z-40`, so it sits on top of whatever the page ends
+with — including the one control whose value gets cut irreversibly into a piece
+of wood. The customer confirms an engraving they cannot read.
+
+### The first fix did nothing, and the numbers said so
+
+`pb-32` on the section looked right and changed **nothing**: the field landed at
+`y=801.28125` before and after, identical to the pixel. When the browser scrolls
+an element into view it parks it at the bottom edge of the **viewport**, so the
+position is set by viewport height, not by how much document follows it.
+
+The property that actually governs this is `scroll-margin-bottom` —
+`scroll-mb-40` on the input, which tells the browser to leave room for the bar
+whenever it scrolls that field into view, which is exactly the moment the
+customer taps it to type. The page padding is kept as well, so content can still
+scroll clear of the bar generally.
+
+**Identical measurements before and after are what exposed the useless fix.** A
+pass/fail assertion alone would have said "still broken" without saying the
+change had no effect at all.
+
+### SH-09, measured and not reproduced
+
+The same spec checks the product image has a real `naturalWidth`, is `complete`,
+and occupies real width. It passes. "The gallery thumbnail can look empty at
+mobile size" does not reproduce as an image failure, so nothing is changed —
+recorded as measured-and-clear rather than fixed.
