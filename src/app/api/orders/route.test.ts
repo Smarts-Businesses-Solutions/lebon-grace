@@ -38,6 +38,7 @@ vi.mock("@/lib/store", () => ({
 vi.mock("@/lib/email", () => ({ sendOrderEmail: m.sendOrderEmail }));
 vi.mock("@/lib/whatsapp", () => ({ notifyWhatsApp: m.notifyWhatsApp }));
 vi.mock("@/lib/admin-auth", () => ({ requireAdmin: m.requireAdmin }));
+vi.mock("@/lib/audit", () => ({ recordAdminAction: vi.fn() }));
 vi.mock("@/lib/rate-limit", () => ({ rateLimit: m.rateLimit }));
 
 import { PUT, GET } from "./route";

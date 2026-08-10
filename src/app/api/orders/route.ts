@@ -4,7 +4,8 @@ import { sendOrderEmail } from "@/lib/email";
 import { notifyWhatsApp } from "@/lib/whatsapp";
 import { requireAdmin } from "@/lib/admin-auth";
 import { rateLimit } from "@/lib/rate-limit";
-import { isSettableStatus } from "@/lib/order-status";
+import { isSettableStatus, notifiesCustomer } from "@/lib/order-status";
+import { recordAdminAction } from "@/lib/audit";
 
 // GET: List all orders, or lookup by id + phone (for tracking), or email + phone (for account)
 export async function GET(request: NextRequest) {
@@ -99,7 +100,36 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ error: "Order not found" }, { status: 404 });
   }
 
-  // Send email notification if status changed (non-blocking)
+  /*
+   * Record the change before anything is sent (AD-02).
+   *
+   * A status move can e-mail the customer "Refund issued" and leave no trace
+   * that it happened: the order row shows the new status, not the old one, not
+   * the time, not that a message went out. If a customer said "I never asked to
+   * be cancelled" there was nothing to check.
+   *
+   * Both values are recorded, because "it is refunded now" is much less useful
+   * than "it went from processing to refunded". Fire-and-forget and incapable of
+   * throwing — the update has already succeeded, and failing to log it must not
+   * turn that into an error page.
+   */
+  if (status && currentOrder && currentOrder.status !== status) {
+    recordAdminAction("order.status_changed", "order", String(id), {
+      from: currentOrder.status,
+      to: status,
+      // Whether the customer was actually told — the question an audit trail
+      // gets asked months later. Derived, not hardcoded: the first version of
+      // this wrote `notified: true` unconditionally, which is false for the four
+      // statuses that have no template and would have made the log confidently
+      // wrong. A record that asserts something it did not check is worse than no
+      // record.
+      notified: notifiesCustomer(status),
+    });
+  }
+
+  // Send email notification if status changed (non-blocking). Same condition as
+  // the audit above deliberately — they describe the same event, and merging
+  // them would bury the audit inside the notification's concerns.
   if (status && currentOrder && currentOrder.status !== status) {
     const notificationOrder = {
       id: updatedOrder.id,

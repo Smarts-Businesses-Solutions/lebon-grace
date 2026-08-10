@@ -484,3 +484,45 @@ export const subscribers = {
     if (error) throw error;
   },
 };
+
+/**
+ * The operator's action trail (AD-02).
+ *
+ * Append-only by design: there is `record` and there is `forTarget`, and
+ * deliberately no update or delete. An audit trail the application can rewrite
+ * is not an audit trail.
+ */
+export const adminActions = {
+  /** Write one action. Returns false rather than throwing — see lib/audit.ts. */
+  async record(
+    action: string,
+    targetType: string,
+    targetId: string,
+    details: Record<string, unknown> = {}
+  ): Promise<boolean> {
+    const { error } = await db()
+      .from("admin_actions")
+      .insert({ action, target_type: targetType, target_id: String(targetId), details });
+
+    if (error) {
+      // supabase-js reports failures in `error` instead of throwing — the same
+      // convention that hid B-30 for months, so it is checked explicitly.
+      console.error(`[audit] could not record ${action} on ${targetType}:${targetId}: ${error.message}`);
+      return false;
+    }
+    return true;
+  },
+
+  /** Everything recorded against one target, newest first. */
+  async forTarget(targetType: string, targetId: string) {
+    const { data, error } = await db()
+      .from("admin_actions")
+      .select("id,action,details,created_at")
+      .eq("target_type", targetType)
+      .eq("target_id", String(targetId))
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return data ?? [];
+  },
+};

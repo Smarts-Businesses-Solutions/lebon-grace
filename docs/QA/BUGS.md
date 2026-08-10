@@ -1228,3 +1228,44 @@ The same spec checks the product image has a real `naturalWidth`, is `complete`,
 and occupies real width. It passes. "The gallery thumbnail can look empty at
 mobile size" does not reproduce as an image failure, so nothing is changed —
 recorded as measured-and-clear rather than fixed.
+
+---
+
+## B-42 · An operator action left no trace that it happened
+
+AD-02's tractable half. **Fixed.** The finding — "shared admin identity gives no
+human accountability or action audit trail" — is two problems wearing one number:
+
+- **who** did it, which needs real accounts, sessions and a login rewrite;
+- **what** was done and **when**, which needs a table.
+
+The second is worth having on its own and does not wait for the first. An order
+could move to `refunded`, e-mail the customer "Refund issued", and leave nothing
+behind: the row shows the new status, not the old one, not the time, not that a
+message went out. A customer saying "I never asked to be cancelled" could not be
+checked against anything.
+
+**Migration 0007** adds `admin_actions(action, target_type, target_id, details
+jsonb, created_at)`, indexed for the two questions it exists to answer — "what
+happened to this order?" and "what happened in the last hour?".
+
+**No `actor` column.** With one shared password the honest answer is "unknown",
+and a column filled with a plausible fiction is worse than an absent one. When
+accounts arrive, add it; rows written before then will correctly read as
+unattributed.
+
+`recordAdminAction()` is fire-and-forget and cannot throw. The operator's action
+has already succeeded — failing to record it must not turn a completed status
+change into an error page. The failure is logged, so it reaches GlitchTip and a
+silent audit log cannot pretend to be a working one.
+
+**A bug caught in the writing of it.** The first version recorded
+`notified: true` unconditionally — false for the four statuses with no e-mail
+template, which would have made the log *confidently wrong* about whether a
+customer had been told. It now derives from `notifiesCustomer()`. A record that
+asserts something it never checked is worse than no record, which is the whole
+lesson of B-29 turned on the tool built to audit it.
+
+**Scope, stated plainly:** only `order.status_changed` is recorded. Product
+edits and deletions are not, and the audit trail should not be described as
+complete until they are.
