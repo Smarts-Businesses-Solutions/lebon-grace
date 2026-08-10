@@ -1007,3 +1007,51 @@ given" when absent so "no number" is distinguishable from "the field broke".
 not shared between replicas. `rate-limit.ts` says so in its own comment — one
 container, swap the Map for Redis if that changes. A documented trade-off, not a
 defect.
+
+---
+
+## B-37 · The shop served no security headers at all
+
+From the shopper audit as SH-05, confirmed live on 2026-08-10 — the production
+response carried none of them, not even `X-Content-Type-Options`. **Fixed.**
+
+Added in `next.config.ts`: `Content-Security-Policy`, `X-Content-Type-Options`,
+`Referrer-Policy`, `X-Frame-Options`, `Permissions-Policy`.
+
+`Referrer-Policy` is the one with a concrete story here: order-tracking URLs
+carry an order id, and without it that id went out in the `Referer` to every
+third-party host a page touched.
+
+### The CSP is deliberately nonce-free
+
+Next generates CSP nonces in the proxy, and **reading a nonce forces dynamic
+rendering** on every page that does. This storefront is almost entirely
+prerendered — the live homepage returns `X-Nextjs-Prerender: 1` from cache — so a
+nonce policy would trade the thing that makes the shop fast for a directive
+guarding an injection vector it does not have: nothing on the storefront renders
+customer-authored HTML.
+
+So `script-src`/`style-src` allow `'unsafe-inline'`, and everything that needs no
+nonce is strict: `frame-ancestors 'none'` (clickjacking `/admin`), `base-uri
+'self'` (one injected `<base>` rewrites every relative URL), `form-action 'self'`
+(a form posting the cart elsewhere), `object-src 'none'`. Revisit if the
+storefront ever renders user HTML.
+
+### It broke the shop first
+
+The first policy omitted `worker-src`, and **Next creates web workers from
+`blob:` URLs**. The browser refused them, the console filled with violations, and
+17 smoke tests failed on "renders without defects" — the suite correctly
+reporting a shop that now had console errors on every page.
+
+That is the whole argument for running the full suite on a headers change: the
+header tests themselves passed on the broken policy, because they assert the
+header is *present*, not that the site still works underneath it. Found by
+running it; not visible by reading it.
+
+**Verified:** 234 Playwright tests pass with **zero** CSP violations logged.
+
+**Local artefact worth knowing:** on this workstation Kaspersky injects
+`me.kis.v2.scr.kaspersky-labs.com` into the CSP it reports, so the policy seen in
+a local browser console is not purely ours. Assert against the header the server
+sends, not what a local browser displays.

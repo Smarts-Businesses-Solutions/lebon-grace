@@ -7,6 +7,74 @@ const nextConfig: NextConfig = {
   output: "standalone",
 
 
+  /**
+   * Baseline browser security headers (SH-05).
+   *
+   * Production served none of these. They cost nothing, break nothing, and each
+   * removes a real class of attack on a shop that redirects to a card form and
+   * keeps customer addresses behind an admin login.
+   *
+   * **On the CSP.** `script-src` deliberately allows `'unsafe-inline'`. The
+   * strict alternative is a per-request nonce, which Next generates in the
+   * proxy — and reading a nonce forces **dynamic rendering** on every page that
+   * does. This shop is almost entirely prerendered (the live homepage returns
+   * `X-Nextjs-Prerender: 1` from cache), so a nonce policy would trade the thing
+   * that makes it fast for a directive guarding against an injection vector we
+   * do not have: there is no user-authored HTML anywhere on the storefront.
+   *
+   * The directives that need no nonce are enforced strictly, and they are not
+   * decoration — `frame-ancestors` is what stops `/admin` being clickjacked,
+   * `base-uri` stops a single injected `<base>` rewriting every relative URL on
+   * the page, and `form-action` stops a form posting the cart somewhere else.
+   *
+   * Revisit if the storefront ever renders customer-supplied HTML, at which
+   * point the nonce is worth the caching.
+   */
+  async headers() {
+    const csp = [
+      "default-src 'self'",
+      // See the note above: nonce-free by choice, not by oversight.
+      "script-src 'self' 'unsafe-inline'",
+      "style-src 'self' 'unsafe-inline'",
+      // Next creates web workers from blob: URLs. Without this the browser
+      // refuses them and the console fills with violations — which the smoke
+      // suite correctly reports as "renders with defects". Found by running the
+      // full suite, not by reading the policy.
+      "worker-src 'self' blob:",
+      // Catalogue images come from these two hosts (see remotePatterns below);
+      // data: and blob: are used by next/image placeholders.
+      "img-src 'self' data: blob: https://cbu01.alicdn.com https://*.supabase.co",
+      "font-src 'self' data:",
+      // Error reporting must still reach GlitchTip, or this header silently
+      // switches off the monitoring B-31 was spent restoring.
+      "connect-src 'self' https://glitchtip.axiomsynapse.com",
+      "frame-ancestors 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "object-src 'none'",
+      "upgrade-insecure-requests",
+    ].join("; ");
+
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "Content-Security-Policy", value: csp },
+          // Stops a browser second-guessing Content-Type — the root of "upload
+          // a .png that is really a script".
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          // Order-tracking URLs carry an order id. Without this, that id leaks
+          // in the Referer to every third-party host a page touches.
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          // Belt and braces with frame-ancestors, for anything that predates CSP.
+          { key: "X-Frame-Options", value: "DENY" },
+          // The shop needs none of these; granting nothing is the honest default.
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=()" },
+        ],
+      },
+    ];
+  },
+
   // Proxy the Umami tracker through this domain.
   //
   // Umami listens on loopback and on the internal docker network only, so it has
