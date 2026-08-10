@@ -76,5 +76,5 @@ Schema is `supabase/migrations/` — baseline plus forward migrations. `bash scr
 | Supabase (self-hosted Postgres) | all persistence, via service role | every DB-backed route |
 | Resend | order and status email | `src/lib/email.ts` |
 | Umami | analytics, proxied first-party at `/stats` | `src/components/Analytics.tsx` |
-| Sentry / GlitchTip | error reporting, and uptime alerts | `SENTRY_DSN` |
+| Sentry / GlitchTip | error reporting, and uptime alerts | `SENTRY_DSN`; server init via **`src/instrumentation.ts`** — at the repo root Next ignores it silently (B-31) |
 | WhatsApp | order notifications | `src/lib/whatsapp.ts` |

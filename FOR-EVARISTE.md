@@ -199,11 +199,11 @@ customer's timeline lit no step, and the order appeared in no column of the
 queue. Found while writing a `CHECK` constraint and enumerating the real values.
 Prevention: the constraint now rejects it.
 
-### What the 2026-08-09/10 role walkthroughs added (B-21 … B-29)
+### What the 2026-08-09/10 role walkthroughs added (B-21 … B-32)
 
 Six roles were driven through the live site — returning customer, reviewer,
 newsletter subscriber, admin, operator — one at a time, asking "what can this
-person actually do, and does it work?". Five findings worth carrying:
+person actually do, and does it work?". Six findings worth carrying:
 
 **A credential that got weaker the less you typed.** The phone half of the
 order lookup compared `ca.endsWith(cb.slice(-8))`. `slice(-8)` of a *short*
@@ -233,6 +233,24 @@ nobody while the code, a comment and a BUGS entry all said it was loud. Same
 shape as the CI pipeline that had never run and the backup that never covered
 this database: **a mechanism producing no output looks exactly like a healthy
 one.** Four events now e-mail the operator; the reasoning is L-22.
+
+**Three mechanisms that reported success while doing nothing (B-29 … B-32).**
+Asking "is the operator told about everything?" turned up a chain where *every
+link* was broken and *every link looked fine*:
+
+- `console.error` was believed to reach GlitchTip. It doesn't unless you
+  configure `captureConsoleIntegration` (B-29).
+- Every e-mail the shop ever sent was refused with a 403, and returned `true`,
+  because the Resend SDK resolves `{data, error}` instead of throwing (B-30).
+- `Sentry.init` had never run at all, because `instrumentation.ts` was at the
+  repo root while the app uses `src/app` (B-31).
+- And the webhook's "hashed" fingerprint was six literal characters of the
+  signing secret (B-32).
+
+Four separate faults, one shape: **the failure mode of a reporting mechanism is
+silence, and silence is also what success looks like.** Each was found by asking
+"did the thing that was supposed to happen, happen?" — an e-mail delivered, an
+envelope received — never by reading the code, which looked right every time.
 
 **Documented is not fixed.** `/api/variants` was written up in *two* documents as
 the textbook example of "a new API route is public on creation" — and stayed open

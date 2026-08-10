@@ -402,3 +402,41 @@ including checkout and the Stripe webhook.
 | D-014 | CI on Forgejo via a pull mirror | Active |
 | D-015 | Synthetic Stripe events; never touch Stripe | Active |
 | D-016 | Deny-by-default `/api/*` via src/proxy.ts | Active |
+
+---
+
+## D-017 — Keep `instrumentation.ts` in `src/`, and prove reporting by behaviour
+
+**Decision.** The Next instrumentation hook lives at `src/instrumentation.ts`,
+never at the repo root, and whether Sentry actually reports is verified by
+counting envelopes at an ingest — never by inspecting files.
+
+**Why.** The hook sat at the repo root for the life of this project. Because the
+app keeps its code in `src/app`, Next silently ignored it: `register()` was never
+called, `Sentry.init` never ran, and **no server error ever reached GlitchTip**.
+Nothing warned — not the build, not the boot, not the runtime (B-31).
+
+**Why not the alternatives.**
+
+- *Copy the compiled chunk into `.next/standalone`.* Tried and shipped. It
+  crash-looped the container on `require-in-the-middle-…`, because Next drops the
+  whole instrumentation subgraph including its node_modules externals. Eleven
+  minutes of downtime. Reconstructing a bundler's output by hand is not a fix.
+- *`outputFileTracingIncludes`.* No effect; Next excludes its own `.next` output
+  from tracing input.
+- *`next build --webpack`.* Genuinely works, and is the documented workaround for
+  a related Turbopack regression — but it was never necessary here. Turbopack was
+  tested directly once the hook was in the right place and behaved identically.
+  A bundler switch is a large, permanent change to buy nothing.
+
+**What this costs.** `npm run build` fails if the compiled Sentry init is absent
+from the standalone output, so a broken reporter cannot ship quietly.
+`scripts/prove-sentry-init.mjs` runs the standalone server from an **isolated
+copy with no parent `node_modules`** and counts envelopes — because the earlier
+proof passed from inside the repo, where Node resolves externals the container
+does not have.
+
+**The general rule this encodes.** For any mechanism whose failure mode is
+silence — error reporting, alerting, backups, CI — the check must be an outcome
+("an event arrived"), not an artefact ("the file is present"). Three separate
+faults in one day hid behind artefact-shaped checks: B-29, B-30 and B-31.

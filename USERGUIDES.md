@@ -326,15 +326,11 @@ export exists precisely so one does not have to be invented here.
 
 ## What arrives in your inbox without you asking
 
-> ⚠️ **Nothing arrives yet.** As of 2026-08-10 the shop's sending domain is not
-> verified on its e-mail provider, so every message is refused — this has been
-> true for every e-mail the shop has ever attempted, including customer order
-> confirmations (B-30). Verify `lebon-grace.com` at resend.com/domains, or point
-> `MAIL_FROM_ADDRESS` at a domain already verified there. The list below is what
-> you will get once that is done.
-
-You do not have to sit in `/admin` waiting for something to happen. Five things
-e-mail you:
+> **These are delivering as of 2026-08-10.** They were not before: the shop's
+> sending domain was unverified, so every e-mail it had ever attempted came back
+> 403 while the code reported success (B-30). The domain is verified, a test
+> review alert was confirmed `delivered`, and a refused send is now logged
+> instead of being mistaken for a delivery.
 
 | You get an e-mail when | It tells you |
 |---|---|

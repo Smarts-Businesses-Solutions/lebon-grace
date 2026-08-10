@@ -105,8 +105,8 @@ wrong twice.
 
 | Item | Impact |
 |---|---|
-| **E-mail delivers nothing (B-30)** | `lebon-grace.com` is not a verified sender on the Resend account, so every send returns 403. Verify it at resend.com/domains or set `MAIL_FROM_ADDRESS` to a verified domain. **Customers receive no order confirmations until this is done.** |
-| Secret rotation outstanding | Live Stripe keys, Supabase service-role key, PATs, one RSA key, and **`RESEND_API_KEY`** were exposed in session output |
+| **`RESEND_API_KEY` rotation outstanding** | 30 of its 36 characters were printed in session output on 2026-08-10. E-mail delivery works, so rotate deliberately: create the replacement, update `buildenv.txt` **and** the compose file, recreate the container, prove a send still arrives, and only then revoke the old key. |
+| Other secrets exposed in session output | Live Stripe keys, Supabase service-role key, PATs, one RSA key. Rotate on the same pattern as the Resend key above. |
 | **Redact env vars by LENGTH, never by pattern** | `sed 's/.*@//'` leaves a value with no `@` completely intact. That is how `RESEND_API_KEY` leaked on 2026-08-10: the redaction assumed an e-mail shape and the value was an API key, so `cut -c1-30` printed 30 of its 36 characters. Print `${#VAL}` and nothing else. |
 | 67 env vars in a public web container | 36 unread credentials, incl. `GitHub_PAT_classic` (A-0b) |
 | ~~No `middleware.ts`~~ | **Closed 2026-08-09.** `src/proxy.ts` denies any unlisted `/api/*` path with a 404, and a test fails the build if a route exists without being listed. Produced the `/api/variants` hole (B-25) before that. |
@@ -140,11 +140,12 @@ Every alert goes to `ORDER_NOTIFY_EMAIL`, falling back to `CONTACT.email`.
 `ORDER_NOTIFY_EMAIL` is currently **unset in production**, so the fallback is
 what is actually in use.
 
-> **None of these are being delivered right now.** The sending domain is not
-> verified on the Resend account, so every send is refused with a 403 (B-30).
-> The table below is what the code sends *once a verified sender is configured*.
-> Sends now log the refusal instead of reporting success, but a logged refusal
-> is still an alert nobody received.
+> **Delivering as of 2026-08-10, and proven rather than assumed.** Until that
+> date the sending domain was unverified, so every e-mail the shop had ever
+> attempted came back 403 — and the code reported success, because the Resend
+> SDK returns errors instead of throwing (B-30). A seeded review alert has since
+> been confirmed `delivered` end to end, and a refusal is now logged with the
+> provider's own message rather than mistaken for a delivery.
 
 | Event | Channel |
 |---|---|

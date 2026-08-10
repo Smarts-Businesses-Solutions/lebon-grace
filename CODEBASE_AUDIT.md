@@ -517,7 +517,9 @@ Verified by driving both through every branch against a local server: stale cont
 **Live reading at time of fix:** `shop.lebon-grace.com` serves `dpl=20260807141549` — i.e. production is still on the 2026-08-07 14:15 build and none of the 2026-08-08 commits are deployed.
 
 ### R-3 — Observability exists but is not alerting
-Sentry/GlitchTip is wired (`instrumentation.ts`, `sentry.*.config.ts`) and Umami covers analytics. No uptime monitoring was found — the outages above were noticed by a human looking at the site.
+Sentry/GlitchTip *appeared* to be wired (`instrumentation.ts`, `sentry.*.config.ts`) and Umami covers analytics. No uptime monitoring was found — the outages above were noticed by a human looking at the site.
+
+> **Correction, 2026-08-10.** "Wired" was wrong, and this audit repeated the belief rather than testing it. `instrumentation.ts` was at the repo root while the app uses `src/app`, so Next ignored it and `Sentry.init` never ran — **no server error had ever reached GlitchTip** (B-31). The file now lives at `src/instrumentation.ts`, the build fails if the compiled init is missing from the standalone output, and delivery is proven by counting envelopes rather than by reading config.
 
 ---
 
