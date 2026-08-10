@@ -222,5 +222,70 @@ export async function POST(request: NextRequest) {
     ).catch((err) => console.error("[operator-alert] failed:", err));
   }
 
+  /**
+   * A refund issued in the Stripe dashboard.
+   *
+   * Nothing handled this. `checkout.session.completed` was the ONLY event the
+   * webhook understood, so refunding a customer in Stripe left the shop with no
+   * idea it had happened: the order kept whatever status it had, the customer's
+   * tracker went on showing it progressing, and it stayed in the cutting queue —
+   * so the workshop could cut a puzzle for an order that had already been paid
+   * back. That is B-5's shape ("telling a refunded customer their order is on
+   * its way") one layer earlier, and it depended on the operator remembering to
+   * repeat the refund by hand in /admin.
+   *
+   * `refunded` was already a first-class status: it is in the CHECK constraint,
+   * it has an email template, and the tracker draws a terminal "Refund complete"
+   * card for it (B-19). Only the automatic route into it was missing.
+   *
+   * Partial refunds are treated as refunds too. Stripe sets `amount_refunded`
+   * below `amount` for a partial, but this shop sells single made-to-order
+   * pieces at one price — a partial refund here means a human decided something
+   * went wrong, and the customer should see that rather than a progress bar.
+   */
+  if (event.type === "charge.refunded") {
+    const charge = event.data.object as {
+      payment_intent?: string;
+      amount?: number;
+      amount_refunded?: number;
+    };
+    const pi = String(charge.payment_intent || "");
+    const order = pi ? await orderStore.getByPaymentIntent(pi) : null;
+
+    if (!order) {
+      // Loud, because the alternative is a refunded customer being told their
+      // order is on its way. A charge with no matching order is either a
+      // payment this shop did not create or an order whose payment_intent was
+      // never written.
+      console.error(
+        `[stripe-webhook] REFUND WITH NO MATCHING ORDER. payment_intent=${pi || "MISSING"}. ` +
+          `The customer has their money back and the shop does not know.`
+      );
+    } else if (order.status === "refunded") {
+      // Stripe retries, and a partial refund followed by the rest sends the
+      // event twice. Neither should re-send the email.
+      console.log(`[stripe-webhook] order ${order.id} already refunded, ignoring`);
+    } else {
+      await orderStore.update(String(order.id), { status: "refunded" });
+
+      sendOrderEmail(
+        {
+          id: String(order.id),
+          customer_name: order.customer_name ?? "Customer",
+          customer_email: order.customer_email ?? "",
+          customer_phone: order.customer_phone ?? "",
+          total: order.total,
+          subtotal: order.subtotal,
+          shipping: order.shipping ?? undefined,
+          deposit_amount: order.deposit_amount,
+          cod_amount: order.cod_amount,
+          status: "refunded",
+          delivery_method: order.delivery_method ?? "delivery",
+        },
+        "refunded"
+      ).catch((err) => console.error("Refund email failed:", err));
+    }
+  }
+
   return NextResponse.json({ received: true });
 }

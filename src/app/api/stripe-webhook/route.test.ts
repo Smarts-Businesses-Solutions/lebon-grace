@@ -26,9 +26,13 @@ const m = vi.hoisted(() => ({
   constructEvent: vi.fn(),
   listLineItems: vi.fn(async () => ({ data: [] as unknown[] })),
   getBySessionId: vi.fn(async (_id: string) => null as { id: string } | null),
+  getByPaymentIntent: vi.fn(async (_pi: string) => null as Record<string, unknown> | null),
+  updateOrder: vi.fn(async (_id: string, _u: Record<string, unknown>) => ({ id: "ord_1" })),
   insert: vi.fn(async (_order: Record<string, unknown>) => ({ id: "ord_1" })),
   insertMany: vi.fn(async (_rows: unknown[]) => undefined),
-  sendOrderEmail: vi.fn(async () => undefined),
+  // Params declared for the same reason as sendOperatorOrderAlert below: a bare
+  // vi.fn() infers an empty tuple, so mock.calls[0][1] is a COMPILE error.
+  sendOrderEmail: vi.fn(async (_order: Record<string, unknown>, _action?: string) => undefined),
   // Params declared: a bare vi.fn() infers an empty tuple, so mock.calls[0][0]
   // is a COMPILE error rather than a runtime one.
   sendOperatorOrderAlert: vi.fn(async (_order: Record<string, unknown>, _items?: unknown[]) => true),
@@ -43,7 +47,7 @@ vi.mock("@/lib/stripe", () => ({
   stripeMode: () => "test",
 }));
 vi.mock("@/lib/store", () => ({
-  orders: { getBySessionId: m.getBySessionId, insert: m.insert },
+  orders: { getBySessionId: m.getBySessionId, getByPaymentIntent: m.getByPaymentIntent, update: m.updateOrder, insert: m.insert },
   orderItems: { insertMany: m.insertMany },
 }));
 vi.mock("@/lib/email", () => ({ sendOrderEmail: m.sendOrderEmail, sendOperatorOrderAlert: m.sendOperatorOrderAlert }));
@@ -306,5 +310,99 @@ describe("POST /api/stripe-webhook — order contents", () => {
     constructEvent.mockReturnValue(completedEvent());
     await POST(post());
     expect(insert.mock.calls[0][0]).toMatchObject({ total: 15, deposit_amount: 15, cod_amount: 0 });
+  });
+});
+
+/**
+ * A refund in the Stripe dashboard has to reach the shop.
+ *
+ * `checkout.session.completed` was the ONLY event this webhook understood, so a
+ * refund left no trace: the order kept its status, the customer's tracker went
+ * on showing it progressing, and it stayed in the cutting queue — the workshop
+ * could cut a piece for an order that had already been paid back. It depended
+ * entirely on the operator remembering to repeat the refund by hand in /admin.
+ *
+ * Driven with synthetic signed events, so none of this touches Stripe. That is
+ * the whole reason it can be tested at all while the shop is on live keys.
+ */
+function refundedEvent(overrides: Record<string, unknown> = {}) {
+  return {
+    type: "charge.refunded",
+    data: {
+      object: {
+        id: "ch_test_1",
+        payment_intent: "pi_test_1",
+        amount: 1500,
+        amount_refunded: 1500,
+        ...overrides,
+      },
+    },
+  };
+}
+
+const REFUNDABLE = {
+  id: "ord_1", status: "processing", customer_name: "Amira",
+  customer_email: "buyer@example.com", customer_phone: "0501234567",
+  total: 15, subtotal: 15, shipping: 0, deposit_amount: 15, cod_amount: 0,
+  delivery_method: "pickup",
+};
+
+describe("POST /api/stripe-webhook — a refund reaches the order", () => {
+  beforeEach(() => {
+    m.getByPaymentIntent.mockResolvedValue(REFUNDABLE);
+    m.updateOrder.mockResolvedValue({ id: "ord_1" });
+  });
+
+  it("moves the order to refunded", async () => {
+    m.constructEvent.mockReturnValue(refundedEvent());
+    const res = await POST(post());
+    expect(res.status).toBe(200);
+    expect(m.getByPaymentIntent).toHaveBeenCalledWith("pi_test_1");
+    expect(m.updateOrder).toHaveBeenCalledWith("ord_1", { status: "refunded" });
+  });
+
+  it("tells the customer, using the refunded template", async () => {
+    // B-5: four statuses once fell through to "Order Confirmed! We're preparing
+    // your items now." Refunding someone and then saying that was the DEFAULT.
+    m.constructEvent.mockReturnValue(refundedEvent());
+    await POST(post());
+    expect(m.sendOrderEmail).toHaveBeenCalled();
+    expect(m.sendOrderEmail.mock.calls[0][1]).toBe("refunded");
+  });
+
+  it("treats a partial refund as a refund", async () => {
+    // One made-to-order piece at one price: a partial refund means a human
+    // decided something went wrong, and the customer should see that rather
+    // than a progress bar.
+    m.constructEvent.mockReturnValue(refundedEvent({ amount_refunded: 500 }));
+    await POST(post());
+    expect(m.updateOrder).toHaveBeenCalledWith("ord_1", { status: "refunded" });
+  });
+
+  it("is idempotent — Stripe retries, and a second partial arrives too", async () => {
+    m.getByPaymentIntent.mockResolvedValue({ ...REFUNDABLE, status: "refunded" });
+    m.constructEvent.mockReturnValue(refundedEvent());
+    const res = await POST(post());
+    expect(res.status).toBe(200);
+    expect(m.updateOrder, "must not re-write or re-email").not.toHaveBeenCalled();
+    expect(m.sendOrderEmail).not.toHaveBeenCalled();
+  });
+
+  it("still answers 200 when no order matches, rather than making Stripe retry forever", async () => {
+    m.getByPaymentIntent.mockResolvedValue(null);
+    m.constructEvent.mockReturnValue(refundedEvent());
+    const res = await POST(post());
+    expect(res.status).toBe(200);
+    expect(m.updateOrder).not.toHaveBeenCalled();
+  });
+
+  it("does not touch orders on an event type it does not handle", async () => {
+    // Precondition for the assertions above: the refund branch is selected by
+    // event TYPE, so an unrelated event must fall straight through.
+    m.constructEvent.mockReturnValue({ type: "payout.paid", data: { object: {} } });
+    const res = await POST(post());
+    expect(res.status).toBe(200);
+    expect(m.updateOrder).not.toHaveBeenCalled();
+    expect(m.getByPaymentIntent).not.toHaveBeenCalled();
   });
 });

@@ -221,6 +221,25 @@ export const orders = {
     return (data || []).filter((o) => phoneMatches(o.customer_phone || "", phone));
   },
 
+  /**
+   * The order a Stripe charge belongs to.
+   *
+   * `charge.refunded` carries `payment_intent`, and the webhook has always
+   * written `stripe_payment_intent` when the session completed — so a refund
+   * maps back to its order with no schema change and no call out to Stripe.
+   * The column was there and nothing read it.
+   */
+  async getByPaymentIntent(paymentIntent: string): Promise<OrderRow | null> {
+    if (!paymentIntent) return null;
+    const { data, error } = await db()
+      .from("orders")
+      .select("*")
+      .eq("stripe_payment_intent", paymentIntent)
+      .maybeSingle();
+    if (error) throw error;
+    return data;
+  },
+
   async getByTracking(id: string, phone: string): Promise<OrderRow | null> {
     const order = await this.getById(id);
     if (!order) return null;
