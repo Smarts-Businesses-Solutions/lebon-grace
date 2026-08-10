@@ -789,6 +789,23 @@ citation, confidently written down, sent two attempts in the wrong direction —
 which is L-22 again, this time in my own notes rather than someone else's
 comment.
 
+### Closed end to end, 2026-08-10
+
+The last link — production app to the real GlitchTip — was inferred rather than
+observed when this entry was first written, and inferences at untested seams are
+what this whole engagement kept tripping over. `SENTRY_DEBUG=1` now makes the app
+report it itself. Run against a throwaway container from the **deployed image**,
+with the real baked DSN, so production was never touched:
+
+```
+Sentry Logger [log]: Integration installed: CaptureConsole
+Sentry Logger [log]: SDK successfully initialized
+[sentry-transport] accepted, status=200
+```
+
+Console capture active, `register()` ran, and GlitchTip accepted the event. No
+dashboard login, nothing to eyeball, and repeatable by anyone with `docker logs`.
+
 ### Guard
 
 `scripts/seal-standalone.mjs` runs as part of `npm run build` and **fails** if
