@@ -18,7 +18,7 @@ Parked ideas live in [ENHANCEMENTS.md](ENHANCEMENTS.md) until they earn a slot.
 
 | # | Item | Notes |
 |---|---|---|
-| 4 | `middleware.ts` denying `/api/admin/*` and `/admin/*` by default | Removes "a new route is public until someone remembers" |
+| ~~4~~ | ~~`middleware.ts` denying by default~~ | **Done 2026-08-09** — `src/proxy.ts` (Next 16 renamed the convention). Denies any unlisted `/api/*` with a 404; a test fails the build if a route is added without being listed. |
 | 5 | Cut the container env surface 67 → 25 | Do it during the Coolify cut-over; 36 unread credentials incl. `GitHub_PAT_classic` |
 | 6 | Answer: is Lebon Grace a UAE-registered supplier? | One written answer unblocks A-23 / A-25 Tier 1 |
 | 7 | Seeded order fixture | Everything around order tracking is tested; the happy path is not |

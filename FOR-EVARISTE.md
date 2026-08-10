@@ -237,8 +237,11 @@ that pass for exactly that reason.
 
 ## 10. Pitfalls & How to Avoid Them
 
-- **Adding an API route is a security decision.** There is no `middleware.ts` —
-  a new file under `src/app/api/` is public on creation. This has already bitten:
+- **Adding an API route is a security decision** — and since 2026-08-09 the
+  default enforces it. `src/proxy.ts` answers **404** for any `/api/*` path not
+  listed in it, and `src/proxy.test.ts` fails the build if a route exists on
+  disk without an entry, so you find out before anyone else can reach it. Before
+  that, a new file under `src/app/api/` was public the moment it was created. This has already bitten:
   `/api/variants?pid=` called the CJ API on our key with no auth or rate limit.
   **Closed 2026-08-09** by deleting the passthrough rather than gating it: no
   product carries a `cjPid`, so it served nobody but an attacker, and the
@@ -335,7 +338,8 @@ breaking the shop. See `DEPLOYMENT-GUIDE.md`.
 ## 14. Roadmap
 
 **Small wins.** ~~Gate `/api/variants`~~ (done — the passthrough is deleted).
-Add a `middleware.ts` that denies
+~~Add a `middleware.ts` that denies~~ (done — `src/proxy.ts`; Next 16 renamed
+the convention). Formerly: deny
 `/api/admin/*` by default. Seed an order fixture so the happy path of tracking
 gets tested.
 

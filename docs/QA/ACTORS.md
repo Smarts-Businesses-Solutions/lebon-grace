@@ -37,23 +37,39 @@ stuffing surface. You cannot leak accounts you never created.
 The cost is that "proving who you are" has to happen some other way, which is
 what the six customer gates below are doing.
 
-### The enforcement half was never decided
+### The enforcement half was never decided — until 2026-08-09
 
-Two trust levels does **not** imply what this codebase actually does, which is
-re-decide authorisation in each route by hand. **There is no `middleware.ts` at
-all** — not at the repo root, not in `src/`. Of the 13 API routes, four
-reference `requireAdmin`; the rest are open by construction.
+Two trust levels does **not** imply what this codebase used to do, which was
+re-decide authorisation in each route by hand with **no middleware at all**. The
+default was open, and protection was a thing each new route had to remember.
+That was a fail-open posture, and it was not load-bearing for any benefit — it
+was simply the shape the code grew into.
 
-With two levels you could still fail *closed* in about three lines:
+**`src/proxy.ts` now fails closed.** Any `/api/*` path not listed in it answers
+**404**, so a route added without a decision about its exposure is unreachable
+rather than open. `src/proxy.test.ts` goes further and fails the build if a
+route exists on disk without an entry — the author finds out, rather than a
+stranger.
+
+*(Next 16 renamed the `middleware` file convention to `proxy`; same feature.)*
+
+**The obvious implementation is a trap, and this document used to recommend it.**
+It previously suggested:
 
 ```ts
-// middleware.ts — deny by default, allow by exception
 export const config = { matcher: ["/api/admin/:path*", "/admin/:path*"] };
 ```
 
-Instead the default is open, and protection is a thing each new route has to
-remember. That is a fail-open posture, and it is not load-bearing for any
-benefit — it is simply the shape the code grew into.
+A prefix rule over `/api/admin/*` locks everybody out of the shop permanently,
+because **`/api/admin/login` is how you get a session in the first place**.
+Prefixes cannot express "all of these except that one"; an explicit list can,
+which is why `proxy.ts` enumerates exact paths.
+
+What it deliberately does **not** do is authenticate. Handlers keep their own
+`requireAdmin()`, which verifies the signed session properly. Two authorities
+that can disagree is worse than one, and the one in front is the one nobody
+remembers to update — so the cookie check in the proxy is presence-only, and is
+defence in depth rather than the gate.
 
 **It had already produced one hole. Closed 2026-08-09.** `GET /api/variants?pid=…`
 had no auth and no rate limit, and reached `fetchCJVariants()`, which called the
@@ -145,7 +161,9 @@ the first hire. Note the pairing: order-status changes send email to customers,
 so a shared credential can act, irreversibly and in the shop's name, with no
 attribution.
 
-**Adding a route is a security decision.** Because there is no middleware, a new
+**Adding a route is a security decision** — now enforced by `src/proxy.ts`,
+which 404s any unlisted `/api/*` path. Before 2026-08-09 there was no such
+default, and a new
 file under `src/app/api/` is public the moment it exists. Anyone adding one
 should assume it is exposed and write the gate deliberately, and the reviewer
 should check for it — that check cannot be delegated to the framework as things

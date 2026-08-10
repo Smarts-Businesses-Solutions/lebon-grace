@@ -334,6 +334,54 @@ real refund arriving over the network. Those need test-mode credentials; they
 are worth doing once before the shop takes real volume, and they verify the
 wiring between Stripe and this endpoint rather than the endpoint itself.
 
+## D-016 — Deny-by-default for `/api/*`, by explicit list
+
+**Context.** There was no middleware, so **a new file under `src/app/api/` was
+public the moment it was created**. That produced B-25 — `/api/variants` as an
+unauthenticated, unthrottled proxy onto a metered paid API on our own key — and
+the hazard was written up in FOR-EVARISTE *and* ACTORS.md as the worked example
+of itself while staying open for months.
+
+**Decision.** `src/proxy.ts` answers **404** for any `/api/*` path not listed in
+it. Next 16 renamed the `middleware` convention to `proxy`; the deprecation
+warning in the build is what surfaced that, and the rename was taken rather than
+shipping a deprecated convention.
+
+**Why an explicit list and not a prefix rule.** ACTORS.md previously recommended
+`matcher: ["/api/admin/:path*"]`. That locks everybody out of the shop
+permanently, because `/api/admin/login` is how a session is obtained in the
+first place. Prefixes cannot say "all of these except that one". Every entry is
+an exact path, which is safe here because no route under `/api/` has a dynamic
+segment.
+
+**Why it does not authenticate.** Handlers keep `requireAdmin()`. Duplicating
+session verification in the proxy would create two authorities that can
+disagree, and the one in front is the one nobody remembers to update. The cookie
+check for admin routes is **presence-only** and documented as defence in depth,
+not as the gate.
+
+**Why 404 rather than 401** for an unlisted path: a caller should not learn that
+a route exists from the shape of its refusal.
+
+**What actually enforces the property.** The proxy makes an unlisted route
+*unreachable*; `src/proxy.test.ts` makes it *unmergeable*, by walking
+`src/app/api/` and failing if any `route.ts` has no entry. Verified by adding a
+throwaway route and watching the suite fail, naming the file and the fix.
+
+**Alternatives considered.**
+
+| Option | Verdict |
+|---|---|
+| Prefix rule on `/api/admin/*` | Rejected — locks out `/api/admin/login`, i.e. everyone, forever |
+| Full auth in the proxy | Rejected — two authorities, and the Edge runtime cannot reach the session store the handlers use |
+| Keep documenting the hazard | Rejected — that was the status quo, in two documents, and it did not work |
+| **Explicit allowlist + a test against the filesystem** | ✅ Picked |
+
+**Blast radius.** `matcher: "/api/:path*"` only, so pages are untouched and the
+worst case is an API route answering 404 until it is listed. Verified with the
+full Playwright suite (216 passing) driving the real server through it,
+including checkout and the Stripe webhook.
+
 ## Index
 
 | ID | Decision | Status |
@@ -353,3 +401,4 @@ wiring between Stripe and this endpoint rather than the endpoint itself.
 | D-013 | Keep GitHub; there is no CI | Superseded in part by D-014 |
 | D-014 | CI on Forgejo via a pull mirror | Active |
 | D-015 | Synthetic Stripe events; never touch Stripe | Active |
+| D-016 | Deny-by-default `/api/*` via src/proxy.ts | Active |
