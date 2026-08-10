@@ -64,7 +64,41 @@ problems=()
 note() { problems+=("$1"); }
 
 sha40() { grep -oE '"(sha|id)" *: *"[0-9a-f]{40}"' | head -1 | grep -oE '[0-9a-f]{40}'; }
-db() { docker exec -i -u git "$FORGEJO_CTR" sqlite3 /data/forgejo/forgejo.db "$1" 2>/dev/null; }
+
+# Sentinel emitted by db() when a query could not be RUN, as opposed to
+# returning no rows.
+#
+# It travels on STDOUT deliberately. db() is always called as `$(db ...)`, which
+# is a SUBSHELL, so a variable set inside it never reaches the caller — the
+# first version of this fix used a global flag and was therefore dead code the
+# moment it was written. Caught by testing it, not by reading it.
+DBFAIL="__DBFAIL__"
+
+# Query Forgejo's sqlite, retrying a locked database.
+#
+# THIS FUNCTION USED TO LIE. It swallowed every failure into an empty string,
+# and every caller read empty as "the thing does not exist" — so a transient
+# `database is locked` made this script announce "no Forgejo runner is
+# registered at all", about a runner that was up and had been for two days.
+# That happened for real on 2026-08-10 while a deploy and a CI job were running
+# together, and a monitor that cries wolf is one people learn to ignore (L-5).
+#
+# It is also, precisely, the trap this whole engagement kept finding: an
+# absence assertion with no proof the check could have succeeded (L-2) — here,
+# inside the monitor written to enforce L-2.
+#
+# So: retry (locks are transient by nature), and if it still cannot be read,
+# say THAT rather than inventing a cause.
+db() {
+  local out i
+  for i in 1 2 3; do
+    if out=$(docker exec -i -u git "$FORGEJO_CTR" sqlite3 /data/forgejo/forgejo.db "$1" 2>/dev/null); then
+      printf '%s' "$out"; return 0
+    fi
+    sleep 2
+  done
+  printf '%s' "$DBFAIL"; return 1
+}
 
 TOKEN=""
 [ -r "$FORGEJO_TOKEN_FILE" ] && TOKEN=$(cat "$FORGEJO_TOKEN_FILE")
@@ -82,20 +116,35 @@ if [ "$ver" != "200" ]; then
 fi
 
 repo_id=$(db "SELECT id FROM repository WHERE owner_name||'/'||name = '${FORGEJO_REPO}';")
-if [ -z "$repo_id" ]; then
+if [ "$repo_id" = "$DBFAIL" ]; then
+  # Honest: we do not know. Distinct from "the repo is missing", which is what
+  # this used to claim, and distinct from "everything is fine", which is the
+  # other way to get it wrong.
+  note "could not read Forgejo's database after 3 attempts — CI state UNVERIFIED this run (NOT a claim that CI is broken)"
+  repo_id=""
+elif [ -z "$repo_id" ]; then
   note "repo ${FORGEJO_REPO} does not exist in Forgejo — this is exactly how ci.yml went 5 months without executing"
 else
   runs=$(db "SELECT count(*) FROM action_run WHERE repo_id=${repo_id};")
-  [ "${runs:-0}" -gt 0 ] || \
-    note "repo ${FORGEJO_REPO} exists but has NEVER run the workflow — a gate that has never executed is decoration"
+  if [ "$runs" = "$DBFAIL" ]; then
+    note "could not count workflow runs — CI history UNVERIFIED this run"
+    runs=""
+  else
+    [ "${runs:-0}" -gt 0 ] || \
+      note "repo ${FORGEJO_REPO} exists but has NEVER run the workflow — a gate that has never executed is decoration"
+  fi
 
   # ── 1. a runner is online ─────────────────────────────────────────────────
   # Jobs queue silently forever when no runner advertises the label they ask
   # for. ci.yml asks for `docker`; nothing fails if nothing is listening.
   idle=$(db "SELECT CAST(strftime('%s','now') - MAX(last_online) AS INT) FROM action_runner;")
-  if [ -z "$idle" ]; then
+  if [ "$idle" = "$DBFAIL" ]; then
+    note "could not read the runner table — runner state UNVERIFIED this run"
+  elif [ -z "$idle" ]; then
+    # Genuinely no rows, and the query DID run — so this really is an empty
+    # action_runner table rather than a failed read.
     note "no Forgejo runner is registered at all — every job would queue forever"
-  elif [ "$idle" -gt 600 ]; then
+  elif [ "$idle" -gt 600 ] 2>/dev/null; then
     note "no runner has checked in for ${idle}s — jobs will queue instead of failing"
   fi
 
@@ -105,8 +154,14 @@ else
   # duration is not going to finish on its own, and will never turn red.
   if [ "$MAX_STUCK_MIN" -ge 0 ]; then
     stuck=$(db "SELECT count(*) FROM action_run WHERE repo_id=${repo_id} AND status IN (5,6,7) AND created < strftime('%s','now') - ${MAX_STUCK_MIN}*60;")
-    [ "${stuck:-0}" -eq 0 ] || \
-      note "${stuck} CI run(s) stuck waiting/running for over ${MAX_STUCK_MIN}m — they will never go red by themselves"
+    # A failed read must not read as "nothing is stuck" — that is the same
+    # empty-means-fine mistake, in the other direction.
+    if [ "$stuck" = "$DBFAIL" ]; then
+      note "could not check for stuck runs — UNVERIFIED this run"
+    else
+      [ "${stuck:-0}" -eq 0 ] || \
+        note "${stuck} CI run(s) stuck waiting/running for over ${MAX_STUCK_MIN}m — they will never go red by themselves"
+    fi
   fi
 fi
 

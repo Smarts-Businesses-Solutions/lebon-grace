@@ -119,6 +119,34 @@ stale path reported OK, and the script was right — the commit was 40 minutes o
 against a 45-minute threshold. The test was wrong, not the check. Re-run at a
 1-minute threshold it failed correctly, and the real repo still passed.
 
+### It cried wolf once, on 2026-08-10
+
+`ci-freshness` reported **"no Forgejo runner is registered at all"** while the
+runner was up and had been for two days. The runner was fine; the monitor was
+wrong.
+
+`db()` swallowed every failure into an empty string, and every caller read empty
+as *the thing does not exist*. A transient `database is locked` — the box was
+running a deploy and a CI job at once — therefore became a confident claim that
+CI was dead. That is an absence assertion with no proof the check could have
+succeeded (L-2), inside the monitor written to enforce L-2.
+
+Now `db()` retries three times and, if it still cannot read, emits a sentinel so
+callers say **UNVERIFIED** instead of inventing a cause. The distinction matters
+because a monitor that cries wolf is one people learn to ignore (L-5).
+
+**The first attempt at this fix was dead code.** It set a global flag inside
+`db()` — which is always called as `$(db ...)`, a subshell, so the assignment
+never reached the caller. It was caught by running the script, not by reading
+it. The sentinel travels on stdout precisely because stdout crosses a subshell
+and a variable does not.
+
+| Scenario | Result |
+|---|---|
+| Unreadable database | exit 1 — "CI state UNVERIFIED this run (NOT a claim that CI is broken)" |
+| Repo genuinely absent | exit 1 — still detected, not masked by the new branch |
+| Healthy | exit 0 |
+
 **Runner-offline is the one path not forced**, deliberately: the act_runner is
 shared with seven other projects, and stopping it to prove a message would take
 their CI down too.
