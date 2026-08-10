@@ -1,6 +1,7 @@
 import { Resend } from "resend";
 import { getAppUrl } from "./app-url";
 import { CONTACT } from "./contact";
+import { generateWhatsAppLink } from "./whatsapp";
 
 /**
  * Escape for interpolation into an HTML email body.
@@ -369,12 +370,56 @@ export async function sendOperatorOrderAlert(
         .join("")
     : "<li><strong>No line items recorded</strong> — check the Stripe session before cutting anything.</li>";
 
+  /*
+   * A way to actually reach the customer.
+   *
+   * WhatsApp is this shop's normal channel, but customer WhatsApp messages do
+   * not send: WHATSAPP_ACCESS_TOKEN and WHATSAPP_PHONE_NUMBER_ID are unset, and
+   * getting them needs a Meta Business account. `notifyWhatsApp()` already
+   * copes by returning a manual wa.me link — and then console.log-ing it, while
+   * both callers discard the return value. So the link went to a server console
+   * nobody reads: the customer got no message and the operator was never told.
+   * That is B-20's shape, in the alert written to fix B-20.
+   *
+   * The link is built here rather than passed in, because generateWhatsAppLink
+   * is pure — no env, no await — so this needs no change to the fire-and-forget
+   * timing at either call site.
+   *
+   * The "not configured" line is driven by the environment, so it stops nagging
+   * the day the credentials are added instead of becoming furniture.
+   */
+  const waConfigured = Boolean(
+    process.env.WHATSAPP_ACCESS_TOKEN && process.env.WHATSAPP_PHONE_NUMBER_ID
+  );
+  const waLink = order.customer_phone
+    ? generateWhatsAppLink({
+        id: String(order.id),
+        customer_name: order.customer_name || "Customer",
+        customer_phone: order.customer_phone,
+        status: "confirmation",
+        deposit_amount: order.deposit_amount,
+        cod_amount: order.cod_amount,
+        delivery_method: order.delivery_method === "pickup" ? "pickup" : "delivery",
+        total: order.total,
+      })
+    : null;
+
   const html = `
     <p><strong>New order #${esc(short)}</strong> — AED ${order.total}</p>
     <ul>${lines}</ul>
     <p>${esc(order.customer_name || "")}${order.customer_phone ? ` · ${esc(order.customer_phone)}` : ""}</p>
     <p>${order.delivery_method === "delivery" ? "Delivery" : "Collection"} · made to order, 2 to 3 working days</p>
     ${engraved.length ? "<p><strong>Check the spelling before cutting.</strong></p>" : ""}
+    ${
+      waLink
+        ? `<p><a href="${waLink}" style="display:inline-block;padding:10px 18px;background:#25D366;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;">Message ${esc(
+            order.customer_name || "the customer"
+          )} on WhatsApp</a></p>` +
+          (waConfigured
+            ? ""
+            : `<p style="font-size:12px;color:#666;">Automatic WhatsApp is <strong>not configured</strong>, so nothing was sent to the customer — message them yourself with the button above. To turn it on, set <code>WHATSAPP_ACCESS_TOKEN</code> and <code>WHATSAPP_PHONE_NUMBER_ID</code>.</p>`)
+        : `<p style="font-size:12px;color:#666;">No phone number on this order, so there is no WhatsApp link.</p>`
+    }
   `;
 
   try {

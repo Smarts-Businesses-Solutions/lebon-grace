@@ -18,7 +18,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const send = vi.hoisted(() => vi.fn(async (_p: { subject: string; html: string; to: string[] }) => ({ id: "e1" })));
 vi.mock("resend", () => ({ Resend: class { emails = { send }; } }));
 
-import { sendOrderEmail, isEmailable } from "./email";
+import { sendOrderEmail, isEmailable, sendOperatorOrderAlert } from "./email";
 
 const order = (over: Record<string, unknown> = {}) => ({
   id: "3f1c2b8a-9d4e-4f7a-8b21-0c5d6e7f8a9b",
@@ -112,5 +112,60 @@ describe("templates still say the right thing", () => {
   it("only asks for cash on delivery when cash is actually due", async () => {
     await sendOrderEmail(order({ cod_amount: 0 }), "out_for_delivery");
     expect(sent().html).not.toContain("ready for the courier");
+  });
+});
+
+/**
+ * The operator alert has to carry a way to actually reach the customer.
+ *
+ * WhatsApp is this shop's normal channel — the site has a floating WhatsApp
+ * button and the contact page leads with it — but customer WhatsApp messages
+ * do not send: WHATSAPP_ACCESS_TOKEN and WHATSAPP_PHONE_NUMBER_ID are not set,
+ * and obtaining them needs a Meta Business account.
+ *
+ * `notifyWhatsApp()` already handles that by returning a manual `wa.me` link…
+ * and then `console.log`ging it. Both callers discard the return value, so the
+ * link goes to a server console nobody reads. The customer gets no message and
+ * the operator is never told — which is B-20's shape exactly, the defect this
+ * very alert was written to fix.
+ *
+ * So the alert carries the link. Until the API is configured the operator taps
+ * it and messages the customer in one action; once it IS configured the alert
+ * says so and the link is merely a convenience.
+ */
+describe("the operator alert can reach the customer", () => {
+  const OPERATOR_ORDER = { ...order({ status: "confirmation" }), customer_phone: "0501234567" };
+
+  beforeEach(() => {
+    delete process.env.WHATSAPP_ACCESS_TOKEN;
+    delete process.env.WHATSAPP_PHONE_NUMBER_ID;
+  });
+
+  it("includes a wa.me link addressed to the customer's number", async () => {
+    await sendOperatorOrderAlert(OPERATOR_ORDER, []);
+    const { html } = sent();
+    // 0501234567 normalises to 971501234567 — the same rule the tracker uses.
+    expect(html).toContain("https://wa.me/971501234567");
+  });
+
+  it("says plainly that automatic WhatsApp is NOT configured", async () => {
+    await sendOperatorOrderAlert(OPERATOR_ORDER, []);
+    expect(sent().html).toMatch(/not configured|message them yourself/i);
+  });
+
+  it("stops saying that once the API credentials exist", async () => {
+    // Precondition for the assertion above: the wording is driven by the
+    // environment, not hardcoded — otherwise it would still nag after setup.
+    process.env.WHATSAPP_ACCESS_TOKEN = "token";
+    process.env.WHATSAPP_PHONE_NUMBER_ID = "12345";
+    await sendOperatorOrderAlert(OPERATOR_ORDER, []);
+    expect(sent().html).not.toMatch(/not configured/i);
+  });
+
+  it("still sends the alert when the customer left no phone", async () => {
+    // No link is possible, but the order alert itself must not be lost.
+    await sendOperatorOrderAlert({ ...OPERATOR_ORDER, customer_phone: "" }, []);
+    expect(send).toHaveBeenCalled();
+    expect(sent().html).not.toContain("wa.me/971");
   });
 });

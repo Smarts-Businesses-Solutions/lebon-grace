@@ -102,3 +102,39 @@ Two traps when checking this: dumps are named `<ref>.dump` rather than by
 project, so searching for "lebon" finds nothing either way; and `pg_restore` is
 not installed on the host, so inspecting a dump from there silently reports zero
 tables. Verify inside the db container.
+
+## WhatsApp to customers — not configured, and credentials alone will not finish it
+
+`WHATSAPP_ACCESS_TOKEN` and `WHATSAPP_PHONE_NUMBER_ID` are **unset**, so
+`sendWhatsAppMessage()` returns false and no customer WhatsApp is ever sent.
+(`CONTACT_WHATSAPP` is a different thing — the shop's own number for `wa.me`
+links on the site.)
+
+**The trap: obtaining credentials is necessary but not sufficient.**
+`src/lib/whatsapp.ts` sends `type: "text"` — a *free-form* message. Meta only
+delivers free-form messages inside a **24-hour customer service window** that the
+customer opens by messaging or calling the business first. An order confirmation
+is **business-initiated**, so for most customers no window is open and the send
+is rejected. Business-initiated messages require a **pre-approved template**
+(`type: "template"`).
+
+So enabling this is three pieces of work, not one:
+
+1. **Meta onboarding** — a Business account, a WhatsApp Business Platform app, and
+   a phone number not already registered to the consumer WhatsApp app. Take the
+   **Phone Number ID** → `WHATSAPP_PHONE_NUMBER_ID`, and a permanent token from a
+   System User → `WHATSAPP_ACCESS_TOKEN`.
+2. **Message templates**, submitted to Meta for approval — utility category for
+   order confirmed / shipped / out for delivery / delivered. Approval is not
+   instant and templates can be rejected.
+3. **A code change** in `sendWhatsAppMessage()` to send `type: "template"` with
+   the template name and parameters, keeping `type: "text"` only for replies
+   inside an open window.
+
+**Until then, the operator alert carries the link.** `notifyWhatsApp()` already
+produced a manual `wa.me` link and then `console.log`ged it, while both callers
+discarded the return value — so it reached a server console nobody reads: the
+customer got no message and the operator was never told. As of 2026-08-10 the
+new-order alert email contains a **"Message the customer on WhatsApp"** button
+plus a line saying automatic sending is off. That line is driven by the
+environment, so it stops appearing the day the credentials are added.
