@@ -406,3 +406,52 @@ describe("POST /api/stripe-webhook — a refund reaches the order", () => {
     expect(m.getByPaymentIntent).not.toHaveBeenCalled();
   });
 });
+
+/**
+ * The events this endpoint deliberately does NOT act on.
+ *
+ * "No handler" and "we decided not to handle it" look identical in code, so the
+ * decision is pinned here. Each of these was checked against how the shop is
+ * wired rather than waved away:
+ *
+ *   checkout.session.expired  — the order row is created only in the completed
+ *     branch, so an abandoned checkout left no record to update. Cart recovery
+ *     is driven from the browser, not from Stripe.
+ *   payment_intent.canceled   — `mode: "payment"` with no capture_method means
+ *     automatic capture, so a cancelled PI never succeeded and has no order.
+ *   payout.*                  — Stripe to bank. Says nothing about an order.
+ *
+ * If any of those assumptions changes — manual capture especially — these tests
+ * still pass, which is why the route comment names the CAUSE. The value here is
+ * narrower and real: none of them may quietly mutate an order today.
+ */
+describe("POST /api/stripe-webhook — events it deliberately ignores", () => {
+  for (const type of [
+    "checkout.session.expired",
+    "payment_intent.canceled",
+    "payout.paid",
+    "payout.failed",
+    "charge.dispute.created",
+    "invoice.paid",
+  ]) {
+    it(`${type} touches no order and still answers 200`, async () => {
+      m.constructEvent.mockReturnValue({ type, data: { object: { payment_intent: "pi_test_1" } } });
+      const res = await POST(post());
+      // 200 on purpose: a non-2xx makes Stripe retry an event forever.
+      expect(res.status).toBe(200);
+      expect(m.updateOrder).not.toHaveBeenCalled();
+      expect(m.insert).not.toHaveBeenCalled();
+      expect(m.sendOrderEmail).not.toHaveBeenCalled();
+    });
+  }
+
+  it("PRECONDITION: a handled event on the same harness DOES act", async () => {
+    // Without this the whole block above passes on a webhook that ignores
+    // everything, including the two events that matter (L-2).
+    m.getByPaymentIntent.mockResolvedValue(REFUNDABLE);
+    m.updateOrder.mockResolvedValue({ id: "ord_1" });
+    m.constructEvent.mockReturnValue(refundedEvent());
+    await POST(post());
+    expect(m.updateOrder).toHaveBeenCalledWith("ord_1", { status: "refunded" });
+  });
+});

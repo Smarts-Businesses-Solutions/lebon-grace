@@ -292,6 +292,48 @@ what a healthy pipeline looks like too.
 [gitea#32412]: https://github.com/go-gitea/gitea/issues/32412
 [forgejo#4416]: https://codeberg.org/forgejo/forgejo/issues/4416
 
+## D-015 — Test the payment path with synthetic signed events; do not touch Stripe
+
+**Context.** The operator walkthrough called for end-to-end Stripe testing —
+payments, payouts, refunds, cancellations. This shop runs on **live keys**, and
+a real `cs_live_` Checkout Session was already created by accident earlier in
+this engagement while testing a server-side guard.
+
+**Decision.** Exercise the webhook by mocking `constructEvent` and feeding it
+synthetic events. Nothing in the test suite reaches Stripe, in any mode.
+
+**Why this is not a compromise.** The webhook's whole job is to react to events.
+Mocking the signature-verification boundary and driving the handler directly
+tests *everything the shop actually owns*: which events are acted on, the order
+written, idempotency against retries, the emails sent, and the refusal of an
+unsigned request. What it cannot test is Stripe's own behaviour — which is not
+this project's to verify.
+
+It also found a real defect that way: **B-28**, a refund in the Stripe dashboard
+never reaching the shop.
+
+**What was checked, and deliberately not built.** Three event families looked
+like gaps and are not, verified against how the shop is wired rather than
+assumed:
+
+| Event | Why no handler |
+|---|---|
+| `checkout.session.expired` | The order row is created **only** in the completed branch, so an abandoned checkout left nothing to update. Cart recovery is driven from the browser via `CartRecoveryBanner`, not from Stripe. |
+| `payment_intent.canceled` | `mode: "payment"` with no `capture_method` means automatic capture, so a cancelled PaymentIntent never succeeded and has no order. **If manual capture is ever introduced this stops being true** — the route comment names that cause, not the effect. |
+| `payout.*` | Stripe moving money to a bank. Says nothing about any order, and an order's state must never depend on it. |
+
+So the only order-affecting events are `checkout.session.completed` and
+`charge.refunded`, and both are handled. "No handler" and "we decided not to
+handle it" look identical in code, so the decision is pinned by tests asserting
+each ignored event mutates nothing — with a precondition test proving the same
+harness *does* act on a handled event, so the block cannot pass on a webhook
+that ignores everything.
+
+**What this does not cover.** A genuine payment through Stripe Checkout, and a
+real refund arriving over the network. Those need test-mode credentials; they
+are worth doing once before the shop takes real volume, and they verify the
+wiring between Stripe and this endpoint rather than the endpoint itself.
+
 ## Index
 
 | ID | Decision | Status |
@@ -310,3 +352,4 @@ what a healthy pipeline looks like too.
 | D-012 | Do not copy env vars forward | In flight |
 | D-013 | Keep GitHub; there is no CI | Superseded in part by D-014 |
 | D-014 | CI on Forgejo via a pull mirror | Active |
+| D-015 | Synthetic Stripe events; never touch Stripe | Active |

@@ -287,5 +287,33 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  /**
+   * EVENTS THIS WEBHOOK DELIBERATELY IGNORES.
+   *
+   * Written down because "no handler" and "we decided not to handle it" look
+   * identical in code, and the next person to read this should not have to
+   * re-derive it. Checked 2026-08-09 against how this shop is actually wired.
+   *
+   * `checkout.session.expired` — nothing to act on. The order row is created
+   *   ONLY in the completed branch above, so an abandoned checkout has left no
+   *   record to update. Cart recovery does not need it either: it is driven from
+   *   the browser by CartRecoveryBanner, from the cart in localStorage, not from
+   *   anything Stripe knows.
+   *
+   * `payment_intent.canceled` — cannot apply to an order here. The session uses
+   *   `mode: "payment"` with no `capture_method`, so capture is automatic; a
+   *   PaymentIntent that gets cancelled is one that never succeeded, and no
+   *   order exists for it. If manual capture is ever introduced, this stops
+   *   being true and an order COULD be left stranded — that is the moment to
+   *   revisit, and the reason this note names the cause rather than the effect.
+   *
+   * `payout.*` — Stripe moving money to the bank. Says nothing about any order,
+   *   and an order's state must never depend on it.
+   *
+   * Anything unrecognised falls through to the 200 below on purpose. A non-2xx
+   * would make Stripe retry an event this endpoint is never going to do
+   * anything with.
+   */
+
   return NextResponse.json({ received: true });
 }
