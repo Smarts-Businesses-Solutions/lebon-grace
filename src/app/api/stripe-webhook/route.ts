@@ -2,8 +2,59 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { stripe, stripeMode } from "@/lib/stripe";
 import { orders as orderStore, orderItems } from "@/lib/store";
-import { sendOrderEmail, sendOperatorOrderAlert } from "@/lib/email";
+import { sendOrderEmail, sendOperatorOrderAlert, sendOperatorNotice, escapeHtml } from "@/lib/email";
 import { notifyWhatsApp } from "@/lib/whatsapp";
+
+/*
+ * `.catch` on top of a function documented never to throw, on purpose.
+ *
+ * `void promise` attaches no rejection handler, and what happens next depends
+ * on the environment — which is the problem. Sentry's OnUnhandledRejection
+ * integration defaults to `mode: "warn"` and installs a
+ * `process.on("unhandledRejection")` handler, and any such handler suppresses
+ * Node's own behaviour. But Sentry here is `enabled: NODE_ENV === "production"`,
+ * so in dev and test nothing is attached and Node's default applies: the
+ * process terminates.
+ *
+ * So the failure mode is the worst kind — it does not reproduce where you would
+ * see it. sendOperatorNotice does catch everything today, but the whole point
+ * of these call sites is that they can never take down a Stripe webhook, and
+ * that must not rest on a contract two files away staying true through later
+ * edits. The cost is four characters.
+ */
+function notifyOperator(subject: string, html: string): void {
+  sendOperatorNotice(subject, html).catch((err) =>
+    console.error("[operator-notice] unexpected throw:", err)
+  );
+}
+
+/**
+ * A paid order the workshop cannot make.
+ *
+ * The console.error beside each call site used to be the whole response, on the
+ * belief — written in a comment right here — that "console.error reaches
+ * GlitchTip". It did not: `captureConsoleIntegration` is opt-in and had never
+ * been configured, so every one of these was a breadcrumb attached to some
+ * later event, and B-18 reported to nobody at all. That is now configured in
+ * sentry.server.config.ts, but a GlitchTip issue is still a channel the
+ * operator has to remember to open. Money has changed hands and a customer is
+ * waiting, so this also goes to the address that gets read.
+ *
+ * Fire-and-forget on purpose: `sendOperatorNotice` resolves false rather than
+ * throwing, and awaiting it would put e-mail latency inside a Stripe webhook
+ * whose slow reply is a retry — and a retry hits the idempotency guard, so the
+ * SECOND delivery would do nothing at all.
+ */
+function alertNoLineItems(orderId: string, sessionId: string, why: string): void {
+  notifyOperator(
+    `Paid order ${orderId} has NO LINE ITEMS`,
+    `<p><strong>Order ${orderId} has been paid and there is nothing to cut.</strong></p>` +
+      `<p>${escapeHtml(why)}.</p>` +
+      `<p>Stripe session <code>${escapeHtml(sessionId)}</code>. Open it, read the line items, and add the ` +
+      `pieces to the order by hand — the workshop cannot see this order otherwise, and the ` +
+      `customer is already waiting.</p>`
+  );
+}
 
 export async function POST(request: NextRequest) {
   const body = await request.text();
@@ -172,16 +223,22 @@ export async function POST(request: NextRequest) {
         // carries a real order sitting in the cutting queue with zero items as
         // a result. Same family as B-7: the workshop cannot make what it
         // cannot see, and nobody finds out until a customer asks where their
-        // puzzle is. console.error so it reaches GlitchTip, not console.log.
+        // puzzle is.
         console.error(
           `[stripe-webhook] order ${orderId} has NO LINE ITEMS — paid but nothing to cut. ` +
             `session=${session.id}. Check the Stripe session's line items and add the pieces by hand.`
         );
+        alertNoLineItems(orderId, session.id, "the session came back with an empty item list");
       }
     } catch (err) {
       // Also names the order: "Line items fetch failed" alone left no way to
       // find WHICH order needs repairing.
-      console.error(`[stripe-webhook] order ${orderId} has NO LINE ITEMS — fetch failed:`, err);
+      console.error(`[stripe-webhook] order ${orderId} has NO ITEMS SAVED — read or write failed:`, err);
+      // The try above spans BOTH listLineItems and insertMany, so this fires
+      // when the items could not be read AND when they were read but not
+      // saved. The alert must not assert which — either way the order has no
+      // items in the database and a human has to put them there.
+      alertNoLineItems(orderId, session.id, `the items could not be read from Stripe or written to the database: ${String(err)}`);
     }
 
     // ─── Send notifications (non-blocking, but logged) ───
@@ -261,6 +318,18 @@ export async function POST(request: NextRequest) {
         `[stripe-webhook] REFUND WITH NO MATCHING ORDER. payment_intent=${pi || "MISSING"}. ` +
           `The customer has their money back and the shop does not know.`
       );
+      // No order id to look up, no customer to name, and no status that will
+      // ever move — so unlike every other branch here, nothing in the shop will
+      // later hint that this happened. It has to be pushed, not left to be
+      // found.
+      notifyOperator(
+        `Refund with NO MATCHING ORDER — payment_intent ${pi || "MISSING"}`,
+        `<p><strong>A refund was issued for a payment this shop has no order for.</strong></p>` +
+          `<p>payment_intent <code>${escapeHtml(pi || "MISSING")}</code>.</p>` +
+          `<p>The customer has their money back and the shop does not know who they are. ` +
+          `Open this payment in Stripe: either it belongs to a different account, or an ` +
+          `order was created without its payment_intent being written.</p>`
+      );
     } else if (order.status === "refunded") {
       // Stripe retries, and a partial refund followed by the rest sends the
       // event twice. Neither should re-send the email.
@@ -284,6 +353,28 @@ export async function POST(request: NextRequest) {
         },
         "refunded"
       ).catch((err) => console.error("Refund email failed:", err));
+
+      /*
+       * The operator was the one person a refund did not reach.
+       *
+       * The customer got an e-mail and the order moved to "refunded", and that
+       * was the whole of it. Meanwhile the money had left the account and the
+       * piece may be half-cut on the bench — refunds are the one event where
+       * silence costs both cash and material. Placed AFTER the status update so
+       * the repeat-event guard above suppresses this too: a partial refund
+       * followed by the rest arrives twice, and an alert that fires twice for
+       * one refund teaches the operator to skim past it (L-5).
+       */
+      const refunded = Number(charge.amount_refunded ?? 0) / 100;
+      const charged = Number(charge.amount ?? 0) / 100;
+      notifyOperator(
+        `Refund on order ${order.id} — AED ${refunded.toFixed(2)}`,
+        `<p><strong>Order ${order.id} has been refunded.</strong></p>` +
+          `<p>AED ${refunded.toFixed(2)} returned of AED ${charged.toFixed(2)} charged` +
+          `${refunded < charged ? " — this is a PARTIAL refund" : ""}.</p>` +
+          `<p>Customer: ${escapeHtml(String(order.customer_name ?? "unknown"))} (${escapeHtml(String(order.customer_email ?? "no email"))}).</p>` +
+          `<p>If this order is already cut or in progress, stop work on it.</p>`
+      );
     }
   }
 

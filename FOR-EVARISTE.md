@@ -199,11 +199,11 @@ customer's timeline lit no step, and the order appeared in no column of the
 queue. Found while writing a `CHECK` constraint and enumerating the real values.
 Prevention: the constraint now rejects it.
 
-### What the 2026-08-09 role walkthroughs added (B-21 … B-28)
+### What the 2026-08-09/10 role walkthroughs added (B-21 … B-29)
 
 Six roles were driven through the live site — returning customer, reviewer,
 newsletter subscriber, admin, operator — one at a time, asking "what can this
-person actually do, and does it work?". Four findings worth carrying:
+person actually do, and does it work?". Five findings worth carrying:
 
 **A credential that got weaker the less you typed.** The phone half of the
 order lookup compared `ca.endsWith(cb.slice(-8))`. `slice(-8)` of a *short*
@@ -223,6 +223,16 @@ thing.* (B-25's sibling; see L-17.)
 `../ops/qa/…` — a path *outside* the repo, present only on this workstation. The
 216-test E2E suite had never been runnable on any other machine. A green suite on
 the author's machine says the author's machine works (L-18).
+
+**The alert that was never wired up (B-29).** Asking "is the operator told about
+everything that happens?" turned up three `console.error` calls treated as the
+alarm — one of them explaining, in a comment, that `console.error` reaches
+GlitchTip. It does not, unless `captureConsoleIntegration` is configured, and it
+never was. So B-18's *paid order with nothing to cut* had been reporting to
+nobody while the code, a comment and a BUGS entry all said it was loud. Same
+shape as the CI pipeline that had never run and the backup that never covered
+this database: **a mechanism producing no output looks exactly like a healthy
+one.** Four events now e-mail the operator; the reasoning is L-22.
 
 **Documented is not fixed.** `/api/variants` was written up in *two* documents as
 the textbook example of "a new API route is public on creation" — and stayed open
@@ -247,6 +257,27 @@ that pass for exactly that reason.
   product carries a `cjPid`, so it served nobody but an attacker, and the
   dropship model it belonged to was abandoned. A gate on dead code is a thing
   to maintain; deletion is not.
+- **`console.error` does not reach your error tracker unless you say so.**
+  Sentry's `captureConsoleIntegration` is opt-in. Without it a `console.error`
+  is only a *breadcrumb* — attached to some later event, and thrown away if no
+  later event happens. This code carried a comment saying the opposite
+  ("console.error so it reaches GlitchTip"), and I believed it three times
+  before checking. **Fixed 2026-08-10** (B-29): the integration is configured at
+  `error` level, and the four events that mattered — refund, refund with no
+  matching order, paid order with no line items, new review — now also send the
+  operator an e-mail. The wider lesson is L-22: *a comment asserting that
+  something works is not evidence that it does*, and a considered-looking
+  comment is believed more readily, not less.
+- **`sampleRate` and `tracesSampleRate` are different things.** `sampleRate`
+  governs **errors**; `tracesSampleRate` governs **transactions**. Both configs
+  had `sampleRate: 0.25`, one of them under a comment about request volume — so
+  three of every four real errors were discarded to control something the other
+  setting controls.
+- **`void somePromise` is one edit away from killing the process.** It attaches
+  no rejection handler, and Node terminates on an unhandled rejection. In a
+  Stripe webhook that is worse than it sounds: a failed webhook is retried, and
+  the retry hits the idempotency guard and does nothing. Fire-and-forget calls
+  carry an explicit `.catch`.
 - **`NEXT_PUBLIC_*` are baked at build time.** Changing one at runtime does
   nothing. Rebuild.
 - **Module-scope SDK constructors break the build.** `new Resend(undefined)`

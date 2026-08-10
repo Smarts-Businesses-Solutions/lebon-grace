@@ -347,6 +347,67 @@ export interface OperatorAlertItem {
   personalisation?: string | null;
 }
 
+/**
+ * Tell the operator that something happened, in one line at the call site.
+ *
+ * Two events on this platform reached nobody. A **refund** moved the order and
+ * emailed the customer, while the person whose money had just gone back — and
+ * who might be about to cut the piece — was told nothing. And a **paid order
+ * with no line items** (B-18) was a `console.error`, which did not reach
+ * GlitchTip at all, because `captureConsoleIntegration` was never configured.
+ * "Loud" meant silent.
+ *
+ * Deliberately generic rather than another bespoke template: the next such
+ * event should cost one line, not a new mail-shaped thing to keep in step with
+ * the others. That drift is what made B-5 possible.
+ *
+ * Never throws. Every caller is fire-and-forget inside a Stripe webhook, where
+ * throwing would fail the webhook, Stripe would retry, and the idempotency
+ * check would then skip the real work — so the notice would be lost *and* the
+ * order mishandled.
+ */
+/**
+ * Escape a stranger's text before it goes into an operator alert.
+ *
+ * `sendOperatorNotice` takes HTML by contract — the callers compose the layout —
+ * so anything typed by a customer (a review comment, a name from Stripe
+ * checkout) has to be neutralised at the call site. The realistic damage is not
+ * a mail client running a script; it is a single `<` swallowing the rest of the
+ * sentence, so the one alert written to be read carefully arrives truncated and
+ * the operator never knows what they missed.
+ *
+ * The `&` MUST be replaced first, or every entity produced below is re-escaped
+ * into `&amp;lt;` and the whole message reads as gibberish.
+ */
+export function escapeHtml(text: string): string {
+  return String(text)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+export async function sendOperatorNotice(subject: string, bodyHtml: string): Promise<boolean> {
+  const to = process.env.ORDER_NOTIFY_EMAIL || CONTACT.email;
+  if (!to) {
+    console.error("[operator-notice] no ORDER_NOTIFY_EMAIL or CONTACT_EMAIL — nobody will be told");
+    return false;
+  }
+  try {
+    await mailer().emails.send({
+      from: fromAddress(),
+      to: [to],
+      subject,
+      html: bodyHtml,
+    });
+    return true;
+  } catch (error) {
+    console.error(`[operator-notice] could not send "${subject}":`, error);
+    return false;
+  }
+}
+
 export async function sendOperatorOrderAlert(
   order: EmailOrder & { delivery_method?: string; customer_phone?: string },
   items: OperatorAlertItem[] = []

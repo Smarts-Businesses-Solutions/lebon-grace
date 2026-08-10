@@ -103,6 +103,38 @@ project, so searching for "lebon" finds nothing either way; and `pg_restore` is
 not installed on the host, so inspecting a dump from there silently reports zero
 tables. Verify inside the db container.
 
+## What the operator is told about
+
+Every alert goes to `ORDER_NOTIFY_EMAIL`, falling back to `CONTACT.email`. If
+neither is set nothing is sent and a `console.error` says so — which now reaches
+GlitchTip, because until 2026-08-10 it did not (B-29).
+
+| Event | Channel |
+|---|---|
+| Order paid | E-mail with the pieces to cut, plus a one-tap WhatsApp button to the customer |
+| Refund | E-mail — amount returned vs charged, flagged when partial, "stop work on it" |
+| Refund with **no matching order** | E-mail — the only signal that will ever exist for it |
+| Paid order with **no line items** | E-mail naming the Stripe session to repair by hand |
+| New review published | E-mail with the rating and the comment; reviews go live unmoderated |
+| Any server `console.error` | GlitchTip issue |
+
+**Deliberately not alerted:** newsletter signups (visible on the admin
+subscribers page; one e-mail each would be noise) and failed admin logins
+(rate-limited by A-21 — an alert per attempt is a self-inflicted flood).
+
+Alerts are **fire-and-forget**. `sendOperatorNotice` resolves `false` rather
+than throwing, so a mail outage can never fail a Stripe webhook — a failed
+webhook is retried, and the retry hits the idempotency guard and does nothing.
+The trade is explicit: an undelivered alert is silent. GlitchTip is the backstop.
+
+### Checking it still works
+
+There is no synthetic notification test in production, because sending real mail
+to prove mail works costs a real e-mail every run. The unit tests hold the
+wiring (`src/lib/email.test.ts`, `route.test.ts` in the webhook and reviews
+routes). To check the live path end to end, refund a 1 AED test payment in the
+Stripe dashboard and confirm the e-mail arrives.
+
 ## WhatsApp to customers — PARKED by decision (2026-08-10)
 
 > **Not being worked on.** Deliberately deferred, not forgotten. The operator can

@@ -18,7 +18,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const send = vi.hoisted(() => vi.fn(async (_p: { subject: string; html: string; to: string[] }) => ({ id: "e1" })));
 vi.mock("resend", () => ({ Resend: class { emails = { send }; } }));
 
-import { sendOrderEmail, isEmailable, sendOperatorOrderAlert } from "./email";
+import { sendOrderEmail, isEmailable, sendOperatorOrderAlert, sendOperatorNotice, escapeHtml } from "./email";
 
 const order = (over: Record<string, unknown> = {}) => ({
   id: "3f1c2b8a-9d4e-4f7a-8b21-0c5d6e7f8a9b",
@@ -167,5 +167,78 @@ describe("the operator alert can reach the customer", () => {
     await sendOperatorOrderAlert({ ...OPERATOR_ORDER, customer_phone: "" }, []);
     expect(send).toHaveBeenCalled();
     expect(sent().html).not.toContain("wa.me/971");
+  });
+});
+
+/**
+ * Events that reach the operator, rather than a console nobody reads.
+ *
+ * Two things happen on this platform that the operator was never told about:
+ *
+ *   A REFUND. charge.refunded moves the order and emails the CUSTOMER. The
+ *   operator — the person whose money just went back, and who may be about to
+ *   cut the piece — got nothing.
+ *
+ *   A PAID ORDER WITH NO LINE ITEMS (B-18). The workshop cannot make it. It
+ *   was a console.error, and console.error did not reach GlitchTip because
+ *   captureConsoleIntegration was never configured — so "loud" meant silent.
+ *
+ * Both go through one small notice function rather than another bespoke
+ * template, because the next such event should cost one line, not a new
+ * mail-shaped thing to keep in step.
+ */
+describe("sendOperatorNotice", () => {
+  beforeEach(() => { delete process.env.ORDER_NOTIFY_EMAIL; });
+
+  it("sends to ORDER_NOTIFY_EMAIL when set", async () => {
+    process.env.ORDER_NOTIFY_EMAIL = "workshop@example.com";
+    await sendOperatorNotice("Something happened", "<p>details</p>");
+    expect(sent().to).toEqual(["workshop@example.com"]);
+  });
+
+  it("falls back to the contact address, so a notice is never dropped for want of config", async () => {
+    await sendOperatorNotice("Something happened", "<p>details</p>");
+    expect(sent().to.length).toBe(1);
+    expect(sent().to[0]).toContain("@");
+  });
+
+  it("carries the subject and body through", async () => {
+    await sendOperatorNotice("Order refunded", "<p>AED 35 went back</p>");
+    expect(sent().subject).toContain("Order refunded");
+    expect(sent().html).toContain("AED 35 went back");
+  });
+
+  it("returns false rather than throwing when sending fails", async () => {
+    // The callers are fire-and-forget inside a Stripe webhook. Throwing here
+    // would fail the webhook, Stripe would retry, and the idempotency check
+    // would then skip the real work — so this must never throw.
+    send.mockRejectedValueOnce(new Error("smtp down"));
+    await expect(sendOperatorNotice("x", "<p>y</p>")).resolves.toBe(false);
+  });
+});
+
+/**
+ * A review comment and a customer name are typed by strangers, and both now
+ * travel into an HTML e-mail the operator opens. Escaping them is not
+ * paranoia about a "customer XSS": it is that an unescaped `<` silently eats
+ * the rest of the sentence, so the one alert written to be read carefully is
+ * also the one that can arrive mangled.
+ */
+describe("escapeHtml", () => {
+  it("neutralises the characters that break out of text", () => {
+    expect(escapeHtml(`<script>alert(1)</script>`)).toBe(
+      "&lt;script&gt;alert(1)&lt;/script&gt;"
+    );
+    expect(escapeHtml(`" & '`)).toBe("&quot; &amp; &#39;");
+  });
+
+  it("escapes the ampersand FIRST", () => {
+    // &lt; must not become &amp;lt;. Getting the order wrong double-escapes
+    // every entity and is invisible until someone reads a mangled alert.
+    expect(escapeHtml("&lt;")).toBe("&amp;lt;");
+  });
+
+  it("leaves ordinary text alone", () => {
+    expect(escapeHtml("Lovely piece, thank you!")).toBe("Lovely piece, thank you!");
   });
 });

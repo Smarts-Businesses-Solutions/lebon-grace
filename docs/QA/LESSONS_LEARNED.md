@@ -382,3 +382,68 @@ The same investigation was derailed a third time by targeting inputs by type:
 the header search box is also a text input and the WhatsApp float is another
 `tel` input. That is L-12 for the third time this engagement, and the fix is the
 same each time — give the page test ids and stop guessing at its DOM.
+
+---
+
+## L-22 · A comment asserting that something works is not evidence that it does
+
+`stripe-webhook/route.ts` carried the line *"console.error so it reaches
+GlitchTip, not console.log"*. It was written deliberately, by someone reasoning
+correctly about which log level to choose — and it was false, because
+`captureConsoleIntegration` is opt-in and had never been configured. A
+`console.error` was a breadcrumb, not an event.
+
+That comment then did active harm. It was read three times across this
+engagement, by me, as confirmation that the B-18 alert path was covered. Each
+reading skipped the check. **The claim was believed precisely because someone
+had bothered to explain their reasoning** — the more considered a comment looks,
+the less likely anyone is to verify it.
+
+The same shape as the CI pipeline that had never run (L-16) and the backup that
+never covered this database: **a mechanism that produces no output is
+indistinguishable from a healthy one, and documentation about it is not
+evidence.** Neither is a passing test suite, if what you changed is the
+configuration that decides whether the code under test reports anything.
+
+The check that would have caught it takes a minute: does the SDK actually route
+`console.error` anywhere by default? The answer was in the first paragraph of
+Sentry's own docs for the integration.
+
+**Corollary for this repo.** The three claims of the form "X is loud" now have a
+test each. Where an assertion cannot be tested — "the operator will get this
+e-mail" — it is written in OPERATIONS.md as a table of what is and is not
+alerted, so the gaps are visible rather than implied.
+
+---
+
+## L-23 · Two ways the same test run lied in ten minutes
+
+Running the local gate for B-29, the E2E suite reported **24 failures**, all in
+the `mobile-android` project: every static page — `/about`, `/terms`,
+`/privacy` — "renders without defects" failing at once. Nothing in the change
+touched rendering.
+
+**Neither problem was in the application.**
+
+**1. `next build` deletes `.next/standalone` out from under a running suite.**
+The suite serves the app through `scripts/serve-standalone.mjs`. I started a
+build in another shell while it was running; the build wiped the directory, the
+web server died, and every test after that point failed. The 192 that passed ran
+*before* the collision. The failure lands on whichever project happens to be
+running when it happens, which is why it read as "mobile is broken" rather than
+"the server is gone" — and the first build also failed, with `EBUSY: resource
+busy`, which was the actual signal and easy to skim past.
+
+**Never run a build while the E2E suite is running.** They share `.next`.
+
+**2. `cmd | tail` reported exit code 0 on a failing run.** Without
+`set -o pipefail` a pipeline exits with the status of the *last* command, so
+`playwright test | tail -20` is always 0. The harness dutifully said "completed
+(exit code 0)" above a report containing 24 failures.
+
+That is the same family as the pipefail trap already recorded for
+`ci-freshness.sh` — there, pipefail turned a success into a false failure; here,
+its absence turned a failure into a false success. **Any pipeline whose exit
+code you intend to trust needs `set -o pipefail`, and any pipeline that ends in
+`grep -q` or `head` needs it off.** Decide which you are doing before writing
+the pipe.

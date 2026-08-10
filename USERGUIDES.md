@@ -324,6 +324,31 @@ export exists precisely so one does not have to be invented here.
 
 # For the workshop operator
 
+## What arrives in your inbox without you asking
+
+You do not have to sit in `/admin` waiting for something to happen. Five things
+e-mail you:
+
+| You get an e-mail when | It tells you |
+|---|---|
+| An order is paid | The pieces to cut, and a button that opens WhatsApp to that customer |
+| An order is refunded | How much came back and whether it was partial — **stop work on it** |
+| A refund arrives with no matching order | Nothing else will ever tell you; open the payment in Stripe |
+| A paid order has no line items | Which Stripe session to open and repair by hand |
+| Someone publishes a review | The rating and the comment — reviews go live unmoderated |
+
+**Nothing e-mails you** for a newsletter signup (they are on the subscribers
+list) or a failed admin login (rate-limited already; one alert per attempt would
+be a flood).
+
+The address is `ORDER_NOTIFY_EMAIL`, falling back to the shop contact address.
+If it stops arriving, that is where to look first.
+
+Until 2026-08-10 only the first of these existed. The other four were
+`console.error` calls that the code believed were reaching the error tracker and
+were not (B-29) — worth knowing, because it is the reason to trust the table
+above only as far as the tests behind it.
+
 ## Signing in
 
 Go to `/admin` and enter the admin password. The session lasts until it expires;

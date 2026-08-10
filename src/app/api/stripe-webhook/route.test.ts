@@ -33,6 +33,7 @@ const m = vi.hoisted(() => ({
   // Params declared for the same reason as sendOperatorOrderAlert below: a bare
   // vi.fn() infers an empty tuple, so mock.calls[0][1] is a COMPILE error.
   sendOrderEmail: vi.fn(async (_order: Record<string, unknown>, _action?: string) => undefined),
+  sendOperatorNotice: vi.fn(async (_subject: string, _html: string) => true),
   // Params declared: a bare vi.fn() infers an empty tuple, so mock.calls[0][0]
   // is a COMPILE error rather than a runtime one.
   sendOperatorOrderAlert: vi.fn(async (_order: Record<string, unknown>, _items?: unknown[]) => true),
@@ -50,7 +51,16 @@ vi.mock("@/lib/store", () => ({
   orders: { getBySessionId: m.getBySessionId, getByPaymentIntent: m.getByPaymentIntent, update: m.updateOrder, insert: m.insert },
   orderItems: { insertMany: m.insertMany },
 }));
-vi.mock("@/lib/email", () => ({ sendOrderEmail: m.sendOrderEmail, sendOperatorOrderAlert: m.sendOperatorOrderAlert }));
+// Spread the REAL module and override only what must not fire. `escapeHtml` is
+// deliberately left real: stubbing it would make every assertion below pass
+// against an alert that escapes nothing. Safe because email.ts constructs its
+// Resend client lazily inside mailer(), so importing it sends nothing.
+vi.mock("@/lib/email", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/email")>()),
+  sendOrderEmail: m.sendOrderEmail,
+  sendOperatorOrderAlert: m.sendOperatorOrderAlert,
+  sendOperatorNotice: m.sendOperatorNotice,
+}));
 vi.mock("@/lib/whatsapp", () => ({ notifyWhatsApp: m.notifyWhatsApp }));
 
 const { constructEvent, insert, getBySessionId } = m;
@@ -454,4 +464,77 @@ describe("POST /api/stripe-webhook — events it deliberately ignores", () => {
     await POST(post());
     expect(m.updateOrder).toHaveBeenCalledWith("ord_1", { status: "refunded" });
   });
+});
+
+/**
+ * The two events that reached nobody.
+ *
+ * A REFUND moved the order and emailed the customer. The operator — whose money
+ * had just gone back, and who might be about to cut the piece — was told
+ * nothing at all.
+ *
+ * A PAID ORDER WITH NO LINE ITEMS (B-18) was a console.error, and console.error
+ * did not reach GlitchTip: captureConsoleIntegration was never configured, so
+ * the comment claiming "console.error so it reaches GlitchTip" was wrong and
+ * "loud" meant silent. Both are fixed at the source AND here.
+ */
+describe("POST /api/stripe-webhook — the operator hears about it", () => {
+  it("tells the operator when an order is refunded", async () => {
+    m.getByPaymentIntent.mockResolvedValue(REFUNDABLE);
+    m.updateOrder.mockResolvedValue({ id: "ord_1" });
+    m.constructEvent.mockReturnValue(refundedEvent());
+    await POST(post());
+    expect(m.sendOperatorNotice, "a refund must reach the operator").toHaveBeenCalled();
+    const [subject, html] = m.sendOperatorNotice.mock.calls[0];
+    expect(`${subject} ${html}`).toMatch(/refund/i);
+    expect(`${subject} ${html}`).toContain("ord_1");
+  });
+
+  it("does not re-notify on a repeated refund event", async () => {
+    // Stripe retries, and a second partial refund arrives as another event.
+    m.getByPaymentIntent.mockResolvedValue({ ...REFUNDABLE, status: "refunded" });
+    m.constructEvent.mockReturnValue(refundedEvent());
+    await POST(post());
+    expect(m.sendOperatorNotice).not.toHaveBeenCalled();
+  });
+
+  it("tells the operator when a paid order has NO line items", async () => {
+    // The workshop cannot make this. Previously a console.error into the void.
+    m.listLineItems.mockRejectedValueOnce(new Error("stripe down"));
+    m.constructEvent.mockReturnValue(completedEvent());
+    await POST(post());
+    expect(m.sendOperatorNotice, "an unmakeable order must reach the operator").toHaveBeenCalled();
+    const [subject, html] = m.sendOperatorNotice.mock.calls[0];
+    expect(`${subject} ${html}`).toMatch(/no line items|cannot be made|check the stripe/i);
+  });
+
+  it("PRECONDITION: a normal order does NOT raise the no-items notice", async () => {
+    // Without this, the assertion above would pass on a webhook that shouts
+    // about every order — and the first draft of this test DID pass while
+    // asserting nothing, because the shared harness defaults listLineItems to
+    // `{ data: [] }`. Every "normal" order in this file is an empty one. The
+    // notice must therefore be proven silent against a session that actually
+    // has something in it.
+    m.listLineItems.mockResolvedValue({
+      data: [{ description: "Puzzle", quantity: 1, amount_total: 12000, price: { product: { metadata: { slug: "p" } } } }],
+    });
+    m.constructEvent.mockReturnValue(completedEvent());
+    await POST(post());
+    const calls = m.sendOperatorNotice.mock.calls.filter(([s, h]) =>
+      /no line items/i.test(`${s} ${h}`)
+    );
+    expect(calls).toEqual([]);
+  });
+});
+
+it("tells the operator about a refund with NO matching order", async () => {
+  // Strictly worse than the refunded case above: money has left the account and
+  // the shop cannot even name whose order it was. This was a console.error, in
+  // the belief that console.error reached GlitchTip — it did not.
+  m.getByPaymentIntent.mockResolvedValue(null);
+  m.constructEvent.mockReturnValue(refundedEvent());
+  await POST(post());
+  expect(m.sendOperatorNotice).toHaveBeenCalled();
+  const [subject, html] = m.sendOperatorNotice.mock.calls[0];
+  expect(`${subject} ${html}`).toMatch(/no matching order|does not know/i);
 });

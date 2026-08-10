@@ -17,6 +17,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
 
 const m = vi.hoisted(() => ({
+  sendOperatorNotice: vi.fn(async (_subject: string, _html: string) => true),
   getByTracking: vi.fn(async (_id: string, _phone: string) => null as Record<string, unknown> | null),
   getAllItems: vi.fn(async () => [] as Record<string, unknown>[]),
   getItemsByOrder: vi.fn(async (_orderId: string) => [] as Record<string, unknown>[]),
@@ -33,6 +34,14 @@ vi.mock("@/lib/store", () => ({
   reviews: { existsFor: m.existsFor, insert: m.insertReview, getBySlug: m.getBySlug, aggregates: m.aggregates },
 }));
 vi.mock("@/lib/rate-limit", () => ({ rateLimit: m.rateLimit }));
+// Spread the REAL module and override only what must not fire. `escapeHtml` is
+// deliberately left real: stubbing it would make every assertion below pass
+// against an alert that escapes nothing. Safe because email.ts constructs its
+// Resend client lazily inside mailer(), so importing it sends nothing.
+vi.mock("@/lib/email", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/email")>()),
+  sendOperatorNotice: m.sendOperatorNotice,
+}));
 
 import { POST, GET } from "./route";
 
@@ -202,4 +211,49 @@ describe("the ownership check reads one order, not the whole table", () => {
     const res = await POST(post(good));
     expect(res.status).toBe(403);
   });
+});
+
+/**
+ * A review is published the instant it is submitted — there is no approval
+ * flag, no queue, nothing to moderate. That is a deliberate choice for a shop
+ * with a verified-purchase gate, but it means a one-star review, or a comment
+ * that should not be on a family business's product page, goes live and the
+ * operator's only way of learning about it is to browse their own shop.
+ *
+ * The notice does not hold the review back. It just means somebody knows.
+ */
+describe("POST /api/reviews — the operator hears about it", () => {
+  it("tells the operator when a review is published", async () => {
+    const res = await POST(post({ ...good, rating: 2, comment: "Arrived chipped" }));
+    expect(res.status).toBe(201);
+    expect(m.sendOperatorNotice, "a published review must reach the operator").toHaveBeenCalled();
+    const [subject, html] = m.sendOperatorNotice.mock.calls[0];
+    expect(`${subject} ${html}`).toContain("abc-jigsaw-board");
+    expect(`${subject} ${html}`).toContain("Arrived chipped");
+  });
+
+  it("does NOT notify when the review was rejected", async () => {
+    // PRECONDITION for the assertion above: proves the notice is tied to a
+    // successful insert and not fired on every request that reaches the route.
+    m.existsFor.mockResolvedValue(true);
+    const res = await POST(post(good));
+    expect(res.status).toBe(409);
+    expect(m.sendOperatorNotice).not.toHaveBeenCalled();
+  });
+
+  it("still publishes the review when the notice cannot be sent", async () => {
+    // The reviewer must not be shown a failure because the shop's mail is down.
+    m.sendOperatorNotice.mockRejectedValueOnce(new Error("resend down"));
+    const res = await POST(post(good));
+    expect(res.status).toBe(201);
+  });
+});
+
+it("escapes a comment that would otherwise break the alert apart", async () => {
+  // Proves the escaping happens HERE, at the call site. escapeHtml has its own
+  // unit tests; this asserts the route actually reaches for it.
+  await POST(post({ ...good, comment: `<b>bold</b> & "quoted"` }));
+  const [, html] = m.sendOperatorNotice.mock.calls[0];
+  expect(html).toContain("&lt;b&gt;bold&lt;/b&gt; &amp; &quot;quoted&quot;");
+  expect(html).not.toContain("<b>bold</b>");
 });

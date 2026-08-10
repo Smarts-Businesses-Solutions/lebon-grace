@@ -556,3 +556,96 @@ signature**, so a forged refund event cannot move an order.
 | Exposed GitHub PAT in nine containers | A-0b — needs the account owner |
 | Toys labelled ages 1–3 with no EN 71-1 assessment | `docs/COMPLIANCE-UAE-TOY-SAFETY.md` |
 | No Arabic on a UAE storefront | `docs/DECISION-ARABIC-RTL.md` — may be a legal obligation |
+
+---
+
+## B-29 · "console.error so it reaches GlitchTip" — it did not
+
+Found answering "is the admin notified for everything that happens on the
+platform?", 2026-08-10. **Fixed.**
+
+Three separate places logged a `console.error` and treated that as the alert,
+one of them saying so in a comment:
+
+```ts
+// … console.error so it reaches GlitchTip, not console.log.
+console.error(`[stripe-webhook] order ${orderId} has NO LINE ITEMS …`);
+```
+
+**`captureConsoleIntegration` is opt-in, and was never configured.** Without it
+the Sentry SDK records a `console.error` as a **breadcrumb** — carried along
+with some later event, and if no later event ever occurs, discarded. It is never
+an event of its own.
+
+So B-18 — a **paid order with no line items**, which the workshop cannot make —
+had been reporting to nobody at all, while the code, a comment, and a BUGS entry
+all said it was loud. It is the same shape as the CI pipeline that had never
+run: a thing that produces no failures looks identical to a healthy one.
+
+Compounding it, `sampleRate` was **0.25** in both server and edge config —
+"only send 25% of errors" — so even genuine exceptions were three-quarters
+discarded, on a shop with near-zero traffic and no quota pressure to justify it.
+The edge value sat under the comment *"edge middleware runs on every request —
+keep sampling very low"*, which confuses `sampleRate` (errors) with
+`tracesSampleRate` (transactions, the setting that actually governs volume).
+After D-016 the proxy runs in front of **every** API route, so that was the
+highest-consequence error surface in the app, sampled away three times in four.
+
+### And four events reached the operator through no channel at all
+
+| Event | Before | Now |
+|---|---|---|
+| Order paid | e-mail + WhatsApp button | unchanged |
+| **Refund** | customer e-mailed, operator not told | e-mail, incl. partial-refund amount |
+| **Refund with no matching order** | `console.error` into the void | e-mail — nothing else will ever surface it |
+| **Paid order, no line items** | `console.error` into the void | e-mail naming the Stripe session |
+| **New review published** | nothing | e-mail with the rating and comment |
+
+The refund pair is the worst of them: money had left the account, and in the
+unmatched case there is no order id, no customer name and no status that will
+ever change — so unlike every other failure here, nothing in the shop would
+later hint that it happened.
+
+Reviews have no moderation queue — correct for a verified-purchase-only shop —
+but it meant a two-star review, or a comment that should not sit on a family
+business's product page, went live with the operator's only route to knowing
+being to browse their own shop.
+
+**Fix.**
+
+1. `captureConsoleIntegration({ levels: ["error"] })` in the server and edge
+   configs. Scoped to `error`: capturing `warn` would turn the proxy's
+   every-blocked-bot-probe warning into a stream of issues, and a channel that
+   is mostly noise stops being read (L-5).
+2. `beforeSend` now reads `event.message` as well as `event.exception`. Without
+   this the change **backfires** — a console-captured event is a *message*, so
+   the existing "Webhook signature verification failed" filter would miss it and
+   every bot POSTing to `/api/stripe-webhook` would flood the channel.
+3. `sampleRate: 1.0` in both configs. The noise filters, not sampling, are what
+   keep the free tier affordable.
+4. `sendOperatorNotice(subject, html)` in `src/lib/email.ts` — generic on
+   purpose, so the next such event costs one line rather than another
+   mail-shaped thing to keep in step (the drift that made B-5 possible). It
+   **never throws**: every caller is fire-and-forget inside a Stripe webhook,
+   where throwing would fail the webhook, Stripe would retry, and the
+   idempotency guard would then skip the real work — losing the notice *and*
+   mishandling the order.
+5. `escapeHtml`, because a review comment and a customer name are typed by
+   strangers and now travel into an e-mail. The realistic damage is not a script
+   running in a mail client; it is one `<` swallowing the rest of the sentence,
+   so the alert written to be read carefully arrives truncated.
+
+**Tests.** Nine, red first. The two that matter most are preconditions (L-2):
+one proves a *normal* order raises no "no line items" alert, and one proves a
+*rejected* review raises no review alert — without them both assertions would
+pass against a webhook that shouts about everything.
+
+**The first draft of that precondition passed while asserting nothing.** The
+shared harness defaults `listLineItems` to `{ data: [] }`, so every "normal"
+order in that file is an empty one. It only became load-bearing once given real
+line items — the same trap as B-21's e2e guard, where the string chosen to prove
+the fix was rejected by the old rule too.
+
+**Deliberately still silent:** newsletter signups (the admin has a subscribers
+page, and a per-signup e-mail is noise), and admin login failures (rate-limited
+by A-21; an alert per failed attempt is a self-inflicted flood).

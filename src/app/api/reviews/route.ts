@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { sendOperatorNotice, escapeHtml } from "@/lib/email";
 import { reviews, orders as orderStore, orderItems } from "@/lib/store";
 import { rateLimit } from "@/lib/rate-limit";
 
@@ -131,6 +132,27 @@ export async function POST(request: NextRequest) {
       // reviewer could sign someone else's name to their opinion.
       customer_name: String(order.customer_name || "Customer").slice(0, 80),
     });
+
+    /*
+     * There is no moderation queue — a review is live the moment it is saved,
+     * which is the right call for a verified-purchase-only shop. But it left
+     * the operator with no way of learning that a two-star review, or a comment
+     * that ought not to sit on a family business's product page, had just gone
+     * up: the only route to that knowledge was browsing their own shop.
+     *
+     * Deliberately fire-and-forget, and deliberately AFTER the insert. The
+     * reviewer has done nothing wrong, and a mail outage must not turn their
+     * successfully-saved review into an error page — hence `void` plus a
+     * `sendOperatorNotice` that resolves false instead of throwing.
+     */
+    sendOperatorNotice(
+      `New ${rating}-star review on ${escapeHtml(slug)}`,
+      `<p><strong>${escapeHtml(String(order.customer_name || "A customer"))}</strong> left ` +
+        `${rating} out of 5 on <code>${escapeHtml(slug)}</code>.</p>` +
+        (comment ? `<blockquote>${escapeHtml(String(comment))}</blockquote>` : `<p><em>No comment left.</em></p>`) +
+        `<p>It is already visible on the product page. Order ${order.id}.</p>`
+    ).catch((err) => console.error("[operator-notice] unexpected throw:", err));
+
     return NextResponse.json({ review: { id: saved.id, rating: saved.rating } }, { status: 201 });
   } catch (err) {
     // 23505 = the UNIQUE(order_id, product_slug) backstop for a double submit
