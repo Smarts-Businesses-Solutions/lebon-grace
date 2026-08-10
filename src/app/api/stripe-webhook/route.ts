@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { stripe, stripeMode } from "@/lib/stripe";
@@ -75,14 +76,24 @@ export async function POST(request: NextRequest) {
     // is rejected here, and no order is created. Silently.
     //
     // Logged loudly, with the mode and a fingerprint of the secret in use, so
-    // the mismatch is obvious. Neither value is itself a secret: the mode is
-    // visible in the key prefix and the fingerprint is a truncated hash.
-    const fingerprint = (process.env.STRIPE_WEBHOOK_SECRET || "")
-      .slice(-6)
-      .padStart(6, "*");
+    // the mismatch is obvious.
+    //
+    // This comment used to say "the fingerprint is a truncated hash". It was
+    // `.slice(-6)` — the literal tail of the signing secret, written to stdout,
+    // to docker logs and (since B-29) to GlitchTip. Now it actually is a hash.
+    //
+    // It keeps everything the fingerprint was for: the same secret always
+    // produces the same value, so an operator can compare the log against what
+    // Stripe shows, and two different secrets never collide in practice — which
+    // is what makes "live keys deployed with the test signing secret" visible at
+    // a glance. Twelve hex characters is 48 bits: far too little to attack a
+    // secret with, ample to tell two of them apart.
+    const fingerprint = process.env.STRIPE_WEBHOOK_SECRET
+      ? createHash("sha256").update(process.env.STRIPE_WEBHOOK_SECRET).digest("hex").slice(0, 12)
+      : "UNSET";
     console.error(
       `[stripe-webhook] SIGNATURE VERIFICATION FAILED. mode=${stripeMode()} ` +
-        `secret=...${fingerprint} signature_header=${sig ? "present" : "MISSING"}. ` +
+        `secret_sha256=${fingerprint} signature_header=${sig ? "present" : "MISSING"}. ` +
         "If payments are succeeding but no orders appear, the signing secret does " +
         "not match this endpoint in the Stripe Dashboard.",
       err instanceof Error ? err.message : err

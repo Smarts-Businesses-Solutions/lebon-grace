@@ -1,0 +1,21 @@
+{
+  "base": "https://shop.lebon-grace.com",
+  "checks": {
+    "normalAddPreservesEngraving": true,
+    "deliveryPersistsReload": {
+      "beforeReload": "AED 20",
+      "afterReload": "AED 20",
+      "pass": true
+    },
+    "freeDeliveryAt150": {
+      "subtotal": "AED 150",
+      "shipping": "Free",
+      "total": "AED 150"
+    },
+    "buyNowCheckoutSummaryHasEngraving": false,
+    "emptyCartCheckoutState": true,
+    "interceptedCheckoutPayload": null
+  },
+  "consoleErrors": [],
+  "requestFailures": []
+}

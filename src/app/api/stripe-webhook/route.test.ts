@@ -538,3 +538,67 @@ it("tells the operator about a refund with NO matching order", async () => {
   const [subject, html] = m.sendOperatorNotice.mock.calls[0];
   expect(`${subject} ${html}`).toMatch(/no matching order|does not know/i);
 });
+
+/**
+ * The diagnostic printed six characters of the signing secret.
+ *
+ * The comment beside it claimed "the fingerprint is a truncated hash". It was
+ * `.slice(-6)` — the literal tail of STRIPE_WEBHOOK_SECRET, written into logs
+ * that go to stdout, to docker logs, and now to GlitchTip. Small, but it is a
+ * secret in a log file, and the comment asserted a safety property the code did
+ * not have (L-22, third instance).
+ *
+ * A hash keeps everything the fingerprint was FOR — telling "this endpoint has
+ * the test secret" apart from "it has the live one" at a glance — while being
+ * useless to anyone who reads it.
+ */
+describe("the signature-failure diagnostic must not leak the secret", () => {
+  const SECRET = "whsec_ThisIsATestSigningSecretABCDEF123456";
+
+  it("prints no substring of the secret", async () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    process.env.STRIPE_WEBHOOK_SECRET = SECRET;
+    m.constructEvent.mockImplementation(() => { throw new Error("No signatures found"); });
+
+    await POST(post());
+    const logged = spy.mock.calls.flat().map(String).join(" ");
+    spy.mockRestore();
+
+    // Every tail of the secret, from 4 characters up. `.slice(-6)` and any
+    // relative of it fails this; a hash cannot.
+    for (let n = 4; n <= SECRET.length; n++) {
+      expect(logged, `leaked the last ${n} characters of the signing secret`)
+        .not.toContain(SECRET.slice(-n));
+    }
+  });
+
+  it("still distinguishes one secret from another", async () => {
+    // PRECONDITION: without this, printing a constant would pass the test above
+    // while making the diagnostic useless — which is the whole point of it.
+    const seen: string[] = [];
+    for (const secret of [SECRET, "whsec_ACompletelyDifferentSecret987654"]) {
+      const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+      process.env.STRIPE_WEBHOOK_SECRET = secret;
+      m.constructEvent.mockImplementation(() => { throw new Error("No signatures found"); });
+      await POST(post());
+      seen.push(/secret_sha256=([^\s]+)/.exec(spy.mock.calls.flat().map(String).join(" "))?.[1] || "");
+      spy.mockRestore();
+    }
+    expect(seen[0]).toBeTruthy();
+    expect(seen[0]).not.toBe(seen[1]);
+  });
+
+  it("is stable for the same secret", async () => {
+    // So an operator can compare what the log says against what Stripe shows.
+    const run = async () => {
+      const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+      process.env.STRIPE_WEBHOOK_SECRET = SECRET;
+      m.constructEvent.mockImplementation(() => { throw new Error("No signatures found"); });
+      await POST(post());
+      const v = /secret_sha256=([^\s]+)/.exec(spy.mock.calls.flat().map(String).join(" "))?.[1] || "";
+      spy.mockRestore();
+      return v;
+    };
+    expect(await run()).toBe(await run());
+  });
+});

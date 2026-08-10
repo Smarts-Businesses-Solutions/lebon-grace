@@ -801,3 +801,52 @@ delivery. For that, `scripts/prove-sentry-init.mjs` counts envelopes arriving at
 a real ingest from an isolated standalone copy — run it after any change to the
 build, the bundler, the hook, or the Sentry config.
 
+
+---
+
+## B-32 · The "fingerprint" in the webhook diagnostic was six characters of the signing secret
+
+Found 2026-08-10 while triggering a real error in production to verify B-31.
+**Fixed.**
+
+The signature-failure diagnostic printed:
+
+```
+[stripe-webhook] SIGNATURE VERIFICATION FAILED. mode=live secret=...QB7iM3 …
+```
+
+and the comment beside it read *"the fingerprint is a truncated hash"*. It was
+not. It was:
+
+```ts
+const fingerprint = (process.env.STRIPE_WEBHOOK_SECRET || "").slice(-6).padStart(6, "*");
+```
+
+— the literal last six characters of `STRIPE_WEBHOOK_SECRET`, written to
+stdout, to `docker logs`, and, since B-29 switched console capture on, to
+GlitchTip as well. The endpoint is public, so anyone can provoke that log line;
+what they cannot see is the output, which is the only reason this was small
+rather than serious.
+
+**Six characters of a `whsec_…` secret is not an exploit.** It is a secret in a
+log file, and it was there because a comment asserted a safety property the code
+did not have. That is the third time in one day: `console.error` "reaches
+GlitchTip" (B-29), `orders@lebon-grace.com` is "a verified SES identity" (B-30),
+and now this. **A considered-sounding comment is believed more readily, not
+less** (L-22).
+
+**Fix.** `sha256(secret)` truncated to 12 hex characters, and the label renamed
+from `secret=...` — which reads like a truncation of the value — to
+`secret_sha256=`.
+
+It keeps everything the fingerprint existed for: stable for a given secret, so
+an operator can compare the log against the Stripe dashboard, and different for
+different secrets, so "live keys deployed with the TEST signing secret" is still
+visible at a glance. 48 bits is far too little to attack a secret with and ample
+to tell two apart.
+
+**Tests, red first.** Three. The important one asserts that **no tail of the
+secret, from 4 characters up, appears in the log** — `.slice(-6)` and every
+relative of it fails that, and a hash cannot. Paired with a precondition that
+two different secrets still produce different fingerprints, because printing a
+constant would satisfy the leak test while destroying the diagnostic.

@@ -1,0 +1,9 @@
+{
+  "checks": {
+    "initialOverflow": 0,
+    "mobileStickyAddPreservesEngraving": true,
+    "cartOverflow": 0
+  },
+  "consoleErrors": [],
+  "requestFailures": []
+}
