@@ -63,6 +63,19 @@ export async function POST(request: NextRequest) {
     .map((i) => `• ${esc(i.name)} (x${i.qty}) — AED ${(i.price * i.qty).toFixed(2)}`)
     .join("\n");
 
+  /*
+   * The price block used to read "Pay only 50% now — AED {total/2}".
+   *
+   * The deposit-plus-cash-on-delivery model was removed and checkout charges the
+   * full amount, so this e-mail invited customers back with a figure half what
+   * they would actually be asked for (SH-07). A false price in marketing copy is
+   * a different thing from stale wording.
+   *
+   * Note for whoever edits this next: the explanation lives HERE, not in an HTML
+   * comment inside the template. The first version of this fix put it in the
+   * markup, which shipped the old wording to every customer inside a comment —
+   * and tripped the very test asserting the wording was gone.
+   */
   const html = `<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"></head>
@@ -82,7 +95,7 @@ export async function POST(request: NextRequest) {
       ${resolved.length > 5 ? `<p style="font-size:12px;color:#999;margin-top:8px;">+ ${resolved.length - 5} more items</p>` : ""}
       <hr style="border:none;border-top:1px solid #eee;margin:12px 0;" />
       <p style="font-size:16px;font-weight:600;color:#2D2D2D;">Cart Total: AED ${total.toFixed(2)}</p>
-      <p style="font-size:13px;color:#16A34A;">Pay only 50% now — AED ${(total / 2).toFixed(2)}</p>
+      <p style="font-size:13px;color:#666;">Made to order — cut for you once your order is placed.</p>
     </div>
     <div style="text-align:center;margin:32px 0;">
       <a href="https://shop.lebon-grace.com/cart" style="display:inline-block;padding:14px 32px;background:#16A34A;color:white;text-decoration:none;border-radius:8px;font-size:14px;font-weight:600;">Complete Your Order</a>

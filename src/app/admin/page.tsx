@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import ProductImage from "@/components/ProductImage";
 import Link from "next/link";
 import OperationsDashboard from "@/components/OperationsDashboard";
-import { SETTABLE_STATUSES, notifiesCustomer } from "@/lib/order-status";
+import { SETTABLE_STATUSES, notifiesCustomer, type OrderStatus } from "@/lib/order-status";
 
 const CATEGORIES = [
   "Jewelry", "Home Decor", "Fashion & Accessories", "Pet Supplies",
@@ -27,16 +27,37 @@ const CATEGORIES = [
 // paid to the customer, which is B-7.
 const ORDER_STATUSES: readonly string[] = SETTABLE_STATUSES;
 
-const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
+/*
+ * Every status needs a colour, and `satisfies` is what enforces it (RC-03).
+ *
+ * `cancelled` and `paid` were missing. That is not cosmetic: the filter row
+ * below reads `STATUS_COLORS[s].bg` with NO fallback, so the first cancelled
+ * order made the whole orders tab throw — and `cancelled` is settable, so an
+ * operator could break their own admin by using the dropdown correctly.
+ *
+ * `satisfies Record<OrderStatus, …>` means adding a status to order-status.ts
+ * now fails `tsc` here until it is given a colour, which is exactly what that
+ * file's own comment recommends and what B-19 established for the tracker.
+ *
+ * Neutral greys for the two that are not pipeline states: `cancelled` is an
+ * ending, not a stage, and `paid` is a legacy value nothing should set.
+ */
+const STATUS_COLORS = {
   deposit_paid: { bg: "bg-yellow-50", text: "text-yellow-700" },
+  paid: { bg: "bg-paper", text: "text-ink-soft" },
   processing: { bg: "bg-blue-50", text: "text-blue-700" },
   shipped: { bg: "bg-indigo-50", text: "text-indigo-700" },
   out_for_delivery: { bg: "bg-purple-50", text: "text-purple-700" },
   delivered: { bg: "bg-green-50", text: "text-green-700" },
   completed: { bg: "bg-emerald-50", text: "text-emerald-700" },
+  cancelled: { bg: "bg-stone-100", text: "text-stone-600" },
   failed: { bg: "bg-red-50", text: "text-red-700" },
   refunded: { bg: "bg-paper", text: "text-ink-soft" },
-};
+} satisfies Record<OrderStatus, { bg: string; text: string }>;
+
+/** A status the database holds but this map does not know — never crash on it. */
+const colorFor = (status: string): { bg: string; text: string } =>
+  (STATUS_COLORS as Record<string, { bg: string; text: string }>)[status] ?? STATUS_COLORS.deposit_paid;
 
 interface Product { slug: string; name: string; price: number; category: string; stock: number; imageUrl: string; cjPid?: string; cjPrice?: string; description?: string; }
 interface Order { id: string; stripe_session_id?: string; customer_name: string; customer_email?: string; customer_phone: string; total: number; deposit_amount: number; cod_amount: number; status: string; delivery_method?: string; tracking_number?: string; courier_name?: string; created_at: string; }
@@ -310,7 +331,7 @@ export default function AdminPage() {
               <div className="flex flex-wrap gap-2 flex-1">
                 <button onClick={() => setOrderStatusFilter("All")} className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${orderStatusFilter === "All" ? "bg-ink text-bone" : "bg-bone text-ink-soft border border-rule"}`}>All ({orders.length})</button>
                 {ORDER_STATUSES.filter(s => orderStatusCounts[s] > 0).map((s) => {
-                  const sc = STATUS_COLORS[s];
+                  const sc = colorFor(s);
                   return (<button key={s} onClick={() => setOrderStatusFilter(s)} className={`px-3 py-1.5 text-xs font-medium rounded-full capitalize ${orderStatusFilter === s ? "bg-ink text-bone" : `${sc.bg} ${sc.text} border border-rule`}`}>{s.replace(/_/g, " ")} ({orderStatusCounts[s]})</button>);
                 })}
               </div>
@@ -334,7 +355,7 @@ export default function AdminPage() {
                     {filteredOrders.length === 0 ? (
                       <tr><td colSpan={9} className="px-5 py-8 text-center text-ink-soft">No orders found</td></tr>
                     ) : filteredOrders.map((o) => {
-                      const sc = STATUS_COLORS[o.status] || STATUS_COLORS.deposit_paid;
+                      const sc = colorFor(o.status);
                       return (<tr key={o.id} className="border-b border-rule/40 hover:bg-paper/50">
                         <td className="px-5 py-3 font-mono text-xs text-ink-soft">{String(o.id).slice(0, 8)}</td>
                         <td className="px-5 py-3"><p className="font-medium text-ink">{o.customer_name}</p><p className="text-ink-soft text-xs">{o.customer_phone}</p></td>

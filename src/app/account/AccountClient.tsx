@@ -56,10 +56,20 @@ export default function AccountClient() {
         setOrders(data.orders);
         setCustomerName(data.orders[0].customer_name);
         setLoggedIn(true);
-        // Save to localStorage for faster login next time
-        try {
-          localStorage.setItem("lebon-grace-account", JSON.stringify({ email: email.trim(), phone: phone.trim() }));
-        } catch { /* ignore */ }
+        /*
+         * The credential is deliberately NOT persisted (RC-02).
+         *
+         * This wrote `{email, phone}` to localStorage "for faster login next
+         * time" — and nothing ever read it back. There is no `getItem` for this
+         * key anywhere in the codebase, so the promised convenience did not
+         * exist: it stored the exact pair that unlocks a customer's whole order
+         * history, permanently, on whatever machine they happened to use, and
+         * bought nothing at all.
+         *
+         * If a remember-me is ever wanted, it should be opt-in and should store
+         * the e-mail only — the address is the tedious half to type, and the
+         * phone is the half that makes it a credential.
+         */
       } else {
         setError("No orders found with this email and phone number.");
       }

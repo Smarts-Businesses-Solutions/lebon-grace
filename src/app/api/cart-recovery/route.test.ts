@@ -69,3 +69,29 @@ describe("POST /api/cart-recovery — a refused send is not a sent email", () =>
     err.mockRestore();
   });
 });
+
+/**
+ * SH-07: the recovery e-mail quoted a price the shop does not charge.
+ *
+ *     Pay only 50% now — AED {total/2}
+ *
+ * The 50%-deposit-plus-cash-on-delivery model was removed; checkout charges the
+ * full amount ("Full payment at checkout" in /api/checkout). So this e-mail
+ * invited a customer back with a figure half what they would actually be asked
+ * for — a false price in marketing copy, not merely stale wording.
+ */
+describe("POST /api/cart-recovery — the price it quotes is the price charged", () => {
+  it("does not promise a deposit or a part payment", async () => {
+    await POST(post(good));
+    const { html } = m.send.mock.calls[0][0] as { html: string };
+    expect(html, "the deposit model was removed; checkout charges in full").not.toMatch(/50%|pay only|deposit/i);
+  });
+
+  it("PRECONDITION: it still states the cart total", async () => {
+    // Without this, deleting the whole price block would satisfy the assertion
+    // above while making the e-mail useless.
+    await POST(post(good));
+    const { html } = m.send.mock.calls[0][0] as { html: string };
+    expect(html).toMatch(/AED\s*15\.00/);
+  });
+});

@@ -1089,3 +1089,58 @@ admin keeping its own copy of a list that then drifts.
 `ORDER_STATUSES` as well, keeping both lists consistent. The probe was wrong, not
 the guard. Third time today that a guard needed forcing before it could be
 trusted; the difference here is that the forcing itself needed checking.
+
+---
+
+## B-39 · Four more from the audits: a crash, a dead credential, and a false price
+
+All verified against current code on 2026-08-10. **Fixed.**
+
+### RC-03 — a settable status crashed the admin orders tab
+
+`STATUS_COLORS` was missing `cancelled` and `paid`, and the status-filter row
+reads `STATUS_COLORS[s].bg` with **no fallback**. So the first cancelled order
+made the whole orders tab throw — and `cancelled` is settable, meaning an
+operator could break their own admin by using the dropdown correctly. The audit
+filed this as LOW ("colour map is not exhaustive"); it is a crash.
+
+Fixed with `satisfies Record<OrderStatus, …>`, so adding a status to
+`order-status.ts` now fails `tsc` here until it has a colour — the guard that
+file's own comment recommends. Plus a `colorFor()` fallback, so a value the
+database holds but this map has never heard of cannot crash the page either.
+Forced: removing `cancelled` produces `error TS1360 … Property 'cancelled' is
+missing`.
+
+### RC-02 — the order-lookup credential was persisted, and never read
+
+`/account` wrote `{email, phone}` to `localStorage` "for faster login next
+time". **Nothing ever read it back** — there is no `getItem` for that key
+anywhere. So it stored the exact pair that unlocks a customer's entire order
+history, permanently, on whatever machine they happened to use, and delivered
+none of the convenience it claimed. Removed.
+
+### SH-07 — the recovery e-mail quoted a price the shop does not charge
+
+> Pay only 50% now — AED {total/2}
+
+The deposit-plus-COD model was removed; checkout charges in full. So the e-mail
+invited customers back with a figure **half** what they would be asked for. That
+is a false price in marketing copy, not stale wording.
+
+**The first fix shipped the old wording anyway.** I put the explanation in an
+HTML comment inside the template — which goes out in every customer's e-mail, and
+tripped the very test asserting the wording was gone. Explanations about an
+artefact belong outside the artefact.
+
+### Verified and deliberately NOT changed
+
+- **EN-04 / TR-02** — rate limits reset on deploy, not shared across replicas.
+  `rate-limit.ts` documents this as a one-container trade-off with Redis named as
+  the upgrade. A decision, not a defect.
+- **AD-02** — one shared admin password, so no per-person audit trail. Real, and
+  a genuine feature (accounts, sessions, an actions log), not a fix to slip into
+  a batch. Left open deliberately rather than half-built.
+- **NS-01** — no double opt-in on the newsletter, so one person can subscribe
+  another's address. Mitigated by a working one-click unsubscribe; proper
+  confirmation is a flow change (token, e-mail, pending state) and belongs with
+  AD-02 as scoped work.
