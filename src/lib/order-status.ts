@@ -30,6 +30,31 @@ export const ORDER_STATUSES = [
 
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
+/**
+ * Statuses an operator may actually choose in `/admin`.
+ *
+ * Everything except `paid`, which is a legacy transitional value: it is kept in
+ * the database CHECK because migrations here are forward-only and no row uses
+ * it, and the tracker maps it so that if it ever appears the customer sees
+ * something true — but nothing should be able to put an order INTO it.
+ *
+ * That matters more than it looks. `paid` is not in `QUEUE_STATUSES`, so an
+ * order moved to it disappears from the cutting queue while still looking paid
+ * to the customer. That is B-7 exactly, which reached production once already
+ * when the webhook wrote `paid` and nobody could see the order to make it.
+ *
+ * `/admin` used to hand-maintain its own copy of this list. It was correct, but
+ * only by attention: a status added to ORDER_STATUSES simply would not appear
+ * in the dropdown, and nothing would say so. Derived here instead, so the
+ * exclusion is a stated decision rather than an omission.
+ */
+export const SETTABLE_STATUSES = ORDER_STATUSES.filter((s) => s !== "paid");
+
+/** Can an operator move an order to this status? */
+export function isSettableStatus(value: unknown): value is OrderStatus {
+  return typeof value === "string" && (SETTABLE_STATUSES as readonly string[]).includes(value);
+}
+
 export function isOrderStatus(value: unknown): value is OrderStatus {
   return typeof value === "string" && (ORDER_STATUSES as readonly string[]).includes(value);
 }

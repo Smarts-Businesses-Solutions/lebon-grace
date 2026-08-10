@@ -119,3 +119,50 @@ describe("GET /api/orders — the admin listing stays admin-only", () => {
     expect(m.getAll).not.toHaveBeenCalled();
   });
 });
+
+/**
+ * A bad status used to come back as "Order not found".
+ *
+ * `orderStore.update()` swallows a database error and returns null, and the
+ * route read that null as "no such order" — so an operator who mistyped a
+ * status was told their order had vanished. The order was fine; the value was
+ * not. Wrong diagnosis, and the expensive kind: it sends someone looking for a
+ * lost order.
+ */
+describe("PUT /api/orders — the status has to be a real one", () => {
+  it("400s on a status the database would reject, and does not attempt the write", async () => {
+    const res = await PUT(put({ id: "o1", status: "not_a_status" }));
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toMatch(/not a status/i);
+    // The point: it fails at validation, not by bouncing off the database.
+    expect(m.update, "an invalid status must not reach the store").not.toHaveBeenCalled();
+  });
+
+  it("400s on `paid`, which would hide the order from the cutting queue", async () => {
+    // B-7's shape: `paid` is not in QUEUE_STATUSES, so an order moved into it
+    // disappears from the workshop's list while still looking paid to the
+    // customer. The database CHECK allows it; the operator must not.
+    const res = await PUT(put({ id: "o1", status: "paid" }));
+    expect(res.status).toBe(400);
+    expect(m.update).not.toHaveBeenCalled();
+  });
+
+  it("still 404s when the order genuinely does not exist", async () => {
+    // Precondition for the above: the 404 path is real and still reachable, so
+    // the 400s are a new distinction rather than a blanket replacement.
+    m.update.mockResolvedValue(null);
+    const res = await PUT(put({ id: "nope", status: "shipped" }));
+    expect(res.status).toBe(404);
+  });
+
+  it("lets a legitimate status through untouched", async () => {
+    const res = await PUT(put({ id: "o1", status: "shipped" }));
+    expect(res.status).toBe(200);
+    expect(m.update).toHaveBeenCalledWith("o1", expect.objectContaining({ status: "shipped" }));
+  });
+
+  it("allows an update that does not touch the status at all", async () => {
+    const res = await PUT(put({ id: "o1", tracking_number: "ABC123" }));
+    expect(res.status).toBe(200);
+  });
+});

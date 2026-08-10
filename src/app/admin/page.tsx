@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import ProductImage from "@/components/ProductImage";
 import Link from "next/link";
 import OperationsDashboard from "@/components/OperationsDashboard";
+import { SETTABLE_STATUSES } from "@/lib/order-status";
 
 const CATEGORIES = [
   "Jewelry", "Home Decor", "Fashion & Accessories", "Pet Supplies",
@@ -18,10 +19,13 @@ const CATEGORIES = [
 // rejects outright. `cancelled` was missing here despite having full email and
 // WhatsApp copy and a branch in TrackClient, so the one status a customer most
 // needs telling about was the one nobody could set.
-const ORDER_STATUSES = [
-  "deposit_paid", "processing", "shipped", "out_for_delivery",
-  "delivered", "completed", "cancelled", "failed", "refunded",
-];
+// Derived from the single source of truth rather than hand-maintained here.
+// This was a verbatim copy: correct, but only by attention — a status added to
+// order-status.ts would silently not appear in this dropdown. `paid` is
+// excluded deliberately (see SETTABLE_STATUSES): it is not a queue status, so
+// an order moved into it vanishes from the cutting queue while still looking
+// paid to the customer, which is B-7.
+const ORDER_STATUSES: readonly string[] = SETTABLE_STATUSES;
 
 const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
   deposit_paid: { bg: "bg-yellow-50", text: "text-yellow-700" },

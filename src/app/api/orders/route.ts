@@ -4,6 +4,7 @@ import { sendOrderEmail } from "@/lib/email";
 import { notifyWhatsApp } from "@/lib/whatsapp";
 import { requireAdmin } from "@/lib/admin-auth";
 import { rateLimit } from "@/lib/rate-limit";
+import { isSettableStatus } from "@/lib/order-status";
 
 // GET: List all orders, or lookup by id + phone (for tracking), or email + phone (for account)
 export async function GET(request: NextRequest) {
@@ -71,6 +72,21 @@ export async function PUT(request: NextRequest) {
 
   // Fetch current order to check if status changed
   const currentOrder = await orderStore.getById(id);
+
+  // A status the database will reject used to reach `orderStore.update()`,
+  // which swallows the error and returns null — so the caller got
+  // **404 "Order not found"** for an order that exists and is fine. That sends
+  // an operator looking for a missing order instead of a mistyped status.
+  //
+  // `paid` is refused as well as nonsense: it is not a queue status, so an
+  // order moved into it disappears from the cutting queue while still looking
+  // paid to the customer. That is B-7, which reached production once already.
+  if (status !== undefined && !isSettableStatus(status)) {
+    return NextResponse.json(
+      { error: `"${String(status)}" is not a status an order can be set to.` },
+      { status: 400 }
+    );
+  }
 
   const updates: Record<string, unknown> = {};
   if (status) updates.status = status;

@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { ORDER_STATUSES, STATUS_PRESENTATION, isOrderStatus } from "./order-status";
+import { ORDER_STATUSES, STATUS_PRESENTATION, isOrderStatus, SETTABLE_STATUSES, isSettableStatus } from "./order-status";
+import { QUEUE_STATUSES } from "./production-queue";
 
 /**
  * The status set is declared in four places and had drifted in three.
@@ -94,5 +95,46 @@ describe("order status set", () => {
     expect(isOrderStatus("paid")).toBe(true);
     expect(isOrderStatus("not_a_status")).toBe(false);
     expect(isOrderStatus(undefined)).toBe(false);
+  });
+});
+
+/**
+ * What an operator may actually choose.
+ *
+ * `/admin` hand-maintained its own copy of the status list. It was correct, but
+ * only by attention: a status added here simply would not appear in the
+ * dropdown, and nothing would say so — the same drift that made B-19 a
+ * customer-visible bug, in the one place that WRITES the value.
+ */
+describe("SETTABLE_STATUSES", () => {
+  it("excludes the legacy `paid`, and only that", () => {
+    expect(SETTABLE_STATUSES).not.toContain("paid");
+    expect([...SETTABLE_STATUSES].sort()).toEqual(
+      ORDER_STATUSES.filter((s) => s !== "paid").sort()
+    );
+  });
+
+  it("refuses `paid` because it is not a queue status", () => {
+    // The reason, pinned so the exclusion cannot be "tidied up" later: an order
+    // moved to `paid` vanishes from the cutting queue while still looking paid
+    // to the customer. That is B-7, which reached production once already.
+    expect(QUEUE_STATUSES as readonly string[]).not.toContain("paid");
+    expect(isSettableStatus("paid")).toBe(false);
+  });
+
+  it("accepts every status the operator legitimately needs", () => {
+    for (const s of ["deposit_paid", "processing", "shipped", "out_for_delivery", "delivered", "completed", "cancelled", "refunded", "failed"]) {
+      expect(isSettableStatus(s), `${s} must be settable`).toBe(true);
+    }
+  });
+
+  it("rejects nonsense", () => {
+    for (const s of ["", "PROCESSING", "shipped ", "delivered; DROP TABLE orders", undefined, null, 5]) {
+      expect(isSettableStatus(s)).toBe(false);
+    }
+  });
+
+  it("every settable status is a real status", () => {
+    for (const s of SETTABLE_STATUSES) expect(ORDER_STATUSES).toContain(s);
   });
 });
