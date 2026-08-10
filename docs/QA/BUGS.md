@@ -463,6 +463,48 @@ describe it in the past tense.
 
 Verified live after deploy: `?pid=DOESNOTEXIST123` -> `{"source":"none"}`.
 
+## B-26 · The admin dropdown kept its own copy of the status set
+
+Found walking production as the workshop operator, 2026-08-09. **Fixed.**
+
+`/admin` hand-maintained a list of nine statuses while `src/lib/order-status.ts`
+— created for B-19 precisely to be the single source of truth — holds ten.
+
+The copy was **correct**, but only by attention. A status added to the canonical
+set would simply not appear in the dropdown, and nothing would say so. That is
+B-19's structure in the one place that **writes** the value rather than renders
+it, which is the more expensive direction to get wrong.
+
+**Fix.** `SETTABLE_STATUSES` — everything except the legacy `paid` — derived from
+the canonical set, so the exclusion is a stated decision instead of an omission.
+
+`paid` must stay unsettable: it is not in `QUEUE_STATUSES`, so an order moved
+into it **disappears from the cutting queue while still looking paid to the
+customer**. That is B-7, which reached production once already when the webhook
+wrote `paid` and nobody could see the order to make it. The test pins the reason,
+not just the list, so the exclusion cannot be tidied away later.
+
+## B-27 · A mistyped status reported "Order not found"
+
+Found alongside B-26. **Fixed.**
+
+`PUT /api/orders` never validated `status`. A value the database CHECK rejects
+reached `orderStore.update()`, which swallows the error and returns `null` — and
+the route read that `null` as "no such order":
+
+> **404** `{"error":"Order not found"}`
+
+…for an order that exists and is perfectly fine. The operator is then looking for
+a lost order instead of a typo. Wrong diagnosis, and the expensive kind.
+
+**Fix.** A **400** naming the offending value, before the write is attempted. The
+genuine 404 path is kept and still tested, so this is a new distinction rather
+than a blanket replacement — removing the validation fails both 400 tests.
+
+Verified live after deploy: an unauthenticated `PUT` still answers **401**, so
+the admin gate runs *before* validation and an anonymous caller learns nothing
+about which statuses exist.
+
 ## Still open
 
 | Bug | Where |
