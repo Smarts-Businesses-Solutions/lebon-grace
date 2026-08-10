@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type { QueueEntry } from "@/lib/production-queue";
 
 interface MetricsData {
@@ -181,13 +181,46 @@ function MiniBarChart({ data, label, color = "bg-ink" }: { data: { label: string
 export default function OperationsDashboard() {
   const [data, setData] = useState<MetricsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
 
-  useEffect(() => {
+  /*
+   * Refetchable, because the failure state was a dead end (OP-01).
+   *
+   * This ran once on mount and, on failure, only stopped the spinner: `data`
+   * stayed null, the screen read "Failed to load metrics", and there was no way
+   * back — `[]` deps mean it never retries, so the operator's only recovery was
+   * to reload the whole admin and log in again. A transient blip in /api/metrics
+   * therefore looked identical to a broken dashboard.
+   */
+  const loadMetrics = useCallback(() => {
+    setLoading(true);
+    setFailed(false);
     fetch("/api/metrics")
-      .then((r) => r.json())
+      .then((r) => {
+        // A non-OK response is a failure, not JSON to parse. `r.json()` on a 500
+        // yields either a parse error or an object with none of the expected
+        // keys, and the latter would render a dashboard full of blanks rather
+        // than saying it failed.
+        if (!r.ok) throw new Error(`metrics responded ${r.status}`);
+        return r.json();
+      })
       .then((d) => { setData(d); setLoading(false); })
-      .catch(() => setLoading(false));
+      .catch((err) => {
+        // console.error, which reaches GlitchTip now that console capture is
+        // configured (B-29) — an operator staring at a failed dashboard should
+        // not be the only record that it failed.
+        console.error("[ops-dashboard] could not load metrics:", err);
+        setFailed(true);
+        setLoading(false);
+      });
   }, []);
+
+  // The setState the rule objects to is `setLoading(true)` inside loadMetrics,
+  // and there is no render-time equivalent: the fetch must not start until the
+  // component is mounted, and the same function has to be callable from the
+  // retry button. Same trade-off, and same disable, as admin/page.tsx.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { loadMetrics(); }, [loadMetrics]);
 
   if (loading) {
     return (
@@ -198,7 +231,19 @@ export default function OperationsDashboard() {
   }
 
   if (!data) {
-    return <div className="text-center py-20 text-ink-soft">Failed to load metrics</div>;
+    return (
+      <div className="text-center py-20">
+        <p className="text-ink-soft">
+          {failed ? "Could not load the operations metrics." : "No metrics available yet."}
+        </p>
+        <button
+          onClick={loadMetrics}
+          className="mt-4 px-4 py-2 text-sm border border-rule rounded-lg hover:bg-paper transition-colors"
+        >
+          Try again
+        </button>
+      </div>
+    );
   }
 
   const { financial: fin, pipeline, queue, fulfillment: fulf, cod, customers: cust, products: prod, charts, alerts } = data;

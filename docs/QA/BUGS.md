@@ -1144,3 +1144,43 @@ artefact belong outside the artefact.
   another's address. Mitigated by a working one-click unsubscribe; proper
   confirmation is a flow change (token, e-mail, pending state) and belongs with
   AD-02 as scoped work.
+
+---
+
+## B-40 · The operations dashboard had no way back from a failed load
+
+From the operations audit as OP-01, verified on 2026-08-10. **Fixed.**
+
+`/api/metrics` was fetched once on mount, and the failure path was
+`.catch(() => setLoading(false))`. On any blip the screen read "Failed to load
+metrics" and stopped — `[]` deps meant it never retried, so the operator's only
+recovery was to reload the whole admin. A transient error and a broken dashboard
+looked identical, and neither was recorded anywhere.
+
+**Fix.** The fetch is a `useCallback` the retry button also calls, so recovery is
+one click. Three smaller things came with it:
+
+- **A non-OK response is now a failure.** It was `r.json()` regardless, so a 500
+  produced either a parse error or an object with none of the expected keys —
+  and the second renders a dashboard full of blanks rather than admitting it
+  failed.
+- **The failure is logged**, so it reaches GlitchTip now that console capture
+  works (B-29). An operator staring at a broken dashboard should not be the only
+  record that it broke.
+- **"No metrics yet" and "could not load" now read differently.** They are
+  different situations and the old copy called both a failure.
+
+### The rest of the operations and mobile findings
+
+- **OP-02** (engraving lacks an explicit read-back/acknowledgement in the
+  workshop queue) — a process change to how the operator works, not a defect.
+  Left open deliberately.
+- **SH-02, SH-09** (mobile purchase bar overlapping the engraving module; a
+  gallery thumbnail that can look empty at small sizes) — both need a human
+  judging a rendered layout, not an assertion. Not verifiable the way the rest of
+  this batch was, so not claimed as checked.
+- **SH-10** (a stale visible-count example in the shopper guide) — the phrasing
+  the audit quotes no longer appears in `USERGUIDES.md`; nothing to fix.
+- **TR-03** (no production regression covering a real returned order) — the
+  seeded-order playbook (P-006) covers this manually; automating it would seed
+  and delete live rows on every run.
