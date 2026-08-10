@@ -36,25 +36,32 @@ npm run audit:contrast         # WCAG arithmetic over the declared colour pairs
 | Analytics | Umami, proxied through a `next.config` rewrite | continuous |
 | Deploy freshness | `npm run verify:deploy` | every deploy — **not optional** |
 
-### Server errors reach GlitchTip only because the build forces it
+### Server errors do NOT reach GlitchTip (B-31, open)
 
-`output: "standalone"` does not copy `.next/server/instrumentation.js` or the
-chunk holding `Sentry.init`, so server-side reporting was inert from the day
-standalone was adopted until 2026-08-10 (B-31). `npm run build` now ends with
-`scripts/seal-standalone.mjs`, which copies both and **fails the build** if
-either is missing — a silently uninstalled error reporter is invisible, so the
-build is the only place it can be caught.
+`output: "standalone"` does not ship `.next/server/instrumentation.js` or the
+chunk holding `Sentry.init`, so server-side reporting has been inert since
+standalone was adopted. Only the **browser** bundle reports, plus the uptime
+check, which posts to GlitchTip directly from a shell script — so GlitchTip
+being non-empty says nothing about whether the app is reporting.
 
-After changing the build, the output mode, `instrumentation.ts` or any Sentry
-config, prove it still works rather than reading it:
+> **Do not fix this by copying the chunk into the standalone output.** It was
+> tried on 2026-08-10 and crashed the container at boot —
+> `Cannot find module 'require-in-the-middle-…'` — because Next excludes the
+> instrumentation subgraph *including its node_modules externals*. Eleven
+> minutes of downtime, rolled back via `lebon-grace:rollback-b31`.
+
+`npm run build` warns when the entry is absent. It does **not** fail: a build
+without instrumentation is correct and deployable, just unmonitored.
+
+Anything attempted here must be verified **in the container**:
 
 ```bash
-NEXT_PUBLIC_SENTRY_DSN="http://abc123@127.0.0.1:9999/1" npm run build
-node scripts/prove-sentry-init.mjs     # exit 0 means an event was actually sent
+docker run --rm --entrypoint sh <image> -c "cd /app && timeout 20 node server.js"
 ```
 
-`NEXT_PUBLIC_*` are inlined at build time, so the DSN must be set for the
-build, not the run. Edge-runtime init is **not** covered by that proof.
+A local `node .next/standalone/server.js` proves nothing — run from the project
+root it resolves externals from the full `node_modules`, which the pruned image
+does not have (L-26).
 
 ## Incident quick reference
 

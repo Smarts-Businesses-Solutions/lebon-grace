@@ -517,3 +517,38 @@ reporting is silence and silence is what a passing static check also looks like.
 B-30 was the same shape (a send that returned true), and so was B-29 (a
 console.error that went nowhere). Three in a row, all found by asking "did the
 thing that was supposed to happen, happen?" rather than "is the code right?".
+
+---
+
+## L-26 · A runtime proof that doesn't reproduce production isn't a proof
+
+L-25 says to assert against the outcome, not the mechanism. This is the sequel,
+and it cost an 11-minute outage.
+
+The B-31 fix *was* checked behaviourally — a fake Sentry ingest, the real
+standalone server, an envelope counted. Zero before, one after. That is the
+right shape of test, and it still passed on a build that crashes at boot in the
+container.
+
+`node .next/standalone/server.js` was run **from the project root**, where the
+full `node_modules` sits one directory up. Node resolved the external the copied
+chunk needed. The container ships only the *pruned* standalone `node_modules`,
+where that module does not exist — so production got
+`Cannot find module 'require-in-the-middle-…'` and no server at all.
+
+**The environment is part of the test.** For anything that ships as a container,
+"it works locally" and "it works in the artefact" are different claims, and the
+gap between them is precisely the pruning, path layout and env that make
+containers reproducible. The proof should have run `docker run` against the
+built image — the same image that would be deployed.
+
+Two smaller things this also taught:
+
+- **A build that silently omits something can be safe; a build that half-omits
+  it is not.** The missing instrumentation was invisible for months and harmed
+  nothing but observability. Supplying *part* of it — the chunk without its
+  dependencies — converted a silent gap into a hard crash. When you cannot ship
+  all of a subgraph, ship none of it.
+- **Tag a rollback before recreating, always.** `lebon-grace:rollback-b31`
+  existed because P-005 says to make one, and it turned an outage into an
+  11-minute one instead of a rebuild-under-pressure.
