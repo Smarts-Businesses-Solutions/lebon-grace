@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { catalog } from "@/lib/store";
-import { requireAdmin } from "@/lib/admin-auth";
+import { requireAdmin, adminActor } from "@/lib/admin-auth";
 import { recordAdminAction } from "@/lib/audit";
 
 export async function GET() {
@@ -44,7 +44,7 @@ export async function PUT(request: NextRequest) {
    * says when. Keeping it would pad every entry with noise.
    */
   const { updated_at: _ignored, ...changed } = updates;
-  recordAdminAction("product.updated", "product", String(slug), { fields: changed });
+  recordAdminAction("product.updated", "product", String(slug), { fields: changed }, adminActor(request));
 
   return NextResponse.json({ success: true, product: { slug, ...updates } });
 }
@@ -65,7 +65,7 @@ export async function DELETE(request: NextRequest) {
 
   // The one action with no undo. Without a record, a product that vanishes from
   // the shop leaves no evidence it ever existed, let alone when it went.
-  recordAdminAction("product.deleted", "product", String(slug), {});
+  recordAdminAction("product.deleted", "product", String(slug), {}, adminActor(request));
 
   return NextResponse.json({ success: true });
 }

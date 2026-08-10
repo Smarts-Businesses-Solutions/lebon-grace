@@ -65,6 +65,10 @@ type TabType = "dashboard" | "products" | "orders" | "analytics";
 
 export default function AdminPage() {
   const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("");
+  // Whether the server has named operators configured (AD-02). Until it does,
+  // showing an e-mail field would offer a way in that cannot work.
+  const [namedLogins, setNamedLogins] = useState(false);
   const [authenticated, setAuthenticated] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -94,10 +98,10 @@ export default function AdminPage() {
       const res = await fetch("/api/admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ email, password }),
       });
       if (res.ok) { setAuthenticated(true); setPassword(""); }
-      else { showMessage("Incorrect password", "error"); }
+      else { showMessage(namedLogins ? "Incorrect e-mail or password" : "Incorrect password", "error"); }
     } catch { showMessage("Login failed — try again", "error"); }
   };
 
@@ -112,7 +116,11 @@ export default function AdminPage() {
     let active = true;
     fetch("/api/admin/login")
       .then((r) => r.json())
-      .then((d) => { if (active && d?.authenticated) setAuthenticated(true); })
+      .then((d) => {
+        if (!active) return;
+        if (d?.authenticated) setAuthenticated(true);
+        setNamedLogins(Boolean(d?.namedLogins));
+      })
       .catch(() => { /* not logged in */ });
     return () => { active = false; };
   }, []);
@@ -218,8 +226,12 @@ export default function AdminPage() {
             <h1 className="text-2xl font-bold text-ink">Lebon Grace</h1>
             <p className="text-ink-soft text-sm mt-1">Admin Dashboard</p>
           </div>
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter admin password"
-            className="w-full px-4 py-3 border border-rule rounded-xl text-sm mb-4 focus:border-sand-dark focus:ring-2 focus:ring-sand-dark/20 outline-none transition-all" autoFocus />
+          {namedLogins && (
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Your e-mail" autoComplete="username"
+              className="w-full px-4 py-3 border border-rule rounded-xl text-sm mb-3 focus:border-sand-dark focus:ring-2 focus:ring-sand-dark/20 outline-none transition-all" autoFocus />
+          )}
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={namedLogins ? "Your password" : "Enter admin password"} autoComplete="current-password"
+            className="w-full px-4 py-3 border border-rule rounded-xl text-sm mb-4 focus:border-sand-dark focus:ring-2 focus:ring-sand-dark/20 outline-none transition-all" autoFocus={!namedLogins} />
           {message.text && <p className="text-red-700 text-sm mb-3">{message.text}</p>}
           <button type="submit" className="w-full py-3 bg-ink text-bone rounded-xl text-sm font-semibold hover:bg-ink-soft transition-colors">Sign In</button>
           <p className="text-center text-ink-soft text-xs mt-6"><Link href="/" className="text-ink underline underline-offset-2 hover:text-sand-dark">← Back to store</Link></p>

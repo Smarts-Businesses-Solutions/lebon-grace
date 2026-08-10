@@ -20,13 +20,14 @@ const m = vi.hoisted(() => ({
   remove: vi.fn(async (_slug: string) => undefined),
   getAll: vi.fn(async () => [] as unknown[]),
   requireAdmin: vi.fn(() => true),
+  adminActor: vi.fn((_r: unknown) => "wanresionne@gmail.com" as string | null),
   recordAdminAction: vi.fn(),
 }));
 
 vi.mock("@/lib/store", () => ({
   catalog: { upsert: m.upsert, remove: m.remove, getAll: m.getAll },
 }));
-vi.mock("@/lib/admin-auth", () => ({ requireAdmin: m.requireAdmin }));
+vi.mock("@/lib/admin-auth", () => ({ requireAdmin: m.requireAdmin, adminActor: m.adminActor }));
 vi.mock("@/lib/audit", () => ({ recordAdminAction: m.recordAdminAction }));
 
 import { PUT, DELETE } from "./route";
@@ -41,6 +42,7 @@ const req = (body: unknown) =>
 beforeEach(() => {
   vi.clearAllMocks();
   m.requireAdmin.mockReturnValue(true);
+  m.adminActor.mockReturnValue("wanresionne@gmail.com");
 });
 
 describe("PUT /api/products", () => {
@@ -50,7 +52,8 @@ describe("PUT /api/products", () => {
       "product.updated",
       "product",
       "abc-jigsaw-board",
-      { fields: { price: 25 } }
+      { fields: { price: 25 } },
+      "wanresionne@gmail.com"
     );
   });
 
@@ -59,7 +62,7 @@ describe("PUT /api/products", () => {
     // audit row's own created_at already says when. Keeping it would pad every
     // entry with noise.
     await PUT(req({ slug: "abc-jigsaw-board", price: 25 }));
-    const [, , , details] = m.recordAdminAction.mock.calls[0] as [string, string, string, { fields: Record<string, unknown> }];
+    const [, , , details] = m.recordAdminAction.mock.calls[0] as [string, string, string, { fields: Record<string, unknown> }, string];
     expect(Object.keys(details.fields)).not.toContain("updated_at");
   });
 
@@ -85,7 +88,13 @@ describe("DELETE /api/products", () => {
   it("records the deletion — the one action with no undo", async () => {
     await DELETE(req({ slug: "abc-jigsaw-board" }));
     expect(m.remove).toHaveBeenCalledWith("abc-jigsaw-board");
-    expect(m.recordAdminAction).toHaveBeenCalledWith("product.deleted", "product", "abc-jigsaw-board", {});
+    expect(m.recordAdminAction).toHaveBeenCalledWith(
+      "product.deleted",
+      "product",
+      "abc-jigsaw-board",
+      {},
+      "wanresionne@gmail.com"
+    );
   });
 
   it("refuses a caller who is not an admin, and deletes nothing", async () => {
@@ -93,5 +102,27 @@ describe("DELETE /api/products", () => {
     const res = await DELETE(req({ slug: "abc-jigsaw-board" }));
     expect(res.status).toBe(401);
     expect(m.remove).not.toHaveBeenCalled();
+  });
+});
+
+describe("who gets the blame", () => {
+  it("takes the operator from the signed session, NOT the request body", async () => {
+    // The whole point of the trail. If the body could name the actor, anyone
+    // who reached this route could file their edits under someone else — and a
+    // trail that names the wrong person is worse than one that names nobody,
+    // because it gets believed.
+    m.adminActor.mockReturnValue("wanresionne@gmail.com");
+    await PUT(req({ slug: "abc-jigsaw-board", price: 25, actor: "someone.else@example.com" }));
+    const [, , , , actor] = m.recordAdminAction.mock.calls[0] as [string, string, string, unknown, string];
+    expect(actor).toBe("wanresionne@gmail.com");
+  });
+
+  it("records a shared-password session as unattributed rather than inventing a name", async () => {
+    // "" is a genuine session with no name — a legacy cookie, or the fallback
+    // password. It must not become a plausible fiction on its way to the column.
+    m.adminActor.mockReturnValue("");
+    await PUT(req({ slug: "abc-jigsaw-board", price: 25 }));
+    const [, , , , actor] = m.recordAdminAction.mock.calls[0] as [string, string, string, unknown, string];
+    expect(actor).toBe("");
   });
 });

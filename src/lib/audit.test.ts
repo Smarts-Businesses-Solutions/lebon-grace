@@ -10,7 +10,15 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
  */
 
 const m = vi.hoisted(() => ({
-  record: vi.fn(async (_a: string, _t: string, _i: string, _d?: Record<string, unknown>) => true),
+  record: vi.fn(
+    async (
+      _a: string,
+      _t: string,
+      _i: string,
+      _d?: Record<string, unknown>,
+      _actor?: string | null
+    ) => true
+  ),
 }));
 vi.mock("./store", () => ({ adminActions: { record: m.record } }));
 
@@ -20,11 +28,30 @@ beforeEach(() => vi.clearAllMocks());
 
 describe("recordAdminAction", () => {
   it("passes the action through to the store", () => {
-    recordAdminAction("order.status_changed", "order", "ord_1", { from: "processing", to: "refunded" });
-    expect(m.record).toHaveBeenCalledWith("order.status_changed", "order", "ord_1", {
-      from: "processing",
-      to: "refunded",
-    });
+    recordAdminAction(
+      "order.status_changed",
+      "order",
+      "ord_1",
+      { from: "processing", to: "refunded" },
+      "wanresionne@gmail.com"
+    );
+    expect(m.record).toHaveBeenCalledWith(
+      "order.status_changed",
+      "order",
+      "ord_1",
+      { from: "processing", to: "refunded" },
+      "wanresionne@gmail.com"
+    );
+  });
+
+  it("passes an unattributed session through as-is, rather than inventing a name", () => {
+    // "" is a real session with no name: a cookie minted before named logins
+    // existed, or one using the shared fallback password. The store turns it
+    // into NULL. What must not happen is this layer substituting a plausible
+    // operator, which is precisely why migration 0007 shipped with no actor
+    // column at all (AD-02).
+    recordAdminAction("order.status_changed", "order", "ord_1", {}, "");
+    expect(m.record).toHaveBeenCalledWith("order.status_changed", "order", "ord_1", {}, "");
   });
 
   it("returns immediately — the caller never waits on it", () => {

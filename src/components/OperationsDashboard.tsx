@@ -55,7 +55,10 @@ function fmt(n: number): string {
  * Answers the workshop's daily question without opening the database (A-15).
  * Deliberately dense: this is a working list read at a bench, not a chart.
  */
-function CuttingQueue({ queue }: { queue: QueueEntry[] }) {
+// Exported for OperationsDashboard.test.tsx, which renders it directly. It
+// takes only `queue` and uses no hooks, so it renders to static markup without
+// a DOM — which is why the engraving display can be pinned by a test at all.
+export function CuttingQueue({ queue }: { queue: QueueEntry[] }) {
   const pieces = queue.reduce((n, e) => n + e.pieces, 0);
   const engraved = queue.filter((e) => e.engraved).length;
 
@@ -121,15 +124,40 @@ function CuttingQueue({ queue }: { queue: QueueEntry[] }) {
                   </span>
                 ) : (
                   e.items.map((it, n) => (
-                    <div key={n} className="flex items-baseline gap-2 text-sm">
-                      <span className="text-ink-soft tabular-nums">{it.quantity}×</span>
-                      <span className="text-ink">{it.name}</span>
+                    <div key={n} className="text-sm">
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-ink-soft tabular-nums">{it.quantity}×</span>
+                        <span className="text-ink">{it.name}</span>
+                      </div>
                       {it.engraving && (
-                        // The one field that gets cut irreversibly. Loud on
-                        // purpose — a missed engraving means recutting the piece.
-                        <span className="rounded bg-ink px-1.5 py-0.5 font-mono text-[11px] font-medium text-sand">
-                          ✎ {it.engraving}
-                        </span>
+                        /*
+                         * The one field that gets cut irreversibly, so it gets a
+                         * row of its own (OP-02).
+                         *
+                         * It used to sit inline beside the product name at 11px,
+                         * which is legible but skimmable — and skimming is the
+                         * failure mode here, because the eye reads "Zoe" for
+                         * "Zoë" and the piece is already cut by the time anyone
+                         * notices. Bigger, isolated, monospaced so lookalike
+                         * characters are distinguishable, and `break-words` so a
+                         * long name wraps rather than being clipped at the edge
+                         * of the column where the missing part is invisible.
+                         *
+                         * Deliberately NOT a tick-to-confirm or a type-it-back:
+                         * nothing has ever been mis-cut, and a confirmation
+                         * nobody asked for becomes a reflex click within a week
+                         * (L-5) — which looks like a control while being none.
+                         * If a piece is ever actually cut wrong, that is the
+                         * moment to buy the friction.
+                         */
+                        <div className="mt-1 flex items-start gap-2 rounded-md border-l-4 border-sand-dark bg-ink px-2.5 py-1.5">
+                          <span className="mt-0.5 shrink-0 text-[10px] font-semibold uppercase tracking-wider text-sand">
+                            ✎ Engrave
+                          </span>
+                          <span className="font-mono text-base font-medium leading-snug text-bone break-words">
+                            {it.engraving}
+                          </span>
+                        </div>
                       )}
                     </div>
                   ))

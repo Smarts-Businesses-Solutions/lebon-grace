@@ -15,21 +15,25 @@ import { adminActions } from "./store";
  * that console capture is configured (B-29) — so a silent audit log cannot
  * pretend to be a working one.
  *
- * There is deliberately **no `actor` argument**. With one shared admin password
- * the honest answer is "unknown", and a column filled with a plausible fiction
- * is worse than an absent one. When real accounts exist, add it — rows written
- * before then will correctly read as unattributed.
+ * `actor` is the operator's e-mail, taken from their signed session via
+ * `adminActor(request)` — never from the request body, which the caller
+ * controls and could set to anyone. Pass it through even when it is empty: a
+ * session from before named logins existed, or one using the shared fallback
+ * password, is genuinely unattributable and is stored as NULL. That is the
+ * truth, and the reason 0007 shipped without the column at all rather than
+ * filling it with a plausible fiction.
  */
 export function recordAdminAction(
   action: string,
   targetType: string,
   targetId: string,
-  details: Record<string, unknown> = {}
+  details: Record<string, unknown> = {},
+  actor?: string | null
 ): void {
   // `.catch` as well as the store's own error check: `void` on a rejecting
   // promise is an unhandled rejection, and this must never be able to take down
   // a request that has already succeeded.
   adminActions
-    .record(action, targetType, targetId, details)
+    .record(action, targetType, targetId, details, actor)
     .catch((err) => console.error(`[audit] could not record ${action} on ${targetType}:${targetId}:`, err));
 }

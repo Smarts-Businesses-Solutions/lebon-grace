@@ -37,7 +37,13 @@ vi.mock("@/lib/store", () => ({
 }));
 vi.mock("@/lib/email", () => ({ sendOrderEmail: m.sendOrderEmail }));
 vi.mock("@/lib/whatsapp", () => ({ notifyWhatsApp: m.notifyWhatsApp }));
-vi.mock("@/lib/admin-auth", () => ({ requireAdmin: m.requireAdmin }));
+vi.mock("@/lib/admin-auth", () => ({
+  requireAdmin: m.requireAdmin,
+  // The route reads the operator from the signed cookie (AD-02). Mocking
+  // the module means every export the route imports must be present here,
+  // or it is undefined at call time and the route throws.
+  adminActor: () => "wanresionne@gmail.com",
+}));
 vi.mock("@/lib/audit", () => ({ recordAdminAction: vi.fn() }));
 vi.mock("@/lib/rate-limit", () => ({ rateLimit: m.rateLimit }));
 

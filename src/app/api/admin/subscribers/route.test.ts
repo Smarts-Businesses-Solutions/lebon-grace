@@ -16,7 +16,13 @@ const m = vi.hoisted(() => ({
   getAll: vi.fn(async () => [] as Array<Record<string, unknown>>),
 }));
 
-vi.mock("@/lib/admin-auth", () => ({ requireAdmin: m.requireAdmin }));
+vi.mock("@/lib/admin-auth", () => ({
+  requireAdmin: m.requireAdmin,
+  // The route reads the operator from the signed cookie (AD-02). Mocking
+  // the module means every export the route imports must be present here,
+  // or it is undefined at call time and the route throws.
+  adminActor: () => "wanresionne@gmail.com",
+}));
 vi.mock("@/lib/store", () => ({ subscribers: { getAll: m.getAll } }));
 
 import { GET } from "./route";

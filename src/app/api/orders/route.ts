@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { orders as orderStore } from "@/lib/store";
 import { sendOrderEmail } from "@/lib/email";
 import { notifyWhatsApp } from "@/lib/whatsapp";
-import { requireAdmin } from "@/lib/admin-auth";
+import { requireAdmin, adminActor } from "@/lib/admin-auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { isSettableStatus, notifiesCustomer } from "@/lib/order-status";
 import { recordAdminAction } from "@/lib/audit";
@@ -124,7 +124,7 @@ export async function PUT(request: NextRequest) {
       // wrong. A record that asserts something it did not check is worse than no
       // record.
       notified: notifiesCustomer(status),
-    });
+    }, adminActor(request));
   }
 
   // Send email notification if status changed (non-blocking). Same condition as

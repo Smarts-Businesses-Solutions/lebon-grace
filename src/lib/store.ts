@@ -535,11 +535,15 @@ export const adminActions = {
     action: string,
     targetType: string,
     targetId: string,
-    details: Record<string, unknown> = {}
+    details: Record<string, unknown> = {},
+    actor?: string | null
   ): Promise<boolean> {
     const { error } = await db()
       .from("admin_actions")
-      .insert({ action, target_type: targetType, target_id: String(targetId), details });
+      // `actor || null`, so an empty string — a genuine session from before
+      // named logins existed — is stored as "not attributable" rather than as
+      // an operator whose name happens to be blank.
+      .insert({ action, target_type: targetType, target_id: String(targetId), details, actor: actor || null });
 
     if (error) {
       // supabase-js reports failures in `error` instead of throwing — the same
