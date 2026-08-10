@@ -48,6 +48,35 @@ bundle and the uptime check, so its not being empty proved nothing.
 standalone output. That is a proxy for "the chain is intact", not proof of
 delivery.
 
+### Proving an event reached GlitchTip, without GlitchTip access
+
+`SENTRY_DEBUG=1` makes the app report the ingest's own status code to stdout, so
+`docker logs` answers the question. Use it when you need certainty rather than
+inference — after a Sentry upgrade, a DSN change, or any doubt that reporting
+still works.
+
+```bash
+# add SENTRY_DEBUG=1 to the compose env, then
+cd /data/coolify/services/lixqbqbkz39l0bnz9xv2227t
+docker compose up -d --force-recreate --no-deps lebon-grace
+
+curl -X POST -H 'Content-Type: application/json' -d '{}'   https://shop.lebon-grace.com/api/stripe-webhook          # 400, creates nothing
+
+docker logs --since 2m lebon-grace-lixqbqbkz39l0bnz9xv2227t | grep sentry-transport
+#   [sentry-transport] accepted, status=200
+```
+
+Then **remove the variable and recreate again** — it is verbose and prints on
+every event.
+
+Two things it also proves, which nothing else here does: `Integration installed:
+CaptureConsole` and `SDK successfully initialized` appear in the same output, so
+a silent B-31 regression is visible immediately.
+
+It is a runtime variable, so flipping it costs a container recreate, not a
+rebuild. `debug` alone was not enough — it logs startup but nothing per event,
+which is why the transport is wrapped.
+
 For proof of delivery, count envelopes:
 
 ```bash

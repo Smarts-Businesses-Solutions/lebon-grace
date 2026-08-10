@@ -4,6 +4,11 @@ Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
   enabled: process.env.NODE_ENV === "production",
 
+  // Same switch as the server config, deliberately. A debug flag that quietly
+  // covers only one runtime is worse than none: you turn it on, see nothing from
+  // the proxy, and conclude the proxy reported nothing.
+  debug: process.env.SENTRY_DEBUG === "1",
+
   /*
    * `error` only, NOT `warn`.
    *

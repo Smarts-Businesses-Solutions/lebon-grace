@@ -5,6 +5,72 @@ Sentry.init({
   enabled: process.env.NODE_ENV === "production",
 
   /*
+   * Answer "did that event actually reach GlitchTip?" without GlitchTip access.
+   *
+   * B-31 ended with one link still inferred rather than observed: the app is
+   * proven to emit an envelope, and GlitchTip is proven to accept envelopes from
+   * this container, but the hop between them — production app to real ingest —
+   * was never watched. Reading a dashboard is not a check you can automate, and
+   * the GlitchTip API token available here returns 401.
+   *
+   * With `SENTRY_DEBUG=1` the SDK logs what it sends and what came back, on
+   * stdout, where `docker logs` can read it. Flip it on, provoke one error,
+   * read the result, flip it off:
+   *
+   *   docker compose up -d --force-recreate --no-deps lebon-grace   # with the var
+   *   curl -X POST https://shop.lebon-grace.com/api/stripe-webhook -d '{}'
+   *   docker logs --since 2m <container> | grep -i sentry
+   *
+   * An env var, not a build flag: non-`NEXT_PUBLIC_` variables are read at
+   * runtime, so this costs a container recreate rather than a rebuild.
+   *
+   * Exactly `"1"`, so a half-set `SENTRY_DEBUG=false` cannot switch it on, and
+   * so the runbook has one spelling to remember.
+   *
+   * Safe against a feedback loop: the SDK's own logger writes through
+   * `consoleSandbox`, which unwraps the patched console first, so
+   * `captureConsoleIntegration` below does not turn debug output into fresh
+   * events. Checked in @sentry/core rather than assumed.
+   */
+  debug: process.env.SENTRY_DEBUG === "1",
+
+  /*
+   * `debug` alone does not answer the question.
+   *
+   * It proves the SDK started — "SDK successfully initialized", "Integration
+   * installed: CaptureConsole" — which is exactly the B-31 failure and worth
+   * having. But it logs nothing per event, so it cannot tell you whether a
+   * PARTICULAR error was accepted by GlitchTip. Checked by running it, not by
+   * reading the docs.
+   *
+   * So the transport is wrapped to report the ingest's own status code. That
+   * closes the last inferred link in B-31: app → real GlitchTip, observed from
+   * inside the container with nothing but `docker logs`.
+   *
+   * `console.log`, not `console.error`: captureConsoleIntegration above is
+   * scoped to `error`, so this cannot capture itself into a loop.
+   */
+  transport: (options: Parameters<typeof Sentry.makeNodeTransport>[0]) => {
+    const inner = Sentry.makeNodeTransport(options);
+    if (process.env.SENTRY_DEBUG !== "1") return inner;
+    return {
+      async send(envelope: Parameters<ReturnType<typeof Sentry.makeNodeTransport>["send"]>[0]) {
+        try {
+          const result = await inner.send(envelope);
+          console.log(`[sentry-transport] accepted, status=${result?.statusCode ?? "none"}`);
+          return result;
+        } catch (error) {
+          // Reported, not swallowed and not rethrown differently: a transport
+          // that fails silently is the whole family of bug this exists to catch.
+          console.log(`[sentry-transport] SEND FAILED: ${error instanceof Error ? error.message : error}`);
+          throw error;
+        }
+      },
+      flush: (timeout?: number) => inner.flush(timeout),
+    };
+  },
+
+  /*
    * console.error must actually REACH GlitchTip.
    *
    * It did not. `captureConsoleIntegration` is opt-in and was never configured,

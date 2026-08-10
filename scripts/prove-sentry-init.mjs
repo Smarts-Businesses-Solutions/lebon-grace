@@ -110,6 +110,17 @@ await new Promise((r) => setTimeout(r, 4000)); // let the transport flush
 const logged = /STRIPE_WEBHOOK_SECRET not configured/.test(appOut);
 console.log(`  server logged the error:      ${logged}`);
 console.log(`  envelopes received by ingest: ${envelopes.length}`);
+
+/*
+ * With SENTRY_DEBUG=1 the transport wrapper in sentry.server.config.ts prints
+ * the ingest's own status code. Surfacing it here means this script reports the
+ * same line an operator would read out of `docker logs` in production — so the
+ * local proof and the production check are the same observation, not two
+ * different ones that happen to agree.
+ */
+const transportLines = appOut.split(/\r?\n/).filter((l) => l.includes("[sentry-transport]"));
+console.log(`  [sentry-transport] lines:     ${transportLines.length}${process.env.SENTRY_DEBUG === "1" ? "" : "  (set SENTRY_DEBUG=1 to enable)"}`);
+transportLines.slice(0, 3).forEach((l) => console.log(`    ${l.trim().slice(0, 140)}`));
 if (envelopes.length) {
   const b = envelopes[0].body;
   console.log(`  first envelope path:          ${envelopes[0].url}`);
