@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
+import type { ThrottleState } from "@/lib/login-throttle";
 
 /**
  * Logging in, and the two things that must not break while adding names to it
@@ -25,7 +26,13 @@ const m = vi.hoisted(() => ({
   requireAdmin: vi.fn(() => false),
   rateLimit: vi.fn(() => null as unknown),
   clientIp: vi.fn(() => "1.2.3.4"),
-  checkLoginThrottle: vi.fn(async () => ({ blocked: false })),
+  // Typed against the REAL ThrottleState rather than inferred from this
+  // literal. Inference narrowed it to `{blocked: boolean}`, which then accepted
+  // a `retryAfter` field that does not exist on the real thing — a mock quietly
+  // describing a different function than the one it stands in for.
+  checkLoginThrottle: vi.fn(
+    async (_ip: string): Promise<ThrottleState> => ({ blocked: false, failures: 0, retryAfterSeconds: 0 })
+  ),
   recordLoginAttempt: vi.fn(async () => undefined),
   throttledResponse: vi.fn(() => new Response("throttled", { status: 429 })),
 }));
@@ -58,7 +65,7 @@ const post = (body: unknown) =>
 beforeEach(() => {
   vi.clearAllMocks();
   m.rateLimit.mockReturnValue(null);
-  m.checkLoginThrottle.mockResolvedValue({ blocked: false });
+  m.checkLoginThrottle.mockResolvedValue({ blocked: false, failures: 0, retryAfterSeconds: 0 });
   m.verifyPassword.mockReturnValue(false);
   m.verifyOperator.mockReturnValue(null);
   m.hasNamedOperators.mockReturnValue(true);
@@ -129,7 +136,7 @@ describe("POST /api/admin/login — failure", () => {
   });
 
   it("is throttled before any credential is checked", async () => {
-    m.checkLoginThrottle.mockResolvedValue({ blocked: true, retryAfter: 900 });
+    m.checkLoginThrottle.mockResolvedValue({ blocked: true, failures: 5, retryAfterSeconds: 900 });
     const res = await POST(post({ email: "wanresionne@gmail.com", password: "right" }));
     expect(res.status).toBe(429);
     expect(m.verifyOperator, "a blocked request must not reach the hash").not.toHaveBeenCalled();

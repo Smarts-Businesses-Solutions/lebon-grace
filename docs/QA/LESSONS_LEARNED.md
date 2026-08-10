@@ -679,3 +679,52 @@ restores the behaviour a CVE removed, look for the path that never needed it.
 Found by searching the verbatim error string first, per the project's meta-rule.
 Thirty seconds of search against an unbounded guess at which of `shell: true`,
 `cmd /c`, or a different binary name was the answer.
+
+---
+
+## L-31 · "The gate is green" decays the moment you touch another file
+
+CI failed on `ca8c58c` with a single line:
+
+```
+src/app/api/admin/login/route.test.ts(132,61): error TS2353:
+  'retryAfter' does not exist in type '{ blocked: boolean; }'
+```
+
+The commit message claimed "tsc and eslint clean". That claim was **made from a
+run that predated the file containing the error.** The sequence was: run
+`tsc` + `eslint` + tests → green → then write one more test file → run only the
+test suite → commit, quoting the earlier green.
+
+Every individual step was honest. The summary was not, because a gate result is
+a statement about a *snapshot of the tree*, and the tree had moved.
+
+This is the same failure as L-28 (a test summary is a claim about which files
+ran) one level up: there, the number was accurate and the story attached to it
+was wrong; here, each check was accurate and the *timestamp* attached to it was
+wrong. Both are cases of a true measurement quoted about a different thing than
+it measured.
+
+**The systemic fix, not the resolution to be more careful:**
+
+```bash
+npm run gate
+```
+
+One command that runs exactly what CI runs, in CI's order — lockfile, `tsc`,
+E2E typecheck, tests, lint, build. There was no such command before; there were
+six, run individually, at different times. That made "I ran the gate" an
+ambiguous statement, and ambiguity is where the stale claim hid.
+
+Run it **immediately before committing**, not while working. Anything else is
+quoting a measurement of a tree that no longer exists.
+
+**A second, quieter bug the same error exposed.** The mock was written as
+`vi.fn(async () => ({ blocked: false }))`, so its type was *inferred from the
+literal* — `{blocked: boolean}`, which has no `failures` and no
+`retryAfterSeconds`. The real `ThrottleState` has both. The mock was describing
+a different function than the one it stood in for, and would happily have
+accepted assertions about fields the real code never returns. Mocks should be
+typed against the real interface (`Promise<ThrottleState>`), not left to
+inference — a mock that cannot drift is worth more than one that is merely
+correct today.

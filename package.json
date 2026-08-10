@@ -15,7 +15,8 @@
     "start:standalone": "node scripts/serve-standalone.mjs",
     "test:e2e": "playwright test",
     "qa:report": "node scripts/qa-report.mjs",
-    "verify:lockfile": "node scripts/verify-lockfile.mjs"
+    "verify:lockfile": "node scripts/verify-lockfile.mjs",
+    "gate": "node scripts/verify-lockfile.mjs && tsc --noEmit && npm run typecheck:e2e && vitest run && eslint --report-unused-disable-directives && npm run build"
   },
   "dependencies": {
     "@sentry/nextjs": "^10.62.0",
