@@ -61,6 +61,38 @@ Two build-arg rules learned the hard way:
   placeholders you do pass live in the builder stage only and never reach the
   runner. Construct SDK clients inside a function, never at module scope.
 
+## The `lebon-grace:cx53` tag must always exist
+
+The compose file pins `image: 'lebon-grace:cx53'`. A running container does not
+need that tag — it is already on the image — so the tag can go missing without
+anything appearing wrong. **The next recreation is when you find out**, and by
+then the container is stopped.
+
+Found in this state on 2026-08-11: `docker ps` showed the container up and
+healthy on `lebon-grace:cx53`, while `docker images` had no such tag — it had
+been moved to `pending-2519eff` by an earlier session. Pressing Deploy in
+Coolify, or any `up --force-recreate`, would have taken the shop down with no
+image to start.
+
+**So: tag the rollback by ADDING a tag, never by renaming `cx53`.**
+
+```bash
+# right — cx53 keeps pointing at the live image
+docker tag lebon-grace:cx53 lebon-grace:rollback-$(date +%Y%m%d)
+
+# check before and after any deploy that the tag the compose pins still exists
+docker images --format '{{.Repository}}:{{.Tag}}' | grep -x 'lebon-grace:cx53'   || echo 'DANGER: compose pins a tag that does not exist'
+```
+
+Rolling back is retagging plus a recreate of the one service:
+
+```bash
+ssh -i ~/.ssh/hetzner_ed25519 root@116.203.242.215   "docker tag lebon-grace:rollback-YYYYMMDD lebon-grace:cx53 &&    cd /data/coolify/services/lixqbqbkz39l0bnz9xv2227t &&    docker compose up -d --force-recreate --no-deps lebon-grace"
+```
+
+`--no-deps` and the explicit service name matter: cx53 is shared infrastructure
+and a deploy must never touch anything but this app's container.
+
 ## Verify — never trust a green deploy
 
 ```bash
