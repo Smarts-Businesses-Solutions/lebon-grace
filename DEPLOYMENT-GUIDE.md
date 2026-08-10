@@ -54,9 +54,12 @@ Two build-arg rules learned the hard way:
 
 - **`UMAMI_ORIGIN` must be a real URL.** A placeholder produces `Invalid rewrite`
   from `next.config`, and the build fails late.
-- **Every non-`NEXT_PUBLIC` key needs at least a placeholder.** Module-scope SDK
-  constructors (`new Resend(undefined)`) throw during page-data collection.
-  Placeholders live in the builder stage only and never reach the runner.
+- **Server-side keys no longer need placeholders.** ~~Module-scope SDK
+  constructors (`new Resend(undefined)`) throw during page-data collection.~~
+  **Fixed 2026-08-09:** clients are built lazily (`mailer()` in `src/lib/email.ts`),
+  so the build needs no runtime secrets at all — which is how CI builds it. Any
+  placeholders you do pass live in the builder stage only and never reach the
+  runner. Construct SDK clients inside a function, never at module scope.
 
 ## Verify — never trust a green deploy
 

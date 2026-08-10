@@ -182,8 +182,8 @@ of them.
 
 ## 9. Bugs & Fixes
 
-Twelve are written up in `docs/QA/BUGS.md` with evidence. The two that teach the
-most:
+Twenty-eight are written up in `docs/QA/BUGS.md` with evidence. The two that
+teach the most:
 
 **A failed payment said "Order Confirmed."** Both failure branches in
 `checkout/page.tsx` called `clearCart()` and `setOrderPlaced(true)`. Symptom: a
@@ -198,6 +198,42 @@ both verified to fail against the original code.
 customer's timeline lit no step, and the order appeared in no column of the
 queue. Found while writing a `CHECK` constraint and enumerating the real values.
 Prevention: the constraint now rejects it.
+
+### What the 2026-08-09 role walkthroughs added (B-21 … B-28)
+
+Six roles were driven through the live site — returning customer, reviewer,
+newsletter subscriber, admin, operator — one at a time, asking "what can this
+person actually do, and does it work?". Four findings worth carrying:
+
+**A credential that got weaker the less you typed.** The phone half of the
+order lookup compared `ca.endsWith(cb.slice(-8))`. `slice(-8)` of a *short*
+string is the whole string, so `"7"` matched any number ending in 7 — and
+exactly one digit matches, so **ten guesses beat a ten-per-hour rate limit**.
+The general rule: *any comparison whose strictness depends on the length of the
+input is controlled by whoever supplies the input.* Fix the window; refuse to
+compare below it (B-21).
+
+**Green tests next to a broken build.** 201 unit tests passed the whole time
+`next build` was failing, because `email.test.ts` mocks `resend` — so the
+module-scope `new Resend(...)` that broke the build never ran in the suite. *If
+your test replaces the thing that would have failed, it is not testing that
+thing.* (B-25's sibling; see L-17.)
+
+**A repository that could not build itself.** `playwright.config.ts` imported
+`../ops/qa/…` — a path *outside* the repo, present only on this workstation. The
+216-test E2E suite had never been runnable on any other machine. A green suite on
+the author's machine says the author's machine works (L-18).
+
+**Documented is not fixed.** `/api/variants` was written up in *two* documents as
+the textbook example of "a new API route is public on creation" — and stayed open
+for months, an unauthenticated proxy onto a metered paid API (B-25). The CI
+workflow was described in four documents as the quality gate while never having
+executed once. Writing a hole down does not close it.
+
+The last one is the reason this guide is worth keeping honest: a document that
+describes a problem in the present tense, after it is fixed, sends the next
+reader hunting for something that is not there. Several files were corrected in
+that pass for exactly that reason.
 
 ## 10. Pitfalls & How to Avoid Them
 
@@ -231,11 +267,27 @@ Prevention: the constraint now rejects it.
 
 ```bash
 npx tsc --noEmit          # types
-npx vitest run            # 138 unit tests
-npx eslint src/           # must be 0 — run it yourself; see D-013, there is no CI
-npx playwright test       # 14 routes × 3 viewports + axe-core
+npm run typecheck:e2e     # the E2E harness — the line above does NOT cover it
+npx vitest run            # 276 unit tests
+npx eslint src/           # must be 0
+npx playwright test       # 231 tests × 3 viewports + axe-core
 npm run verify:deploy     # did the deploy actually reach production?
 ```
+
+**CI runs these on every push** — on Forgejo, not GitHub, within about ten
+minutes of a push reaching `main` (D-014). It had never executed once until
+2026-08-09 (D-013), which is why an earlier version of this section told you to
+run them yourself.
+
+Run them yourself anyway before pushing. Three consecutive CI rounds were burned
+discovering one failing step at a time, each costing six minutes to learn
+something ninety seconds would have shown (L-19).
+
+`typecheck:e2e` is listed separately because `tsc --noEmit` genuinely does not
+cover it: `tsconfig.json` excludes `ops/qa`, `playwright.config.ts` and `tests/**`
+so the app build does not choke on code it does not own, and Playwright
+transpiles specs without type-checking them. That gap existed, unnoticed, until
+CI ran.
 
 **The house rule:** a test that passes without the fix is decoration. Every guard
 here was verified by removing it and watching its own test fail.

@@ -35,9 +35,9 @@ Six environment variables are genuinely required: `SUPABASE_SERVICE_ROLE_KEY`,
 
 ```bash
 npx tsc --noEmit          # types
-npx vitest run            # 138 unit tests
+npx vitest run            # 276 unit tests
 npx eslint src/           # must be 0
-npx playwright test       # 14 routes x 3 viewports, incl. axe-core
+npx playwright test       # 231 tests across 3 viewports, incl. axe-core
 npm run verify:deploy     # did a deploy actually reach production?
 ```
 

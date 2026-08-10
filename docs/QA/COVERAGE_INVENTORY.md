@@ -5,7 +5,7 @@
 
 MASTER-QA-PROTOCOL §5.1. Counted from the test files, not asserted.
 
-**153 cases** — 124 unit, 29 browser.
+**250 cases** — 207 unit, 43 browser.
 
 Browser tests run under **three viewports** (desktop 1920×1080, iPhone 14 Pro, Pixel 7), so the executed count is higher than the case count below.
 
@@ -14,10 +14,14 @@ Browser tests run under **three viewports** (desktop 1920×1080, iPhone 14 Pro, 
 | File | Cases |
 |---|---:|
 | `tests/e2e/a11y/axe.spec.ts` | 2 |
+| `tests/e2e/account/lookup.spec.ts` | 3 |
 | `tests/e2e/failure-modes/resilience.spec.ts` | 8 |
 | `tests/e2e/mobile/layout.spec.ts` | 7 |
-| `tests/e2e/money-path/checkout.spec.ts` | 12 |
+| `tests/e2e/mobile/tap-targets.spec.ts` | 3 |
+| `tests/e2e/money-path/checkout.spec.ts` | 14 |
+| `tests/e2e/money-path/personalisation.spec.ts` | 3 |
 | `tests/e2e/navigation/smoke.spec.ts` | 0 |
+| `tests/e2e/seo/status-codes.spec.ts` | 3 |
 
 > `navigation/smoke.spec.ts` registers its cases from `tests/fixtures/sitemap.json` at runtime, so it counts 0 here and executes one per route.
 
@@ -25,16 +29,25 @@ Browser tests run under **three viewports** (desktop 1920×1080, iPhone 14 Pro, 
 
 | File | Cases |
 |---|---:|
-| `src/app/api/checkout/route.test.ts` | 7 |
-| `src/app/api/orders/route.test.ts` | 8 |
-| `src/app/api/reviews/route.test.ts` | 15 |
-| `src/app/api/stripe-webhook/route.test.ts` | 13 |
-| `src/lib/cart-context.test.tsx` | 7 |
+| `src/app/api/admin/subscribers/route.test.ts` | 5 |
+| `src/app/api/checkout/route.test.ts` | 10 |
+| `src/app/api/orders/route.test.ts` | 13 |
+| `src/app/api/reviews/route.test.ts` | 17 |
+| `src/app/api/stripe-webhook/route.test.ts` | 23 |
+| `src/app/api/variants/route.test.ts` | 4 |
+| `src/lib/cart-context.test.tsx` | 10 |
+| `src/lib/email-address.test.ts` | 8 |
 | `src/lib/email.test.ts` | 10 |
 | `src/lib/login-throttle.test.ts` | 11 |
+| `src/lib/module-import-safety.test.ts` | 1 |
+| `src/lib/order-status.test.ts` | 11 |
+| `src/lib/phone.test.ts` | 17 |
+| `src/lib/plural.test.ts` | 5 |
 | `src/lib/product-filters.test.ts` | 7 |
 | `src/lib/production-queue.test.ts` | 16 |
 | `src/lib/puzzle/geometry.test.ts` | 15 |
+| `src/lib/qa-kit-drift.test.ts` | 3 |
+| `src/lib/rate-limit.test.ts` | 6 |
 | `src/lib/store.test.ts` | 15 |
 
 ## Deliberately not covered

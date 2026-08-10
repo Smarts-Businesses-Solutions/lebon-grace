@@ -12,7 +12,7 @@ Parked ideas live in [ENHANCEMENTS.md](ENHANCEMENTS.md) until they earn a slot.
 |---|---|---|---|
 | 1 | **Rotate the exposed credentials** | Evariste | Live Stripe keys first. Also Supabase service-role, `SENTRY_PAT`, AI keys, and the Coolify RSA key partially printed in session output |
 | 2 | **Finish the Coolify git registration** | Evariste | One click: app `lebon-grace-git` → *Source* → select `lebon-grace-github-deploy-key` → Deploy. API cannot do it (upstream bug) |
-| 3 | **Gate `/api/variants`** | dev | Unauthenticated, unthrottled proxy to the CJ API on our key |
+| ~~3~~ | ~~**Gate `/api/variants`**~~ | — | **Done 2026-08-09 — removed, not gated.** No product carries a `cjPid`, so the branch served only an attacker; the dropship model was abandoned. B-25. |
 
 ## Next (P1)
 

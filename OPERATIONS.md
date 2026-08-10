@@ -78,5 +78,5 @@ wrong twice.
 |---|---|
 | Secret rotation outstanding | Live Stripe keys, Supabase service-role key, PATs, one RSA key were exposed in session output |
 | 67 env vars in a public web container | 36 unread credentials, incl. `GitHub_PAT_classic` (A-0b) |
-| No `middleware.ts` | New API routes are public on creation; already produced the `/api/variants` hole |
+| No `middleware.ts` | New API routes are public on creation. Produced the `/api/variants` hole, **closed 2026-08-09** (B-25) — the *gap* is unchanged, so the next route is public too |
 | Admin is one shared password | No attribution for order-status changes, which email customers |

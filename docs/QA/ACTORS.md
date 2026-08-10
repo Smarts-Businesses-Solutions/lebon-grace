@@ -117,9 +117,24 @@ authenticate on a phone number plus something adjacent — an email, or an order
 id — and a hit returns the whole record: name, email, phone, delivery address.
 Anyone holding a customer's email and phone can read their order history. This
 is why B-3's wildcard bug mattered: it reduced the credential from "order id
-**and** phone" to "phone", against a check comparing only the last 8 digits. The
-wildcard is fixed; the underlying model is unchanged and is a deliberate
-trade-off against making people create accounts.
+**and** phone" to "phone" — and the phone half was weaker than it looked.
+
+**B-21 (2026-08-09) found the phone check was not really a check.** It compared
+`ca.endsWith(cb.slice(-8))`, and `slice(-8)` of a *short* string is the whole
+string, so **the less you typed the more it matched**: `"7"` matched any number
+ending in 7. Exactly one digit matches, so ten attempts defeated it — against a
+rate limit of ten an hour.
+
+It now compares a **fixed eight-digit window** and refuses to compare at all
+below that, so input length can no longer change how strict the test is. Eight
+rather than nine because a UAE landline has eight significant digits and nine
+would lock those customers out of the only route to their own order. Checkout
+validates the same way on both sides, so a phone that could never be matched
+cannot be stored (B-22).
+
+The wildcard is fixed and the phone is now a real factor. **The underlying model
+is unchanged**: email + phone still reads a full record, and that remains a
+deliberate trade-off against making people create accounts.
 
 **Admin is one shared password, not a set of accounts.** The session token
 carries a role and an expiry and nothing else — no user id, no database row. If

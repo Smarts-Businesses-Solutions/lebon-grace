@@ -34,11 +34,12 @@ There are **no subscription tiers, no plan entitlements and no customer login**.
 - `/track`
 - `/unsubscribe`
 
-## API (13)
+## API (14)
 
 | Endpoint | Verbs | Admin only | Rate limited |
 |---|---|---|---|
 | `/api/admin/login` | GET, POST, DELETE | yes | yes |
+| `/api/admin/subscribers` | GET | yes | — |
 | `/api/cart-recovery` | POST | — | yes |
 | `/api/checkout` | POST | — | yes |
 | `/api/contact` | POST | — | yes |
