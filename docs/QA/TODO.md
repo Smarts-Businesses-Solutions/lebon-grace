@@ -52,3 +52,14 @@ npm run qa:report
 generated. `BUGS.md`, `LESSONS_LEARNED.md`, this file and the user-actions
 inventory are written by hand, because what broke and what it taught is
 judgement rather than data.
+
+## Out of scope for this project
+
+**"E2E physical book print test."** Appears in the pasted walkthrough protocol
+and does **not** apply here — confirmed 2026-08-09 as carried over from another
+project. This shop sells hand-made laser-cut wooden puzzles, made to order in
+Dubai: there is no book, no print product, no print-on-demand or print-provider
+integration, and no code path to test.
+
+Noted so the next walkthrough does not spend time re-deriving that. If a print
+product is ever added, delete this section rather than editing it.
