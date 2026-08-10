@@ -1055,3 +1055,37 @@ running it; not visible by reading it.
 `me.kis.v2.scr.kaspersky-labs.com` into the CSP it reports, so the policy seen in
 a local browser console is not purely ours. Assert against the header the server
 sends, not what a local browser displays.
+
+---
+
+## B-38 · A mis-click in /admin e-mailed the customer, with no confirmation
+
+From the admin audit as AD-01, verified live on 2026-08-10. **Fixed.**
+
+Order status is a `<select>` firing on `onChange`, so a mis-click, a stray
+scroll over the control, or an arrow key changed the order **and sent mail** —
+six of the settable statuses have templates, including `cancelled` ("all sales
+are final") and `refunded` ("Refund issued").
+
+It was harmless until today for the worst possible reason: **nothing was being
+delivered.** Every send came back 403 from an unverified domain (B-30). Fixing
+delivery turned a latent defect into a live one — worth noting as a general
+pattern, since repairing a broken channel activates everything queued behind it.
+
+**Fix.** `notifiesCustomer(status)` guards the change with a confirm naming what
+the customer will be told. Statuses that send nothing stay immediate: a
+confirmation on every change teaches the operator to dismiss all of them, and
+then the one that matters is dismissed too (L-5).
+
+**The interesting part is the list.** `isEmailable` is the authority but lives
+beside the Resend client, so a client component importing it would pull the mail
+SDK into the browser bundle. `order-status.ts` therefore carries
+`NOTIFIES_CUSTOMER`, and a test asserts the two agree — add a template without
+adding it there and the build fails. Without that test this is B-26 again: the
+admin keeping its own copy of a list that then drifts.
+
+**The guard was proven by breaking it** — and the first attempt to break it
+*failed to break it*, because `str.replace` in the probe removed the status from
+`ORDER_STATUSES` as well, keeping both lists consistent. The probe was wrong, not
+the guard. Third time today that a guard needed forcing before it could be
+trusted; the difference here is that the forcing itself needed checking.

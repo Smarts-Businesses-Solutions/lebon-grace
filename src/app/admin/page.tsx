@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import ProductImage from "@/components/ProductImage";
 import Link from "next/link";
 import OperationsDashboard from "@/components/OperationsDashboard";
-import { SETTABLE_STATUSES } from "@/lib/order-status";
+import { SETTABLE_STATUSES, notifiesCustomer } from "@/lib/order-status";
 
 const CATEGORIES = [
   "Jewelry", "Home Decor", "Fashion & Accessories", "Pet Supplies",
@@ -130,6 +130,31 @@ export default function AdminPage() {
   };
 
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
+    /*
+     * Confirm anything the customer will hear about (AD-01).
+     *
+     * This is a `<select>` firing on `onChange`, so a mis-click, a stray scroll
+     * over the control, or a keyboard arrow changes an order's status
+     * immediately — and six of these statuses e-mail the customer. "Your order
+     * has been cancelled" or "Refund issued" cannot be taken back.
+     *
+     * It was harmless until 2026-08-10 only because nothing was being
+     * delivered: every send came back 403 from an unverified domain (B-30). The
+     * domain is verified now, so the same mis-click reaches a real inbox.
+     *
+     * Statuses that send nothing are left immediate — a confirmation on every
+     * change trains the operator to dismiss all of them, and then the one that
+     * matters is dismissed too (L-5).
+     */
+    if (notifiesCustomer(newStatus)) {
+      const readable = newStatus.replace(/_/g, " ");
+      if (!confirm(`Email the customer that their order is "${readable}"?\n\nThis sends immediately and cannot be undone.`)) {
+        // The <select> already shows the new value optimistically; put it back.
+        setOrders((prev) => [...prev]);
+        return;
+      }
+    }
+
     setUpdatingOrderId(orderId);
     try {
       const res = await fetch("/api/orders", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: orderId, status: newStatus }) });

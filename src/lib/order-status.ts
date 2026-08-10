@@ -122,3 +122,32 @@ export const STATUS_PRESENTATION = {
       "This order could not go through, and no charge was made. Sorry for the trouble. Message us and we will sort it out with you.",
   },
 } satisfies Record<OrderStatus, StatusPresentation>;
+
+/**
+ * Statuses whose selection sends the customer an e-mail.
+ *
+ * Duplicated from `email.ts`'s TEMPLATES on purpose, and guarded by a test that
+ * fails if the two disagree (`email.test.ts`). The duplication exists because
+ * `isEmailable` lives beside the Resend client, and a client component importing
+ * it would pull the mail SDK into the browser bundle — but an admin UI that
+ * cannot tell which changes reach a customer is how AD-01 happened: a `<select>`
+ * fired the change on `onChange`, and until 2026-08-10 nothing was delivered
+ * anyway, so the mistake was invisible. E-mail works now, so a mis-click reaches
+ * a real person.
+ *
+ * The test is what makes this safe: add a template without adding it here and
+ * the build fails, rather than the admin silently mailing customers unwarned.
+ */
+export const NOTIFIES_CUSTOMER: ReadonlySet<string> = new Set([
+  "processing",
+  "shipped",
+  "out_for_delivery",
+  "delivered",
+  "cancelled",
+  "refunded",
+]);
+
+/** Will moving an order to this status e-mail the customer? */
+export function notifiesCustomer(status: string): boolean {
+  return NOTIFIES_CUSTOMER.has(status);
+}

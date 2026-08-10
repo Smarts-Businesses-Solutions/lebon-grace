@@ -361,3 +361,35 @@ describe("every sender goes through deliver()", () => {
     ).toEqual([]);
   });
 });
+
+/**
+ * The admin UI must know which statuses e-mail the customer — without importing
+ * this module.
+ *
+ * `isEmailable` is the authority, but it lives beside the Resend client, so a
+ * client component importing it would pull the mail SDK into the browser bundle.
+ * `order-status.ts` therefore carries a plain list, and this test is what stops
+ * the two drifting: a new template with no entry in the list means the admin
+ * changes a status and silently mails a customer with no warning, which is
+ * B-26's shape (the dropdown keeping its own copy of the status set).
+ */
+describe("NOTIFIES_CUSTOMER agrees with the e-mail templates", () => {
+  it("every settable status that notifies is emailable, and vice versa", async () => {
+    const { SETTABLE_STATUSES, NOTIFIES_CUSTOMER } = await import("./order-status");
+
+    const emailable = SETTABLE_STATUSES.filter((s) => isEmailable(s)).sort();
+    const declared = SETTABLE_STATUSES.filter((s) => NOTIFIES_CUSTOMER.has(s)).sort();
+
+    expect(
+      declared,
+      "order-status.NOTIFIES_CUSTOMER and email.ts TEMPLATES disagree — the admin " +
+        "would either warn about a status that sends nothing, or send silently"
+    ).toEqual(emailable);
+  });
+
+  it("PRECONDITION: the set is not empty", async () => {
+    // Two empty lists agree with each other perfectly.
+    const { SETTABLE_STATUSES, NOTIFIES_CUSTOMER } = await import("./order-status");
+    expect(SETTABLE_STATUSES.filter((s) => NOTIFIES_CUSTOMER.has(s)).length).toBeGreaterThan(0);
+  });
+});
