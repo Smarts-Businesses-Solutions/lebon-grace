@@ -103,7 +103,15 @@ project, so searching for "lebon" finds nothing either way; and `pg_restore` is
 not installed on the host, so inspecting a dump from there silently reports zero
 tables. Verify inside the db container.
 
-## WhatsApp to customers — not configured, and credentials alone will not finish it
+## WhatsApp to customers — PARKED by decision (2026-08-10)
+
+> **Not being worked on.** Deliberately deferred, not forgotten. The operator can
+> already message any customer in one tap from the new-order alert email, which
+> covers the need at current volume — and enabling the API properly costs Meta
+> onboarding plus template approval (below). Revisit when order volume makes
+> manual messaging tedious, or when a template is wanted for shipping updates.
+
+### What it would take, if picked up
 
 `WHATSAPP_ACCESS_TOKEN` and `WHATSAPP_PHONE_NUMBER_ID` are **unset**, so
 `sendWhatsAppMessage()` returns false and no customer WhatsApp is ever sent.
