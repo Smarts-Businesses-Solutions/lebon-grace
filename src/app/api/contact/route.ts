@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { CONTACT } from "@/lib/contact";
-import { fromAddress, esc, mailer } from "@/lib/email";
+import { fromAddress, esc, deliver } from "@/lib/email";
 import { isDeliverableEmail } from "@/lib/email-address";
 
 /**
@@ -42,18 +42,23 @@ export async function POST(request: NextRequest) {
     <p style="white-space:pre-wrap">${esc(message)}</p>
   `;
 
-  try {
-    await mailer().emails.send({
-      from: fromAddress(),
-      to: [CONTACT.email],
-      replyTo: email,
-      subject: `Website enquiry: ${subject || "No subject"}`,
-      html,
-    });
-    return NextResponse.json({ success: true });
-  } catch (err) {
-    console.error("Contact form send failed:", err);
-    // Do not claim success on failure. The customer needs to know to try again.
+  // Through `deliver`, not the SDK directly. Resend resolves `{data, error}`
+  // rather than throwing, so the try/catch this replaced could only ever see a
+  // network fault — a 403 from an unverified domain came back as success and the
+  // customer was told "we'll be in touch" about an enquiry nobody received
+  // (B-30). `deliver` reads `error` and logs the provider's own reason.
+  const sent = await deliver("contact-form", {
+    from: fromAddress(),
+    to: [CONTACT.email],
+    replyTo: email,
+    subject: `Website enquiry: ${subject || "No subject"}`,
+    html,
+  });
+
+  if (!sent) {
+    // Do not claim success on failure. The customer needs to know to try again —
+    // and the page offers WhatsApp, which does not depend on this path.
     return NextResponse.json({ error: "Could not send your message. Please try again." }, { status: 500 });
   }
+  return NextResponse.json({ success: true });
 }

@@ -579,3 +579,35 @@ on C is wasted. It is the cheapest possible experiment and it goes first.
 The second half of the same lesson: when a hypothesis needs a *mechanism* to
 explain it — tracing, pruning, bundler internals — that complexity is itself
 evidence against it. The actual cause was a file in the wrong folder.
+
+---
+
+## L-28 · A test-run summary is a claim about *which files ran*
+
+The guard for B-33 was written, run, and reported **38 passed**. It was then
+tested against a deliberate offender and still reported **38 passed**. Forced to
+fail unconditionally, it *still* reported 38 passed.
+
+The test had never executed. Two things stacked up:
+
+1. **`vitest run src/lib/email` is a substring filter.** It matched
+   `src/lib/email-address.test.ts` as well as `src/lib/email.test.ts` — and the
+   38 came from the address file alone.
+2. **`email.test.ts` was failing to transform** — a mangled regex from a heredoc
+   (`/\/g` written as `/\/g`) — so vitest reported a file-level failure that a
+   `grep` for "Tests " never showed, while another file's green count filled the
+   summary.
+
+So a passing number appeared for a file that was not compiling, containing a
+guard that could not run, verifying a bug that was already fixed.
+
+**Name the exact file when a run's result is load-bearing** — `vitest run
+src/lib/email.test.ts`, not a prefix. And when a guard is supposed to fail,
+**make it fail on purpose and see the failure**; a green run proves nothing about
+a test you have never watched go red. That is P-001, and this is the second time
+in one session that skipping it produced a guard that was decoration
+(`seal-standalone.mjs` was the first).
+
+The heredoc escaping is a repeat too — it is in this project's own notes as
+"switched to the Edit tool" — and it cost a broken test file that looked green
+for three consecutive runs.

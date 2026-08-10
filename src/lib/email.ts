@@ -102,8 +102,13 @@ export function fromAddress(): string {
  *
  * Returns false rather than throwing, because every caller is fire-and-forget
  * inside a Stripe webhook.
+ *
+ * **Exported**, because B-30's first fix routed only the three senders in this
+ * file through it and left /api/contact and /api/cart-recovery calling the SDK
+ * directly — so those two kept reporting refusals as successes. Any new sender
+ * goes through here; nothing should call `mailer().emails.send` itself.
  */
-async function deliver(label: string, payload: Parameters<Resend["emails"]["send"]>[0]): Promise<boolean> {
+export async function deliver(label: string, payload: Parameters<Resend["emails"]["send"]>[0]): Promise<boolean> {
   try {
     const { error } = await mailer().emails.send(payload);
     if (error) {

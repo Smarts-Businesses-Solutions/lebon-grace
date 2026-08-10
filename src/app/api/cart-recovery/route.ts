@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fromAddress, mailer } from "@/lib/email";
+import { fromAddress, deliver } from "@/lib/email";
 import { rateLimit } from "@/lib/rate-limit";
 import { getProductBySlug } from "@/lib/products";
 import { isDeliverableEmail } from "@/lib/email-address";
@@ -99,16 +99,19 @@ export async function POST(request: NextRequest) {
 </body>
 </html>`;
 
-  try {
-    await mailer().emails.send({
-      from: fromAddress(),
-      to: [email],
-      subject: "You left items in your cart! 🛒 — Lebon Grace",
-      html,
-    });
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Cart recovery email failed:", error);
+  // Through `deliver`, not the SDK directly: Resend resolves `{data, error}`
+  // instead of throwing, so the try/catch this replaced saw only network faults
+  // and a refusal was answered as success (B-30). Nobody waits on this endpoint,
+  // which is exactly why it could have stayed broken unnoticed.
+  const sent = await deliver("cart-recovery", {
+    from: fromAddress(),
+    to: [email],
+    subject: "You left items in your cart! 🛒 — Lebon Grace",
+    html,
+  });
+
+  if (!sent) {
     return NextResponse.json({ error: "Failed to send email" }, { status: 500 });
   }
+  return NextResponse.json({ success: true });
 }

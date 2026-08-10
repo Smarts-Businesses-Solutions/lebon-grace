@@ -313,3 +313,51 @@ describe("a rejected send is a failure, not a success", () => {
     await expect(sendOperatorOrderAlert(order(), [])).resolves.toBe(true);
   });
 });
+
+/**
+ * Nothing outside this module may call the SDK directly.
+ *
+ * B-30's fix routed the three senders in `lib/email.ts` through `deliver()` and
+ * left `/api/contact` and `/api/cart-recovery` calling
+ * `mailer().emails.send(...)` themselves — so both kept answering 200 to a
+ * refused send, in the very session that fixed exactly that bug elsewhere.
+ *
+ * Finding the stragglers by reading is how they were missed the first time.
+ * This makes a new one fail the build instead: the failure arrives when the code
+ * is written, not months later when someone wonders why no mail arrives.
+ */
+describe("every sender goes through deliver()", () => {
+  it("no file outside lib/email.ts calls emails.send directly", async () => {
+    const { readdirSync, readFileSync, statSync } = await import("node:fs");
+    const { join, dirname } = await import("node:path");
+    const { fileURLToPath } = await import("node:url");
+
+    // Resolved from THIS file, not from cwd. A cwd-relative "src" silently
+    // walked nothing under vitest, so the guard passed with a known offender
+    // sitting in the tree — a guard that cannot fail is decoration (P-001).
+    const SRC = join(dirname(fileURLToPath(import.meta.url)), "..");
+
+    const offenders: string[] = [];
+    const walk = (dir: string) => {
+      for (const name of readdirSync(dir)) {
+        const p = join(dir, name);
+        if (statSync(p).isDirectory()) {
+          walk(p);
+          continue;
+        }
+        if (!/\.tsx?$/.test(name) || /\.test\.tsx?$/.test(name)) continue;
+        const rel = p.split("\\").join("/");
+        if (rel.endsWith("lib/email.ts")) continue; // the one legitimate site
+        if (/emails\s*\.\s*send\s*\(/.test(readFileSync(p, "utf8"))) {
+          offenders.push(rel.replace(SRC.split("\\").join("/"), "src"));
+        }
+      }
+    };
+    walk(SRC);
+
+    expect(
+      offenders,
+      `these call the Resend SDK directly, so a refusal reads as success — use deliver() from @/lib/email:\n  ${offenders.join("\n  ")}`
+    ).toEqual([]);
+  });
+});

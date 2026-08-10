@@ -867,3 +867,37 @@ secret, from 4 characters up, appears in the log** — `.slice(-6)` and every
 relative of it fails that, and a hash cannot. Paired with a precondition that
 two different secrets still produce different fingerprints, because printing a
 constant would satisfy the leak test while destroying the diagnostic.
+
+---
+
+## B-33 · B-30's fix missed two of the four senders
+
+Found 2026-08-10 while reviewing `audits/` for anything still actionable.
+**Fixed.**
+
+B-30 established that `Resend.emails.send` resolves `{data, error}` rather than
+throwing, and routed the three senders in `src/lib/email.ts` through a new
+`deliver()` helper. **Two more senders call the SDK directly and were left
+behind:**
+
+| | Effect |
+|---|---|
+| `/api/contact` | A refused enquiry answered **200** — the customer read "thanks, we'll be in touch" and nobody received anything |
+| `/api/cart-recovery` | A refused send answered 200; nobody waits on it, so it could stay broken indefinitely |
+
+The contact form is the worse of the two by a distance: it is how somebody who
+has not bought anything yet reaches the shop. Both routes already *intended* the
+right behaviour — each returns 500 on failure, and contact's comment even says
+"Do not claim success on failure" — they simply could not detect a failure.
+
+**Fix.** `deliver()` is exported and both routes use it. No behaviour change
+beyond failures now being detected: the responses, the honeypot's cheerful 200,
+and the messages are all unchanged.
+
+**Guard.** A test walks `src/` and fails if any file outside `lib/email.ts`
+calls `emails.send(` — so the next straggler fails the build rather than being
+found by reading, which is how these two were missed. Forced in both directions
+with a probe file (P-001).
+
+**Also closed:** EN-05, "no route test protects the contact workflow". Neither
+route had ever had a test; there are now seven across the two.
