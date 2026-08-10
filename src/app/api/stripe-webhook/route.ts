@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { stripe, stripeMode } from "@/lib/stripe";
 import { orders as orderStore, orderItems } from "@/lib/store";
-import { sendOrderEmail, sendOperatorOrderAlert, sendOperatorNotice, escapeHtml } from "@/lib/email";
+import { sendOrderEmail, sendOperatorOrderAlert, sendOperatorNotice, esc } from "@/lib/email";
 import { notifyWhatsApp } from "@/lib/whatsapp";
 
 /*
@@ -49,8 +49,8 @@ function alertNoLineItems(orderId: string, sessionId: string, why: string): void
   notifyOperator(
     `Paid order ${orderId} has NO LINE ITEMS`,
     `<p><strong>Order ${orderId} has been paid and there is nothing to cut.</strong></p>` +
-      `<p>${escapeHtml(why)}.</p>` +
-      `<p>Stripe session <code>${escapeHtml(sessionId)}</code>. Open it, read the line items, and add the ` +
+      `<p>${esc(why)}.</p>` +
+      `<p>Stripe session <code>${esc(sessionId)}</code>. Open it, read the line items, and add the ` +
       `pieces to the order by hand — the workshop cannot see this order otherwise, and the ` +
       `customer is already waiting.</p>`
   );
@@ -325,7 +325,7 @@ export async function POST(request: NextRequest) {
       notifyOperator(
         `Refund with NO MATCHING ORDER — payment_intent ${pi || "MISSING"}`,
         `<p><strong>A refund was issued for a payment this shop has no order for.</strong></p>` +
-          `<p>payment_intent <code>${escapeHtml(pi || "MISSING")}</code>.</p>` +
+          `<p>payment_intent <code>${esc(pi || "MISSING")}</code>.</p>` +
           `<p>The customer has their money back and the shop does not know who they are. ` +
           `Open this payment in Stripe: either it belongs to a different account, or an ` +
           `order was created without its payment_intent being written.</p>`
@@ -372,7 +372,7 @@ export async function POST(request: NextRequest) {
         `<p><strong>Order ${order.id} has been refunded.</strong></p>` +
           `<p>AED ${refunded.toFixed(2)} returned of AED ${charged.toFixed(2)} charged` +
           `${refunded < charged ? " — this is a PARTIAL refund" : ""}.</p>` +
-          `<p>Customer: ${escapeHtml(String(order.customer_name ?? "unknown"))} (${escapeHtml(String(order.customer_email ?? "no email"))}).</p>` +
+          `<p>Customer: ${esc(String(order.customer_name ?? "unknown"))} (${esc(String(order.customer_email ?? "no email"))}).</p>` +
           `<p>If this order is already cut or in progress, stop work on it.</p>`
       );
     }

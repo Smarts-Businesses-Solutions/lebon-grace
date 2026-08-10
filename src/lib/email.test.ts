@@ -15,10 +15,27 @@
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const send = vi.hoisted(() => vi.fn(async (_p: { subject: string; html: string; to: string[] }) => ({ id: "e1" })));
+/*
+ * The mock must have the SDK's REAL return shape.
+ *
+ * It used to resolve `{ id: "e1" }` — the shape of `data`, not of the response.
+ * The real SDK resolves `{data, error}` and never throws on an API refusal, so
+ * a mock shaped like this cannot express a rejected send, and no test could
+ * have caught that every send path returned true regardless. The harness
+ * modelled the library as the code wished it worked.
+ */
+type SendResult =
+  | { data: { id: string }; error: null }
+  | { data: null; error: { message: string; statusCode: number; name: string } };
+const send = vi.hoisted(() =>
+  vi.fn(async (_p: { subject: string; html: string; to: string[] }): Promise<SendResult> => ({
+    data: { id: "e1" },
+    error: null,
+  }))
+);
 vi.mock("resend", () => ({ Resend: class { emails = { send }; } }));
 
-import { sendOrderEmail, isEmailable, sendOperatorOrderAlert, sendOperatorNotice, escapeHtml } from "./email";
+import { sendOrderEmail, isEmailable, sendOperatorOrderAlert, sendOperatorNotice, esc } from "./email";
 
 const order = (over: Record<string, unknown> = {}) => ({
   id: "3f1c2b8a-9d4e-4f7a-8b21-0c5d6e7f8a9b",
@@ -224,21 +241,75 @@ describe("sendOperatorNotice", () => {
  * the rest of the sentence, so the one alert written to be read carefully is
  * also the one that can arrive mangled.
  */
-describe("escapeHtml", () => {
+describe("esc", () => {
   it("neutralises the characters that break out of text", () => {
-    expect(escapeHtml(`<script>alert(1)</script>`)).toBe(
+    expect(esc(`<script>alert(1)</script>`)).toBe(
       "&lt;script&gt;alert(1)&lt;/script&gt;"
     );
-    expect(escapeHtml(`" & '`)).toBe("&quot; &amp; &#39;");
+    expect(esc(`" & '`)).toBe("&quot; &amp; &#39;");
   });
 
   it("escapes the ampersand FIRST", () => {
     // &lt; must not become &amp;lt;. Getting the order wrong double-escapes
     // every entity and is invisible until someone reads a mangled alert.
-    expect(escapeHtml("&lt;")).toBe("&amp;lt;");
+    expect(esc("&lt;")).toBe("&amp;lt;");
   });
 
   it("leaves ordinary text alone", () => {
-    expect(escapeHtml("Lovely piece, thank you!")).toBe("Lovely piece, thank you!");
+    expect(esc("Lovely piece, thank you!")).toBe("Lovely piece, thank you!");
+  });
+});
+
+/**
+ * Resend does NOT throw when it rejects a send.
+ *
+ * `emails.send()` resolves to `{ data, error }` — the SDK's own type is
+ * `{data: T, error: null} | {error: ErrorResponse, data: null}`. So
+ * `await send(...)` followed by `return true` reports success for every
+ * API-level rejection, and only a network failure ever reaches the catch.
+ *
+ * This was not hypothetical. Production held an unverified sending domain, so
+ * EVERY email this shop ever attempted came back
+ *   403 "The lebon-grace.com domain is not verified"
+ * and every send path returned true. Order confirmations, status updates and
+ * operator alerts had never been delivered, on a shop taking live payments,
+ * and nothing anywhere said so — the failure was reported as success.
+ */
+describe("a rejected send is a failure, not a success", () => {
+  const rejection = {
+    data: null,
+    error: { message: "The lebon-grace.com domain is not verified", statusCode: 403, name: "validation_error" },
+  };
+
+  it("sendOperatorNotice resolves FALSE when Resend rejects it", async () => {
+    send.mockResolvedValueOnce(rejection);
+    await expect(sendOperatorNotice("subject", "<p>body</p>")).resolves.toBe(false);
+  });
+
+  it("names the reason, so the fix is obvious from the log", async () => {
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    send.mockResolvedValueOnce(rejection);
+    await sendOperatorNotice("subject", "<p>body</p>");
+    expect(err.mock.calls.flat().join(" ")).toContain("not verified");
+    err.mockRestore();
+  });
+
+  it("sendOrderEmail resolves FALSE when Resend rejects it", async () => {
+    send.mockResolvedValueOnce(rejection);
+    await expect(sendOrderEmail(order(), "confirmation")).resolves.toBe(false);
+  });
+
+  it("sendOperatorOrderAlert resolves FALSE when Resend rejects it", async () => {
+    send.mockResolvedValueOnce(rejection);
+    await expect(sendOperatorOrderAlert(order(), [])).resolves.toBe(false);
+  });
+
+  it("PRECONDITION: all three still resolve TRUE on a clean send", async () => {
+    // Without this the assertions above would pass on a mailer that always
+    // reports failure.
+    send.mockResolvedValue({ data: { id: "e_1" }, error: null });
+    await expect(sendOperatorNotice("s", "<p>b</p>")).resolves.toBe(true);
+    await expect(sendOrderEmail(order(), "confirmation")).resolves.toBe(true);
+    await expect(sendOperatorOrderAlert(order(), [])).resolves.toBe(true);
   });
 });

@@ -76,7 +76,10 @@ wrong twice.
 
 | Item | Impact |
 |---|---|
-| Secret rotation outstanding | Live Stripe keys, Supabase service-role key, PATs, one RSA key were exposed in session output |
+| **E-mail delivers nothing (B-30)** | `lebon-grace.com` is not a verified sender on the Resend account, so every send returns 403. Verify it at resend.com/domains or set `MAIL_FROM_ADDRESS` to a verified domain. **Customers receive no order confirmations until this is done.** |
+| **Server-side Sentry never initialises (B-31)** | `output: "standalone"` copies 19 of 40 `[root-of-the-server]` chunks and drops the one holding `Sentry.init`. No server error has ever reached GlitchTip from the container; only browser-side reporting works. |
+| Secret rotation outstanding | Live Stripe keys, Supabase service-role key, PATs, one RSA key, and **`RESEND_API_KEY`** were exposed in session output |
+| **Redact env vars by LENGTH, never by pattern** | `sed 's/.*@//'` leaves a value with no `@` completely intact. That is how `RESEND_API_KEY` leaked on 2026-08-10: the redaction assumed an e-mail shape and the value was an API key, so `cut -c1-30` printed 30 of its 36 characters. Print `${#VAL}` and nothing else. |
 | 67 env vars in a public web container | 36 unread credentials, incl. `GitHub_PAT_classic` (A-0b) |
 | ~~No `middleware.ts`~~ | **Closed 2026-08-09.** `src/proxy.ts` denies any unlisted `/api/*` path with a 404, and a test fails the build if a route exists without being listed. Produced the `/api/variants` hole (B-25) before that. |
 | Admin is one shared password | No attribution for order-status changes, which email customers |
@@ -105,9 +108,15 @@ tables. Verify inside the db container.
 
 ## What the operator is told about
 
-Every alert goes to `ORDER_NOTIFY_EMAIL`, falling back to `CONTACT.email`. If
-neither is set nothing is sent and a `console.error` says so — which now reaches
-GlitchTip, because until 2026-08-10 it did not (B-29).
+Every alert goes to `ORDER_NOTIFY_EMAIL`, falling back to `CONTACT.email`.
+`ORDER_NOTIFY_EMAIL` is currently **unset in production**, so the fallback is
+what is actually in use.
+
+> **None of these are being delivered right now.** The sending domain is not
+> verified on the Resend account, so every send is refused with a 403 (B-30).
+> The table below is what the code sends *once a verified sender is configured*.
+> Sends now log the refusal instead of reporting success, but a logged refusal
+> is still an alert nobody received.
 
 | Event | Channel |
 |---|---|

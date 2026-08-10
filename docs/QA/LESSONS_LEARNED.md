@@ -447,3 +447,41 @@ its absence turned a failure into a false success. **Any pipeline whose exit
 code you intend to trust needs `set -o pipefail`, and any pipeline that ends in
 `grep -q` or `head` needs it off.** Decide which you are doing before writing
 the pipe.
+
+---
+
+## L-24 · Verifying a deploy means exercising it, not inspecting it
+
+The B-29 deploy passed every check this project had: build id moved,
+`deploy-verify.sh` OK, `ci-freshness.sh` OK, every surface returned its correct
+status, and the new code was confirmed *present in the image by grep*.
+
+It was still broken. Two separate faults — the sending domain unverified (B-30)
+and Sentry's init chunk dropped from the standalone output (B-31) — and **not
+one of those checks could have found either.**
+
+What found them was posting a real review to production and then asking a
+question the checks do not ask: *did the thing that was supposed to happen,
+happen?* The answer came from Resend's own API — the newest email on the account
+was two hours old, and none of the last fifty was from this shop.
+
+**Presence is not behaviour.** Grepping the image proved the code shipped, and
+the code did run — it just reported success for a refusal. An artefact check can
+only ever tell you the right bytes are on disk.
+
+Two corollaries this cost real time to learn:
+
+- **A library's error convention is part of its contract, and worth thirty
+  seconds.** `Resend.emails.send` resolves `{data, error}`. Every path here was
+  written for throw-on-error. The installed `.d.ts` said otherwise the whole
+  time.
+- **A mock encodes a belief about the library.** `send` was mocked as resolving
+  `{ id: "e1" }`, so no test *could* express a rejection. When a mock's shape
+  is wrong, the tests built on it are not weak — they are aimed at a library
+  that does not exist.
+
+**And an absence check needs proof it could have been present (L-2), including
+when it is a log.** "No `[operator-notice]` error in the container logs" was
+offered as evidence the send worked. The logs contained nothing at all — not one
+request line — so that check could not have failed. It was recognised as
+worthless only after Resend's API contradicted it.

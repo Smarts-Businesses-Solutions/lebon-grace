@@ -34,7 +34,7 @@ vi.mock("@/lib/store", () => ({
   reviews: { existsFor: m.existsFor, insert: m.insertReview, getBySlug: m.getBySlug, aggregates: m.aggregates },
 }));
 vi.mock("@/lib/rate-limit", () => ({ rateLimit: m.rateLimit }));
-// Spread the REAL module and override only what must not fire. `escapeHtml` is
+// Spread the REAL module and override only what must not fire. `esc` is
 // deliberately left real: stubbing it would make every assertion below pass
 // against an alert that escapes nothing. Safe because email.ts constructs its
 // Resend client lazily inside mailer(), so importing it sends nothing.
@@ -250,7 +250,7 @@ describe("POST /api/reviews — the operator hears about it", () => {
 });
 
 it("escapes a comment that would otherwise break the alert apart", async () => {
-  // Proves the escaping happens HERE, at the call site. escapeHtml has its own
+  // Proves the escaping happens HERE, at the call site. esc has its own
   // unit tests; this asserts the route actually reaches for it.
   await POST(post({ ...good, comment: `<b>bold</b> & "quoted"` }));
   const [, html] = m.sendOperatorNotice.mock.calls[0];

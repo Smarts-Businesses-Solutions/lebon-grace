@@ -59,8 +59,21 @@ export function mailer(): Resend {
  * MAIL_FROM_ADDRESS is read first and is deliberately provider-neutral, so the
  * planned move from Resend to Postal/SES needs no code change. RESEND_FROM_ADDRESS
  * is the name two other apps in this estate already use and is honoured as a
- * fallback. The literal default is a real address on lebon-grace.com, which is a
- * verified SES identity with DKIM — so it works on either provider.
+ * fallback.
+ *
+ * **The default does NOT work on the provider actually in use.** This comment
+ * used to claim lebon-grace.com "is a verified SES identity with DKIM — so it
+ * works on either provider". It may well be verified on SES; the app sends
+ * through **Resend**, where it is not, and every send has come back
+ *   403 The lebon-grace.com domain is not verified
+ * That went unnoticed for months because the send path reported success
+ * regardless (see `deliver`). Verified on 2026-08-10 by POSTing to the Resend
+ * API from the production container.
+ *
+ * To fix delivery, either verify lebon-grace.com at https://resend.com/domains
+ * or point MAIL_FROM_ADDRESS at a domain already verified on that account.
+ * Until one of those is done the shop sends no e-mail at all — the code change
+ * only makes the failure audible.
  */
 export function fromAddress(): string {
   return (
@@ -68,6 +81,43 @@ export function fromAddress(): string {
     process.env.RESEND_FROM_ADDRESS ||
     "Lebon Grace <orders@lebon-grace.com>"
   );
+}
+
+/**
+ * Send, and actually find out whether it was sent.
+ *
+ * **Resend does not throw when it rejects a send.** Its own type is
+ * `{data: T, error: null} | {error: ErrorResponse, data: null}`, so
+ * `await mailer().emails.send(...)` resolves normally for a 403, a bad
+ * address, an unverified domain — every API-level refusal. A `try/catch`
+ * around it catches only network failures, which is why all three send paths
+ * in this file used to `return true` unconditionally.
+ *
+ * That was not a theoretical hole. Production ran with an unverified sending
+ * domain, so every e-mail the shop ever attempted came back
+ * `403 The lebon-grace.com domain is not verified` — order confirmations,
+ * status updates, operator alerts, all of it — and every one was reported as
+ * delivered. Same shape as B-29: the mechanism produced no output, and no
+ * output looked exactly like success.
+ *
+ * Returns false rather than throwing, because every caller is fire-and-forget
+ * inside a Stripe webhook.
+ */
+async function deliver(label: string, payload: Parameters<Resend["emails"]["send"]>[0]): Promise<boolean> {
+  try {
+    const { error } = await mailer().emails.send(payload);
+    if (error) {
+      // The message names the cause ("domain is not verified", "Invalid `to`"),
+      // which is the difference between a fixable log line and a mystery.
+      console.error(`[${label}] Resend REFUSED the send: ${error.message} (${error.name}, ${error.statusCode})`);
+      return false;
+    }
+    return true;
+  } catch (error) {
+    // Network-level only — DNS, TLS, timeout.
+    console.error(`[${label}] could not reach Resend:`, error);
+    return false;
+  }
 }
 
 interface EmailOrder {
@@ -297,20 +347,15 @@ export async function sendOrderEmail(order: EmailOrder, action: string): Promise
     return false;
   }
 
-  try {
-    const result = await mailer().emails.send({
-      from: fromAddress(),
-      to: [order.customer_email],
-      subject: getEmailSubject(order, action),
-      html: buildEmailHTML(order, action),
-    });
-    
-    console.log(`Email sent: ${action} to ${order.customer_email}`, result);
-    return true;
-  } catch (error) {
-    console.error(`Email failed: ${action}`, error);
-    return false;
-  }
+  // Was: log `result` under the words "Email sent" and return true. `result`
+  // is exactly where the rejection lives, so the log printed the failure while
+  // claiming delivery.
+  return deliver(`order-email:${action}`, {
+    from: fromAddress(),
+    to: [order.customer_email],
+    subject: getEmailSubject(order, action),
+    html: buildEmailHTML(order, action),
+  });
 }
 
 /**
@@ -366,46 +411,18 @@ export interface OperatorAlertItem {
  * check would then skip the real work — so the notice would be lost *and* the
  * order mishandled.
  */
-/**
- * Escape a stranger's text before it goes into an operator alert.
- *
- * `sendOperatorNotice` takes HTML by contract — the callers compose the layout —
- * so anything typed by a customer (a review comment, a name from Stripe
- * checkout) has to be neutralised at the call site. The realistic damage is not
- * a mail client running a script; it is a single `<` swallowing the rest of the
- * sentence, so the one alert written to be read carefully arrives truncated and
- * the operator never knows what they missed.
- *
- * The `&` MUST be replaced first, or every entity produced below is re-escaped
- * into `&amp;lt;` and the whole message reads as gibberish.
- */
-export function escapeHtml(text: string): string {
-  return String(text)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
-
 export async function sendOperatorNotice(subject: string, bodyHtml: string): Promise<boolean> {
   const to = process.env.ORDER_NOTIFY_EMAIL || CONTACT.email;
   if (!to) {
     console.error("[operator-notice] no ORDER_NOTIFY_EMAIL or CONTACT_EMAIL — nobody will be told");
     return false;
   }
-  try {
-    await mailer().emails.send({
-      from: fromAddress(),
-      to: [to],
-      subject,
-      html: bodyHtml,
-    });
-    return true;
-  } catch (error) {
-    console.error(`[operator-notice] could not send "${subject}":`, error);
-    return false;
-  }
+  return deliver("operator-notice", {
+    from: fromAddress(),
+    to: [to],
+    subject,
+    html: bodyHtml,
+  });
 }
 
 export async function sendOperatorOrderAlert(
@@ -483,18 +500,15 @@ export async function sendOperatorOrderAlert(
     }
   `;
 
-  try {
-    await mailer().emails.send({
-      from: fromAddress(),
-      to: [to],
-      subject: `New order #${short} — AED ${order.total}${engraved.length ? " (engraved)" : ""}`,
-      html,
-    });
-    return true;
-  } catch (error) {
-    // Loud, not thrown. The caller must not fail the webhook over this — see
-    // the note at the call site about Stripe retries and idempotency.
-    console.error(`[operator-alert] could not tell the operator about order ${short}:`, error);
-    return false;
-  }
+  // Loud, not thrown. The caller must not fail the webhook over this — see the
+  // note at the call site about Stripe retries and idempotency. `deliver`
+  // keeps that contract and additionally notices a refusal, which the old
+  // try/catch could not: a 403 resolves, so this returned true while the
+  // operator was told nothing.
+  return deliver(`operator-alert:${short}`, {
+    from: fromAddress(),
+    to: [to],
+    subject: `New order #${short} — AED ${order.total}${engraved.length ? " (engraved)" : ""}`,
+    html,
+  });
 }

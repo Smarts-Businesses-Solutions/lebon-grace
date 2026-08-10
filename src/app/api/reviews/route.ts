@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { sendOperatorNotice, escapeHtml } from "@/lib/email";
+import { sendOperatorNotice, esc } from "@/lib/email";
 import { reviews, orders as orderStore, orderItems } from "@/lib/store";
 import { rateLimit } from "@/lib/rate-limit";
 
@@ -146,10 +146,10 @@ export async function POST(request: NextRequest) {
      * `sendOperatorNotice` that resolves false instead of throwing.
      */
     sendOperatorNotice(
-      `New ${rating}-star review on ${escapeHtml(slug)}`,
-      `<p><strong>${escapeHtml(String(order.customer_name || "A customer"))}</strong> left ` +
-        `${rating} out of 5 on <code>${escapeHtml(slug)}</code>.</p>` +
-        (comment ? `<blockquote>${escapeHtml(String(comment))}</blockquote>` : `<p><em>No comment left.</em></p>`) +
+      `New ${rating}-star review on ${esc(slug)}`,
+      `<p><strong>${esc(String(order.customer_name || "A customer"))}</strong> left ` +
+        `${rating} out of 5 on <code>${esc(slug)}</code>.</p>` +
+        (comment ? `<blockquote>${esc(String(comment))}</blockquote>` : `<p><em>No comment left.</em></p>`) +
         `<p>It is already visible on the product page. Order ${order.id}.</p>`
     ).catch((err) => console.error("[operator-notice] unexpected throw:", err));
 

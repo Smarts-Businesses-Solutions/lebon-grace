@@ -13,6 +13,12 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
 
+    // Playwright's own generated HTML report and traces — bundled third-party
+    // JS (CodeMirror et al) that produced ~20k warnings the moment a local run
+    // left it on disk. Generated output, not code anyone here writes.
+    "playwright-report/**",
+    "test-results/**",
+
     // ── Not application code ────────────────────────────────────────────────
     // Lint was reporting 233 problems, of which 182 were here: 130 in loose
     // root scripts and 52 under scripts/. Almost all are no-require-imports on

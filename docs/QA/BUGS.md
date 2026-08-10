@@ -649,3 +649,114 @@ the fix was rejected by the old rule too.
 **Deliberately still silent:** newsletter signups (the admin has a subscribers
 page, and a per-signup e-mail is noise), and admin login failures (rate-limited
 by A-21; an alert per failed attempt is a self-inflicted flood).
+
+---
+
+## B-30 · Every email this shop ever sent was refused, and every send reported success
+
+Found on 2026-08-10 **while verifying the B-29 deploy** — the alert fired, the
+review published, no error appeared anywhere, and no email arrived. **Fixed in
+code; one operator action outstanding.**
+
+**Resend does not throw when it rejects a send.** Its own installed type says so:
+
+```ts
+type Response<T> = { data: T; error: null } | { error: ErrorResponse; data: null }
+```
+
+All three send paths in `src/lib/email.ts` were written as though it did:
+
+```ts
+try {
+  await mailer().emails.send({ … });
+  return true;                    // ← reached for a 403 just as surely as a 202
+} catch (error) { return false; }  // ← only ever catches DNS/TLS/timeout
+```
+
+The first one was worse than the other two: it logged the result object under
+the words **"Email sent"** — and the result object is exactly where the
+rejection lives.
+
+**What was actually happening.** `MAIL_FROM_ADDRESS` and `RESEND_FROM_ADDRESS`
+are unset, so the sender is the literal default `orders@lebon-grace.com`. POSTing
+that from the production container returns:
+
+```
+403 {"message":"The lebon-grace.com domain is not verified…","name":"validation_error"}
+```
+
+The last 50 emails on that Resend account are from `mirrortales.com`,
+`axiomsynapse.com`, `mail.vouchnexus.com` and `jobs.trusted-metrics.com`.
+**Not one is from this shop.** Order confirmations, status updates, the
+post-delivery review request, the operator's new-order alert — none of it has
+ever been delivered, on a shop taking live Stripe payments.
+
+A code comment on `fromAddress()` asserted the default "is a verified SES
+identity with DKIM — so it works on either provider". It may be verified on SES.
+The app sends through Resend. That is L-22 twice in one day: **a considered
+comment is believed more readily, not less.**
+
+**How it hid.** Three layers agreed with each other and all three were wrong:
+the code assumed throw-on-error; the comment asserted the domain was fine; and
+`email.test.ts` mocked `send` as resolving `{ id: "e1" }` — the shape of `data`,
+not of the response — so **no test could express a rejected send.** The harness
+modelled the library as the code wished it worked. E-1's "contact form delivers
+(200 from Resend)" was reading the route's own HTTP status, not Resend's.
+
+**Fix.** One `deliver(label, payload)` helper used by all three paths. It reads
+`error`, logs the provider's own message (which names the cause), and returns
+false. Never throws — every caller is fire-and-forget inside a Stripe webhook.
+The test mock now carries the SDK's real `{data, error}` union, so a rejection
+is expressible; five tests cover it, including the precondition that all three
+still return true on a clean send.
+
+**Still required, and it is not a code change:** verify `lebon-grace.com` at
+https://resend.com/domains, or point `MAIL_FROM_ADDRESS` at a domain already
+verified on that account. **Until then the shop still sends nothing** — this
+change only makes the failure audible instead of silent.
+
+---
+
+## B-31 · `output: "standalone"` drops the chunk that initialises Sentry
+
+Found on 2026-08-10 while checking whether the B-29 change had actually shipped.
+**Diagnosed, not yet fixed.**
+
+The commit was correct in source and correct in `.next/server`. It is absent
+from what the container runs:
+
+| | `.next/server/chunks` | `.next/standalone/.next/server/chunks` |
+|---|---|---|
+| `[root-of-the-server]` chunks | **40** | **19** |
+| chunk holding `Sentry.init` (`…03127c7…`) | present | **missing** |
+
+`tracesSampleRate`, `beforeSend` and `CaptureConsole` are all absent from the
+standalone output — locally *and* in the deployed image, so this is the build,
+not the deploy. The only Sentry in the image is
+`/app/.next/static/chunks/…` — the **browser** bundle. `@sentry/*` is not in the
+standalone `node_modules` at all.
+
+**So server-side error reporting has never run in this deployment.** Every
+server `console.error` and every unhandled server exception since `output:
+"standalone"` was adopted has gone nowhere. Client-side reporting is unaffected,
+as is the uptime check, which is a shell script that posts to GlitchTip directly
+— which is why GlitchTip receiving *something* was never evidence that the app
+was reporting.
+
+**Not the cause, checked and ruled out:** `instrumentation.ts` placement. Next's
+`getPossibleInstrumentationHookFilenames` checks both the project root and
+`src/`, so a root-level file with `src/app/` is valid. The missing
+`.next/server/instrumentation.js` also proves nothing — these are Turbopack
+chunk names, and it bundles instrumentation into chunks rather than emitting
+that file.
+
+**Consequence for B-29.** The e-mail half of that fix shipped and works. The
+GlitchTip half does not take effect until this is resolved, so the claim
+"`console.error` now reaches GlitchTip" is **true in source and false in
+production**. That is the same trap B-29 was about, one layer down.
+
+**Next step:** determine whether Next's file tracing is missing the
+instrumentation entry (`outputFileTracingIncludes`) or whether the Sentry
+Next.js plugin needs `automaticVercelMonitors`/`disableLogger` wiring for
+standalone. Verify by asserting the chunk's presence in the image, not by
+reading the config.
