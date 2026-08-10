@@ -728,3 +728,53 @@ accepted assertions about fields the real code never returns. Mocks should be
 typed against the real interface (`Promise<ThrottleState>`), not left to
 inference — a mock that cannot drift is worth more than one that is merely
 correct today.
+
+---
+
+## L-32 · A comment saying how to run a test is not a mechanism
+
+The `/admin` named-login spec needs a server started with `ADMIN_USERS` set. Its
+header said so, in a well-written paragraph pointing at
+`scripts/e2e-admin-login.mjs`.
+
+CI runs `npx playwright test`. It read no paragraphs. It ran the spec against a
+server with no `ADMIN_USERS`, and reported **12 failed** — four tests across
+three projects — describing a feature that was working correctly. The whole
+build went red on a green feature.
+
+The instinct is to exclude the file in `playwright.config.ts`. That works and it
+is worse, because the requirement then lives somewhere other than the thing that
+requires it, and the two drift the first time somebody moves the file.
+
+**Make the test enforce its own precondition:**
+
+```ts
+test.beforeEach(async ({ request }) => {
+  const { namedLogins } = await (await request.get("/api/admin/login")).json();
+  test.skip(!namedLogins, "no ADMIN_USERS — run `node scripts/e2e-admin-login.mjs`");
+});
+```
+
+It **asks the server** rather than reading `process.env`, because the suite can
+be pointed at a deployed environment with `QA_BASE_URL`, where this process's
+environment says nothing about what that server is running.
+
+**And a skip needs a paired proof that it can un-skip.** A test that skips
+everywhere is indistinguishable from a test that passes everywhere and asserts
+nothing — the L-28 family again. Both halves were checked explicitly:
+
+| | Result |
+|---|---|
+| default suite, no `ADMIN_USERS` | **12 skipped**, 0 failed |
+| `scripts/e2e-admin-login.mjs` | **4 passed**, 0 skipped |
+
+The runner already refuses to start unless the server reports
+`namedLogins: true`, so the spec cannot silently skip in the one place it is
+meant to run. That refusal is what makes the skip safe rather than merely quiet.
+
+**A second finding, not chased.** The artifact upload in that failed run died
+with `ECONNREFUSED 127.0.0.1:3900` and five `500`s from the artifact service.
+It only surfaced because there were failures to upload — which means **on a
+genuinely failing run, the trace, video and screenshots would be lost**, and
+the workflow's own comment says that evidence is the point. Raised separately;
+it is a Forgejo problem, not a repo one.

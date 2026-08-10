@@ -27,6 +27,36 @@ const EMAIL = "test.operator@example.com";
 const PASSWORD = "throwaway-test-password-123";
 
 test.describe("named operator login", () => {
+  /*
+   * Skip unless the server under test actually has named operators.
+   *
+   * This spec was written with a comment saying "run it with
+   * scripts/e2e-admin-login.mjs" and nothing enforcing it. CI runs
+   * `npx playwright test` against a server with no ADMIN_USERS, so all four
+   * tests failed on all three projects — twelve red tests describing a feature
+   * that was working fine. A comment is documentation; it is not a mechanism.
+   *
+   * Asking the server rather than reading an env var is deliberate: the suite
+   * can be pointed at a deployed environment via QA_BASE_URL, where this
+   * process's environment says nothing about what that server is running.
+   *
+   * A skip here is safe because the dedicated runner refuses to start unless
+   * the server reports namedLogins=true — so these cannot silently skip in the
+   * one place they are meant to run.
+   */
+  test.beforeEach(async ({ request }) => {
+    let namedLogins = false;
+    try {
+      namedLogins = (await (await request.get("/api/admin/login")).json())?.namedLogins === true;
+    } catch {
+      namedLogins = false;
+    }
+    test.skip(
+      !namedLogins,
+      "server has no ADMIN_USERS configured — run `node scripts/e2e-admin-login.mjs`"
+    );
+  });
+
   test("asks for an e-mail once operators are configured", async ({ page }) => {
     await page.goto("/admin");
 
