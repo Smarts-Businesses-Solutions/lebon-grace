@@ -440,3 +440,58 @@ does not have.
 silence — error reporting, alerting, backups, CI — the check must be an outcome
 ("an event arrived"), not an artefact ("the file is present"). Three separate
 faults in one day hid behind artefact-shaped checks: B-29, B-30 and B-31.
+
+---
+
+## D-018 — Admin credentials live in the environment, not the database
+
+**AD-02.** Named operators need somewhere to keep e-mail + password hash. The
+obvious home is a table: `admin_users`, one row per person, add and remove
+through the UI. It was rejected.
+
+**A database-backed login fails closed during a database outage.** Supabase
+being unreachable is precisely when someone needs `/admin` — to see what is
+stuck, to answer a customer, to check whether an order went through. A login
+that depends on the database locks the operator out during the one incident
+they need it for, and the shop is taking live payments. The auth path should
+not depend on the thing most likely to be broken.
+
+This was not theoretical. The E2E run that verified this feature used a server
+with no database configured at all — `[store] Supabase not configured` in its
+logs — and the named login worked anyway. That is the property, demonstrated.
+
+**Format**, comma-separated, one entry per operator:
+
+```
+ADMIN_USERS="a@example.com:<salt>$<hash>,b@example.com:<salt>$<hash>"
+```
+
+**scrypt, from `node:crypto`.** Memory-hard, so a leaked environment does not
+hand over the passwords the way a bare SHA-256 would — and built in, so no new
+dependency on the auth path. N=16384, r=8, 64-byte output, ~100ms per verify:
+unnoticeable at login, expensive at scale.
+
+**The costs, stated plainly.** Adding or removing an operator means editing an
+environment variable and recreating the container, not clicking a button. There
+is no self-service password reset. Both are real, and both are acceptable for a
+two-person shop; neither would be for twenty people. If this ever grows past a
+handful of operators, revisit — the trade-off that makes env right here is
+exactly the one that makes it wrong at that size.
+
+**Why the shared `ADMIN_PASSWORD` stayed.** Removing it in the same change that
+adds named logins means one typo in `ADMIN_USERS` locks the operator out with no
+way back except a redeploy. It remains as a fallback, tried only after the named
+path fails, and stops existing the moment `ADMIN_PASSWORD` leaves the
+environment — a deliberate one-line change to make once named logins are proven
+working, not a thing to do blind on the first deploy.
+
+**Sessions carry the name.** `admin.<base64url(email)>.<exp>.<sig>`, signed over
+the name as well as the expiry, so editing your own cookie to file actions under
+a colleague invalidates it. base64url because an e-mail contains dots and the
+token is dot-delimited. Tokens in the old 3-part format still validate and read
+as unattributed, so shipping this signed nobody out.
+
+**What is deliberately NOT stored:** the actor is never taken from the request
+body. It comes from the signed cookie via `adminActor(request)`, because a body
+the caller controls could name anyone — and an audit trail that names the wrong
+person is worse than one that names nobody, since it gets believed.

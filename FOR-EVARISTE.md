@@ -416,14 +416,138 @@ the convention). Formerly: deny
 gets tested.
 
 **Medium.** Finish the Coolify service→application migration so deploys build
-from git. Cut the container's env surface from 67 variables to 25. Per-user admin
-accounts once a second person works the workshop.
+from git. Cut the container's env surface from 67 variables to 25.
+~~Per-user admin accounts once a second person works the workshop~~ (done —
+`ADMIN_USERS`, see §15). A staging database, so the returned-order lifecycle
+can be tested without writing to the live shop (TR-03).
 
 **Big.** Arabic/RTL — plausibly a legal obligation for a UAE storefront, and
 deferred only until the site is stable. The clearance recount (A-16), blocked on
 photographs. EN 71-1 assessment for toys labelled ages 1–3.
 
-## 15. Glossary
+## 15. Who did that? — named operators, and why the password lives in an env var
+
+This is the newest piece of the system and the one with the most reasoning
+packed into the smallest amount of code, so it is worth walking through properly.
+
+### The problem
+
+The audit trail records *what* changed and *when*. It could not record *who*,
+because there was one shared password — so "the admin" was the only possible
+answer, and it was the same answer for everyone. With two people working the
+shop, "who cancelled this order?" had no answer at all.
+
+Notice what the earlier migration did about that. It shipped the table with
+**no `actor` column**, and said so in its own comment. That is the instinct
+worth stealing: an empty column you would have to fill with a guess is worse
+than a column that does not exist, because the guess looks like a record.
+
+### Where credentials live, and why it is not the database
+
+The obvious design is a table — `admin_users`, one row per person, add and
+remove through the UI. It was rejected, and the reason generalises far beyond
+this project:
+
+> **A login that depends on the database stops working when the database does.**
+
+Think about when you actually open `/admin` in a hurry. Something is wrong. An
+order is stuck, a customer is asking, you need to see what happened. If Supabase
+is having a bad morning, a database-backed login locks you out during precisely
+the incident you needed it for.
+
+So the credentials live in the environment — read once at startup, from a
+variable, with no network call anywhere in the login path.
+
+This is not a comforting theory. The test that verified the feature ran against
+a server with **no database configured at all**; its logs say
+`[store] Supabase not configured`, and the login worked anyway. That is the
+property, demonstrated rather than asserted. When you make a design claim, look
+for the test that would embarrass you if it were false.
+
+### What is actually stored
+
+```
+ADMIN_USERS="you@example.com:<salt>$<hash>"
+```
+
+No passwords — hashes. A hash is a one-way transformation: easy to compute
+forwards, infeasible to reverse. Given the hash you cannot recover the password,
+which is why the file is safe to hold this and would not be safe to hold the
+password itself.
+
+Two details matter more than they look:
+
+**The salt.** Random text mixed in before hashing, different per person. Without
+it, two people who chose the same password would have identical hashes — which
+leaks that fact, and lets an attacker crack both at once.
+
+**scrypt, not SHA-256.** A general-purpose hash is designed to be *fast*, which
+is exactly wrong here: fast means an attacker with your leaked env can try
+billions of guesses. scrypt is deliberately slow *and* memory-hungry, so guessing
+at scale costs real hardware. It is built into Node, so this cost nothing in
+dependencies — and the auth path is the last place you want a supply chain.
+
+### The bug that nearly shipped
+
+The natural way to write the check is: hash what they typed, compare against
+each stored hash, and if any matches, let them in.
+
+That authenticates correctly. It also **attributes the action to the wrong
+person** — because it never checked that the matching hash belongs to the
+address they claimed. Bob's password against Alice's e-mail logs Bob in *as
+Alice*, and everything he does is filed under her.
+
+An audit trail that names the wrong person is worse than one that names nobody,
+because it gets believed. The e-mail has to be part of the comparison, not a
+label dropped once a match is found. There is a test that fails if it ever is,
+and it was proven by deliberately breaking the code and watching it fail — the
+only way to know a test is real.
+
+### Carrying the name around
+
+Once you are logged in, a cookie holds:
+
+```
+admin.<your e-mail, encoded>.<expiry>.<signature>
+```
+
+The signature is computed over the name **and** the expiry. Edit your own cookie
+to say a colleague's address and the signature no longer matches, so the session
+is rejected. Without that, attribution would be a suggestion.
+
+The actor is read from *that cookie*, never from the request body — the body is
+whatever the caller typed, so trusting it would let anyone file actions under
+anyone.
+
+### Two deliberate refusals
+
+**The old shared password still works.** It looks untidy. It is the reason a
+typo in `ADMIN_USERS` does not lock you out of a shop taking live payments with
+no way back but a redeploy. It stops working the moment you remove
+`ADMIN_PASSWORD` — do that once you have logged in with a named account and
+know it works, not before.
+
+**Old sessions were not invalidated.** Anyone already logged in stayed logged
+in; their actions record as unattributed, which is honest, because they are.
+Shipping an auth change that signs everyone out is how a small shop ends up with
+nobody able to reach `/admin` on a Saturday.
+
+### The engraving, and the control that was not built
+
+The same batch made the engraved name bigger and gave it its own row in the
+cutting queue. What is interesting is what was *rejected*: a tick-box confirming
+you read it, and a field making you type it back.
+
+Both sound responsible. Neither was built, because nothing has ever been
+mis-cut — and a confirmation nobody asked for becomes a reflex click within a
+week. Then it *looks* like a safeguard while being none, which is worse than an
+honest absence.
+
+The rule worth keeping: **do not buy friction before you have the failure.** If
+a piece is ever actually cut wrong, that is the day typing-back becomes worth it,
+and the day everyone using it will understand why.
+
+## 16. Glossary
 
 | Term | Plain words |
 |---|---|
@@ -435,3 +559,7 @@ photographs. EN 71-1 assessment for toys labelled ages 1–3.
 | **Coolify service vs application** | A *service* recreates a container from a fixed image. An *application* clones git and builds. We are moving from the first to the second. |
 | **`deposit_paid`** | The status a new paid order gets. Not `paid` — that value appears nowhere else. |
 | **Cutting queue** | The `/admin` view telling the workshop what to make today, in what order. |
+| **scrypt** | A password hash deliberately slow *and* memory-hungry, so guessing at scale costs real hardware. |
+| **Salt** | Random text mixed into each password before hashing, so two people with the same password get different hashes. |
+| **`ADMIN_USERS`** | The environment variable holding each operator's e-mail and password hash. No passwords in it — only hashes. |
+| **Attributable** | An action the audit trail can name a person for. A shared password produces unattributable actions. |

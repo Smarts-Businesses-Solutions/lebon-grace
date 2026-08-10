@@ -1,108 +1,137 @@
 # What is left, and what each one needs from you
 
 Every audit finding that could be settled in code is fixed, deployed and
-verified. Four remain. None is blocked on effort — each is blocked on a
-**decision only you can make**, and this file exists so that decision can be made
-in one sitting instead of being re-explained each time.
-
-For each: what the problem actually is, the realistic options with their
-trade-offs, a recommendation, and what implementing it would touch.
+verified. Four items were blocked on a decision only you could make. **Three are
+now answered and two of those are built.** This file records what was decided
+and why, so the reasoning survives past the conversation it happened in.
 
 ---
 
-## AD-02 (second half) — per-person admin identity
+## AD-02 — per-person admin identity ✅ BUILT
 
-**Done already:** the action trail. `admin_actions` records order status changes
-and product edits/deletions, with before-and-after values (B-42).
+**Answered 2026-08-11:** yes, two people will use `/admin` —
+`wanresionne@gmail.com` and `smarts.businesses.solutions@gmail.com`.
 
-**Still true:** every action reads as "the admin", because there is one shared
-password. The trail can say *what* and *when*, never *who*.
+Built as named logins with credentials in the **environment**, not the database.
+The full reasoning is **D-018**; the short version is that a database-backed
+login fails closed during a database outage, which is exactly when someone needs
+`/admin`. This was demonstrated rather than argued: the verifying E2E ran
+against a server with no database at all and the login worked.
 
-**Why it is not a code decision.** It requires choosing how operators
-authenticate, and the wrong choice on a shop taking live payments locks you out
-of your own admin.
+`admin_actions.actor` (migration 0009, applied) now records who. It is nullable
+forever, because three cases genuinely have no actor — rows written before this
+existed, sessions using the shared fallback password, and anything the system
+does on its own behalf. `NULL` reads as "not attributable", which is true.
 
-| Option | What it costs | What it buys |
-|---|---|---|
-| **Named logins in the database** — a small `admin_users` table, per-person password hash, the existing cookie session | One migration, a login rewrite, a way to add/remove people. You own the password reset problem. | Real attribution, revocable per person, no third party |
-| **Keep one password, add an operator name at login** — a text field stored in the session and written to `admin_actions.actor` | Small. No migration beyond one column. | Attribution *by honesty*, not by proof. Useful with two trusted people; worthless against anyone dishonest |
-| **SSO / an identity provider** | A dependency and a monthly cost; another external service that can fail (see B-30, B-31) | Real accounts without owning password reset |
-
-**Recommendation: named logins in the database**, if more than one person will
-ever touch `/admin`. If it is only ever you, option 2 is honest about what it is
-and costs almost nothing — but it must be *described* as a label, never as
-authentication.
-
-**Would touch:** a migration (`admin_users`, `admin_actions.actor`),
-`src/lib/admin-auth.ts`, `/api/admin/login`, the login form, and every
-`recordAdminAction` call site. Roughly a day, and it needs a rollback plan that
-survives a half-applied state — you must not be able to end up unable to log in.
-
-**The question to answer:** will anyone other than you ever use `/admin`?
+**One step left, and it is yours** — see *Operator actions* below. Until
+`ADMIN_USERS` is set, `/admin` still shows a password-only form and the trail
+still records `NULL`. Nothing is broken in the meantime; it simply is not on yet.
 
 ---
 
-## OP-02 — engraving read-back before cutting
+## OP-02 — engraving read-back before cutting ✅ BUILT
 
-**The problem:** the engraved name is cut irreversibly. The workshop queue shows
-it, but nothing requires the operator to *confirm they read it* before the piece
-is made. B-34 fixed the customer's side (the engraving now survives "Buy now");
-this is the bench side.
+**Answered 2026-08-11:** no engraving has ever been cut wrong.
 
-**Why it is not mine to impose.** It changes what you physically do before
-cutting. A checkbox nobody asked for becomes a click people learn to dismiss,
-which is L-5 — and a dismissed confirmation is worse than none, because it
-*looks* like a control.
+So the recommendation stood: **show it louder, buy no friction.** The engraving
+now takes its own row in the cutting queue — isolated, monospaced at `text-base`,
+wrapping rather than clipping. It used to sit inline beside the product name at
+11px, which is legible but skimmable, and skimming is the failure mode when the
+eye reads "Zoe" for "Zoë".
 
-| Option | Trade-off |
-|---|---|
-| **Show it louder** — larger, isolated, unmissable in the queue | Zero friction, zero guarantee |
-| **Type it back** — operator re-types the name to advance the order | Real verification, real friction on every order |
-| **Tick to confirm** | Cheap; becomes reflex within a week |
-
-**Recommendation: show it louder now**, and only add typing-back if a piece is
-ever actually mis-cut. Do not buy friction before you have the failure.
-
-**The question to answer:** has an engraving ever been cut wrong? If not, the
-display change is the whole job.
+Deliberately **not** a tick-to-confirm and **not** a type-it-back. A confirmation
+nobody asked for becomes a reflex click within a week (L-5), and a dismissed
+control is worse than no control because it looks like one. If a piece is ever
+actually mis-cut, that is the moment to add typing-back — and the moment it will
+be worth the friction to everyone using it.
 
 ---
 
-## TR-03 — a production regression for the returned-order lifecycle
+## TR-03 — a production regression for the returned-order lifecycle 🔨 QUEUED
 
-**The problem:** no automated test follows a real order through to `refunded`
-against production.
+**Answered 2026-08-11: build the staging database.**
 
-**Why it is deliberately not automated.** Doing so means seeding and deleting
-real rows in the live database on every CI run. Playbook **P-006** covers it
-manually for exactly that reason. The tracker's status handling *is* covered by
-unit tests (T-1, B-19), so what is missing is specifically the production
-round-trip.
+The problem in plain terms: there is exactly one database, the live one with
+real orders. A test that follows an order all the way to `refunded` has to
+create an order, walk it through statuses, and delete it. Run that automatically
+on every CI run and it is writing and deleting real rows in the live shop
+several times a day — and a run that dies halfway leaves a fake order sitting in
+the workshop queue. Playbook **P-006** covers it manually for exactly that
+reason.
 
-| Option | Trade-off |
-|---|---|
-| **Leave manual (P-006)** | No CI cost, no live-data risk, depends on someone running it |
-| **Automate against production** | Real coverage; writes and deletes live rows every run, and a failed run leaves orphans |
-| **A separate staging database** | Correct answer in the abstract; a second Supabase stack to run, pay for and keep in sync |
+A staging database is a second copy the tests can wreck freely. The automation
+was never the hard part; the safe place to run it was.
 
-**Recommendation: leave it manual** until there is a staging database. The
-automation is not the hard part — the place to run it safely is.
-
----
-
-## #19 / #20 — blue-chip products, CJ intelligence layer
-
-Commercial decisions, not defects. #19 is which products to stock; #20 is what
-"intelligence" should mean and what it would be used for. Both predate this
-engagement. Neither has a technical blocker — they need a brief.
+**Queued as task #68.** Scope: a second Postgres on cx53 with its own volume and
+credentials, migrations `0001`→head applied to it (which doubles as the A-8
+forward-migration check), staging credentials in CI and in `supabase.local`, the
+lifecycle test pointed at it by env, and — the guard that matters — **the test
+refuses to run if handed the production URL.** That is the failure this whole
+task exists to prevent, so it should be impossible rather than merely avoided.
 
 ---
 
-## Also outstanding, and not code
+## #19 / #20 — blue-chip products, CJ intelligence layer 💬 NEEDS A BRIEF
 
-- **Revoke the old Resend API key.** The replacement is proven delivering
-  (`status=delivered`, verified end to end). The old key was exposed in session
-  output and is still live until you revoke it.
-- **Save the new key to `supabase.local`.** It was deliberately never seen from
-  here — handling key values is the line that produced the leak in the first
-  place.
+These are not defects and not technical work. Both are commercial questions that
+happen to be sitting in an engineering tracker, which is why they read as
+mysterious. In plain terms:
+
+**#19 — "add proven/blue-chip products".** *Which things should the shop sell?*
+Right now the catalogue is what it is. "Blue-chip" means products already proven
+to sell — rather than guessing. Nobody can pick those for you: it depends on
+what you want to make, what your workshop can produce well, what margin you need,
+and who you are selling to. There is no code blocked behind this. The moment you
+say "stock these five things", stocking them is an afternoon.
+
+**#20 — "CJ product intelligence layer".** CJ is the supplier API already wired
+up (it filled in product data during the catalogue build). "Intelligence layer"
+was a note-to-self that never got defined: it could mean price-change alerts,
+stock warnings, competitor comparison, or automatic new-product suggestions.
+Each is a different build, and until it is clear *what decision it should help
+you make*, building any of them is guessing.
+
+**What either needs from you** is a sentence or two — not a specification. For
+#19: what kind of product, and roughly what price range. For #20: what question
+you want it to answer. Everything else follows from that.
+
+If neither is a priority right now, that is a legitimate answer too, and better
+than a half-built feature nobody asked for. They can sit closed until they
+matter.
+
+---
+
+## Operator actions — the things only you can do
+
+**1. Set up your two admin logins.** For each address, run:
+
+```bash
+node scripts/admin-password-hash.mjs wanresionne@gmail.com
+```
+
+It asks for a password with typing hidden, and prints one line. It never
+stores or transmits the password — only the printed line leaves the script, and
+that line cannot be turned back into the password. Repeat for
+`smarts.businesses.solutions@gmail.com`, then set both, comma-separated:
+
+```
+ADMIN_USERS="wanresionne@gmail.com:<line1>,smarts.businesses.solutions@gmail.com:<line2>"
+```
+
+…in `/root/build/buildenv.txt` **and** the Coolify compose env, then recreate the
+container. It is a runtime variable, so no rebuild is needed.
+
+Use a password of at least 12 characters; the script refuses anything shorter.
+This is the only lock on the shop's admin.
+
+**Keep `ADMIN_PASSWORD` set until you have logged in with a named account at
+least once.** It is the way back in if a hash is pasted wrong. Remove it once
+named logins are proven — that is what turns off the shared password for good.
+
+**2. Revoke the old Resend API key.** The replacement is proven delivering
+(`status=delivered`, verified end to end). The old key was exposed in session
+output and is still live until you revoke it.
+
+**3. Save the new Resend key to `supabase.local`.** It was deliberately never
+seen from here — handling key values is what produced the leak in the first
+place.

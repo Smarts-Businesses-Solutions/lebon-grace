@@ -611,3 +611,71 @@ in one session that skipping it produced a guard that was decoration
 The heredoc escaping is a repeat too — it is in this project's own notes as
 "switched to the Edit tool" — and it cost a broken test file that looked green
 for three consecutive runs.
+
+---
+
+## L-29 · A test suite hammering one endpoint is indistinguishable from an attacker
+
+The `/admin` named-login E2E ran on all three Playwright projects. Nine of
+twelve tests passed; three failed on the mobile projects with the password field
+still visible after a correct login — reading, at a glance, as "the login is
+broken on mobile".
+
+It was not. The route allows **5 login attempts per 15 minutes per IP**, and all
+three projects run from `127.0.0.1`. Twelve logins from one address, so the tail
+of them were throttled. **The rate limit was working perfectly and the test
+suite was the attacker.**
+
+The tell was in the failure, and it was easy to walk past: the failing projects
+were the ones that ran *last*, and the same test passed on `mobile-ios` while
+failing on `mobile-android`. A genuine mobile layout bug does not care about
+execution order.
+
+Two lessons, and the second is the load-bearing one:
+
+1. **Order-dependent failures are almost never about the thing that differs
+   between the runs** (viewport, here). They are about accumulated state — a
+   counter, a bucket, a row. Look for what the earlier runs *left behind* before
+   theorising about what the later ones do differently.
+2. **A security control tripping during a test looks exactly like a bug in the
+   feature under test.** Both present as "the correct input was rejected". The
+   instinct is to relax the control for the test environment, which quietly
+   tests a different application than the one shipped. The right fix was to stop
+   the suite generating twelve logins — pin it to one project, since credential
+   wiring does not vary by viewport.
+
+Related: L-28, on believing a summary about which files ran. Same family — the
+number on the screen was accurate and the story attached to it was wrong.
+
+---
+
+## L-30 · Node refuses to spawn a `.cmd` on Windows, and the documented fix re-opens the hole
+
+`node scripts/e2e-admin-login.mjs` died with `spawn EINVAL` on
+`spawn("npx.cmd", [...])`, followed by a libuv assertion — an error with no
+obvious connection to its cause.
+
+Since **CVE-2024-27980** (Node 18.20.2 / 20.12.2 / 21.7.3, April 2024), Node
+refuses to spawn `.bat` or `.cmd` files without `shell: true`, because argument
+injection through batch-file parsing was the vulnerability. On Windows `npx` is
+`npx.cmd`, so any script spawning `npx` hits it.
+
+The fix in every issue thread is `shell: true`. That works, and it re-enables
+the exact parsing that was the vulnerability — safe only for as long as every
+argument stays a literal, which is a property nobody re-checks when adding an
+argument later.
+
+**Resolve the CLI and hand it to `process.execPath` instead:**
+
+```js
+const cli = createRequire(import.meta.url).resolve("@playwright/test/cli");
+spawn(process.execPath, [cli, "test", ...args]);
+```
+
+No shell, no platform branch, no `.cmd` wrapper — and it is *shorter* than the
+platform-conditional version it replaced. The general shape: when a workaround
+restores the behaviour a CVE removed, look for the path that never needed it.
+
+Found by searching the verbatim error string first, per the project's meta-rule.
+Thirty seconds of search against an unbounded guess at which of `shell: true`,
+`cmd /c`, or a different binary name was the answer.
