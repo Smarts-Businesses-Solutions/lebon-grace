@@ -1269,3 +1269,55 @@ lesson of B-29 turned on the tool built to audit it.
 **Scope, stated plainly:** only `order.status_changed` is recorded. Product
 edits and deletions are not, and the audit trail should not be described as
 complete until they are.
+
+---
+
+## B-43 · Anyone could subscribe anyone to the newsletter
+
+NS-01. **Fixed.** `POST /api/newsletter` took an address and stored it. A
+stranger's address, a competitor's, an ex-partner's — the only remedy was the
+unsubscribe link, which requires the victim to receive the mail first. By then
+the harm has happened.
+
+It mattered less while nothing was being delivered (B-30). It matters now, which
+is the same pattern as AD-01: **repairing a broken channel activates everything
+queued behind it.**
+
+**Migration 0008** adds `confirmed_at` and a single-use `confirm_token`.
+Subscribing stores a PENDING row and e-mails the address a link; only that link
+confirms it. `subscribers.getAll()` — the operator's export — returns confirmed
+rows only, because a pending row is an address somebody typed, not an address
+that agreed.
+
+The list was **empty** (verified: 0 rows), so there was no grandfathering
+question. Had there been rows, the honest choice would have been to mark them
+confirmed with a note: they did type their address, and voiding real subscribers
+to satisfy a rule invented afterwards is its own dishonesty.
+
+### Two properties that make it safe rather than merely functional
+
+**An unknown token and an already-used one answer identically.** Otherwise the
+endpoint is an oracle for which tokens once existed. For the genuine subscriber
+who clicks twice, "already confirmed" and "confirmed" mean the same thing, so
+nothing is lost by conflating them. Tested by asserting the two responses are
+byte-identical, with a precondition that a *valid* token answers differently —
+without which an endpoint that always said "invalid" would pass.
+
+**Subscribing answers the same whether the address is new, pending, or already
+confirmed.** `add()` returns null for an address already on the list, and saying
+so would turn signup into a membership oracle: type an address, learn whether
+that person subscribed. The unsubscribe route already refuses to leak this and
+now signup matches it.
+
+### Why the confirm endpoint is a GET
+
+A GET that changes state is normally a smell. The alternative is asking someone
+to POST from an e-mail, which means a form and a second click — and confirming
+must be easier than ignoring, or double opt-in just silently destroys the list.
+The token is single-use and burned on confirmation, so a prefetching mail client
+confirms the subscription the recipient asked for and can do nothing else.
+Rate limited, so a stolen token list cannot be ground through; the test asserts a
+throttled request never reaches the database.
+
+Added to the `src/proxy.ts` allowlist — an unlisted `/api/*` route 404s (D-016),
+so a confirmation link would otherwise have been dead on arrival.

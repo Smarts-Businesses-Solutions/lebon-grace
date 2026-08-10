@@ -53,6 +53,7 @@ const PUBLIC_API = new Set([
   "/api/contact/reveal", //         phone/WhatsApp, kept out of page source
   "/api/newsletter", //             subscribe
   "/api/newsletter/unsubscribe", // the privacy policy promises this works
+  "/api/newsletter/confirm", //      the double opt-in link, opened from an inbox (NS-01)
   "/api/cart-recovery", //          browser-triggered "you left items behind"
   "/api/reviews", //                GET is public; POST is gated on a delivered order
 

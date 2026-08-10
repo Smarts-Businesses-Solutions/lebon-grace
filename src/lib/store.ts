@@ -15,6 +15,7 @@
  *   - productVariants: getAll / getBySlug / upsertMany
  *   - catalog:         getAll / upsert / remove
  */
+import { randomUUID } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { phoneMatches } from "./phone";
 
@@ -449,23 +450,59 @@ export const subscribers = {
    * looked".
    */
   async getAll(): Promise<Array<{ id: string; email: string; source: string | null; created_at: string }>> {
+    // Confirmed only. A pending row is an address somebody typed, not an address
+    // that agreed — exporting it as a subscriber is the harm NS-01 is about, one
+    // step further along.
     const { data, error } = await db()
       .from("newsletter_subscribers")
       .select("id,email,source,created_at")
+      .not("confirmed_at", "is", null)
       .order("created_at", { ascending: false });
     if (error) throw error;
     return (data || []) as Array<{ id: string; email: string; source: string | null; created_at: string }>;
   },
 
   /** Returns true if this created a new subscriber, false if already on the list. */
-  async add(email: string, source = "homepage"): Promise<boolean> {
+  /**
+   * Adds an address as PENDING and returns the token that confirms it.
+   *
+   * Returns null when the address is already on the list — subscribing twice is
+   * not a failure, and re-issuing a token for an address someone else already
+   * confirmed would be a way to spam a confirmed subscriber (NS-01).
+   *
+   * The token is a v4 uuid: unguessable, and unique per row by the partial index
+   * in migration 0008, so a collision fails at insert rather than confirming the
+   * wrong person's subscription.
+   */
+  async add(email: string, source = "homepage"): Promise<string | null> {
+    const confirm_token = randomUUID();
     const { error } = await db()
       .from("newsletter_subscribers")
-      .insert({ email: email.trim().toLowerCase(), source });
+      .insert({ email: email.trim().toLowerCase(), source, confirm_token });
     // 23505 = unique violation on email. Subscribing twice is not a failure.
-    if (error && error.code === "23505") return false;
+    if (error && error.code === "23505") return null;
     if (error) throw error;
-    return true;
+    return confirm_token;
+  },
+
+  /**
+   * Confirms a pending subscription and burns the token.
+   *
+   * Cleared on use, so a link cannot be replayed and an old inbox cannot be
+   * mined for live tokens later. Returns false for an unknown or already-used
+   * token — which is also what a replay looks like, deliberately: the caller
+   * learns nothing about whether the token ever existed.
+   */
+  async confirm(token: string): Promise<boolean> {
+    if (!token) return false;
+    const { data, error } = await db()
+      .from("newsletter_subscribers")
+      .update({ confirmed_at: new Date().toISOString(), confirm_token: null })
+      .eq("confirm_token", token)
+      .select("id");
+
+    if (error) throw error;
+    return (data?.length ?? 0) > 0;
   },
 
   /**
