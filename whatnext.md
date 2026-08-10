@@ -11,7 +11,7 @@ Parked ideas live in [ENHANCEMENTS.md](ENHANCEMENTS.md) until they earn a slot.
 | # | Item | Owner | Notes |
 |---|---|---|---|
 | 1 | **Rotate the exposed credentials** | Evariste | Live Stripe keys first. Also Supabase service-role, `SENTRY_PAT`, AI keys, and the Coolify RSA key partially printed in session output |
-| 2 | **Finish the Coolify git registration** | Evariste | **Deploy key no longer needed** — the repo is public, so `git_repository` was switched to HTTPS via the API on 2026-08-10 and `private_key_id` is irrelevant. The app still fails to deploy for a *different* reason, before any container is created on cx53; the API returns `logs: null`, so the next step is the deployment log in the Coolify UI. **Nothing is blocked** — the live shop deploys by the documented build path (P-005). |
+| 2 | **Enter rotated secrets into `lebon-grace-git`** | Evariste | The app now CLONES, BUILDS and RUNS (2026-08-10). Two fixes: repo switched to HTTPS (public, so no deploy key — the API cannot attach one anyway), and `NODE_ENV` un-marked as build-time, which was making `npm ci` skip devDependencies so the build died on `@tailwindcss/postcss` (216 packages installed instead of ~536). It serves `/` and `/shop`; DB-backed routes 500 because the secrets are deliberate PLACEHOLDERS (service-role key is 17 chars vs 180 live) per D-012. Enter the **rotated** values — do not copy the live ones, they are the exposed set. |
 | ~~3~~ | ~~**Gate `/api/variants`**~~ | — | **Done 2026-08-09 — removed, not gated.** No product carries a `cjPid`, so the branch served only an attacker; the dropship model was abandoned. B-25. |
 
 ## Next (P1)
