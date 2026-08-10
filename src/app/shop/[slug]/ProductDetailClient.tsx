@@ -91,14 +91,13 @@ export default function ProductDetailPage() {
           // Show the hero (side-by-side) as the main image, with variant overlays as follow-on views.
           if (data.images && data.images.length > 0) setCjImages([rawProduct!.imageUrl, ...data.images]);
           else setCjImages([rawProduct!.imageUrl]);
-        } else if (rawProduct.cjPid) {
-          return fetch(`/api/variants?pid=${rawProduct.cjPid}`)
-            .then((r) => r.json())
-            .then((cjData) => {
-              if (cjData.variants && cjData.variants.length > 0) setCjVariants(cjData.variants);
-              if (cjData.images && cjData.images.length > 0) setCjImages(cjData.images);
-            });
         }
+        // The `?pid=` fallback is gone with the endpoint's CJ passthrough. It
+        // made this shop issue an authenticated, billable request to the CJ
+        // Dropshipping API on our key for any anonymous caller, unlimited — and
+        // it served nothing: no product in the generated catalogue carries a
+        // cjPid, so this branch was never reached by a visitor. Only an
+        // attacker could reach it, which is the whole shape of the defect.
       })
       .catch(() => {})
       .finally(() => setLoadingVariants(false));

@@ -19,8 +19,6 @@ async function fetchLocalVariants(slug: string) {
 }
 
 
-const CJ_API_BASE = "https://developers.cjdropshipping.com/api/v2";
-
 // Color keywords for extracting variant labels
 const COLOR_KEYWORDS = [
   "black", "white", "red", "blue", "green", "pink", "gold", "silver",
@@ -40,53 +38,9 @@ function extractLabel(name: string): string {
   return name.split(" ").slice(-2).join(" ").slice(0, 20);
 }
 
-async function fetchCJVariants(pid: string) {
-  const apiKey = process.env.CJDS_API_KEY;
-  if (!apiKey) return null;
-
-  // Try the key as-is, then try hash-only if it contains @
-  const tokens = [apiKey];
-  const parts = apiKey.split("@");
-  if (parts.length >= 2) {
-    tokens.push(parts[parts.length - 1]);
-  }
-
-  for (const token of tokens) {
-    try {
-      const resp = await fetch(`${CJ_API_BASE}/products/query`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "CJ-Access-Token": token },
-        body: JSON.stringify({ pid, pageNum: 1, pageSize: 1 }),
-      });
-      const data = await resp.json();
-
-      if (data.result && data.data?.list?.[0]) {
-        const product = data.data.list[0];
-        const variants = (product.variants || []).map((v: Record<string, unknown>) => {
-          const vk = String(v.variantKey || "");
-          return {
-            sku: String(v.variantSku || v.sku || ""),
-            name: String(v.variantName || v.name || ""),
-            image: String(v.variantImage || v.image || ""),
-            price: Number(v.variantSellPrice || v.sellPrice || 0),
-            color: vk.includes("Color") ? String(v.variantValue) : undefined,
-            size: vk.includes("Size") ? String(v.variantValue) : undefined,
-          };
-        });
-        const images = (product.productImageSet || product.images || []) as string[];
-        return { source: "cj", variants, images };
-      }
-    } catch {
-      // try next token
-    }
-  }
-  return null;
-}
-
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const slug = searchParams.get("slug");
-  const pid = searchParams.get("pid");
 
   // 0. Postgres variants — the authoritative source.
   // Every product's real variants (SKU, colour, size, price, image) are synced
@@ -128,13 +82,6 @@ export async function GET(request: NextRequest) {
     // Picking one swapped the photograph too, which is why the range looked
     // mixed up. Distinct products are not variants of each other; if a product
     // has no rows in product_variants it simply has no variants.
-  }
-
-  // 2. CJ API (if pid provided)
-  if (pid) {
-    const result = await fetchCJVariants(pid);
-    if (result) return NextResponse.json(result);
-    return NextResponse.json({ source: "cj", variants: [], images: [], error: "CJ API unavailable" });
   }
 
   return NextResponse.json({ source: "none", variants: [], images: [] });

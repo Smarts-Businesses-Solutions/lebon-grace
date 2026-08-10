@@ -203,7 +203,11 @@ Prevention: the constraint now rejects it.
 
 - **Adding an API route is a security decision.** There is no `middleware.ts` —
   a new file under `src/app/api/` is public on creation. This has already bitten:
-  `/api/variants?pid=` calls the CJ API on our key with no auth or rate limit.
+  `/api/variants?pid=` called the CJ API on our key with no auth or rate limit.
+  **Closed 2026-08-09** by deleting the passthrough rather than gating it: no
+  product carries a `cjPid`, so it served nobody but an attacker, and the
+  dropship model it belonged to was abandoned. A gate on dead code is a thing
+  to maintain; deletion is not.
 - **`NEXT_PUBLIC_*` are baked at build time.** Changing one at runtime does
   nothing. Rebuild.
 - **Module-scope SDK constructors break the build.** `new Resend(undefined)`
@@ -278,7 +282,8 @@ breaking the shop. See `DEPLOYMENT-GUIDE.md`.
 
 ## 14. Roadmap
 
-**Small wins.** Gate `/api/variants`. Add a `middleware.ts` that denies
+**Small wins.** ~~Gate `/api/variants`~~ (done — the passthrough is deleted).
+Add a `middleware.ts` that denies
 `/api/admin/*` by default. Seed an order fixture so the happy path of tracking
 gets tested.
 

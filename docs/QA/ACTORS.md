@@ -55,12 +55,27 @@ Instead the default is open, and protection is a thing each new route has to
 remember. That is a fail-open posture, and it is not load-bearing for any
 benefit — it is simply the shape the code grew into.
 
-**It has already produced one hole.** `GET /api/variants?pid=…` has no auth and
-no rate limit, and reaches `fetchCJVariants()`, which calls the CJ Dropshipping
-API with `CJDS_API_KEY` (`src/app/api/variants/route.ts:44-56`). Anyone on the
-internet can drive outbound requests to a metered third-party API on the shop's
-credentials. Nothing is exposed that a customer could not see, so it is not a
-data leak — it is an unauthenticated proxy that can burn someone else's quota.
+**It had already produced one hole. Closed 2026-08-09.** `GET /api/variants?pid=…`
+had no auth and no rate limit, and reached `fetchCJVariants()`, which called the
+CJ Dropshipping API with `CJDS_API_KEY`. Anyone on the internet could drive
+outbound requests to a metered third-party API on the shop's credentials.
+Nothing was exposed that a customer could not see, so it was never a data leak —
+it was an unauthenticated proxy that could burn someone else's quota.
+
+Confirmed live before the fix: `?pid=DOESNOTEXIST123` returned
+`{"source":"cj",…}`, and the key is set in production, so the outbound call was
+genuinely being attempted.
+
+**Removed rather than gated.** No product in the generated catalogue carries a
+`cjPid` — it survives only as an optional type field — so the branch served
+nobody except an attacker, and the dropship model it belonged to was abandoned
+(A-10 archived its scripts). A gate on dead code is a thing to maintain and
+forget; deletion is not. `src/app/api/variants/route.test.ts` now fails if any
+outbound `fetch` happens, with `CJDS_API_KEY` deliberately set so the test
+proves the branch is gone rather than merely inert.
+
+That it stayed open for months while being *documented* in two places is the
+part worth remembering: writing a hole down is not closing it.
 
 A second, milder instance: `GET /api/orders` puts the two guest branches
 *before* the `requireAdmin` check (lines 26-42, then 52). It is correct today,
