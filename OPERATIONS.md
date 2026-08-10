@@ -80,3 +80,25 @@ wrong twice.
 | 67 env vars in a public web container | 36 unread credentials, incl. `GitHub_PAT_classic` (A-0b) |
 | ~~No `middleware.ts`~~ | **Closed 2026-08-09.** `src/proxy.ts` denies any unlisted `/api/*` path with a 404, and a test fails the build if a route exists without being listed. Produced the `/api/variants` hole (B-25) before that. |
 | Admin is one shared password | No attribution for order-status changes, which email customers |
+
+## Backups
+
+Nightly `backup-cx53.timer` → restic → Cloudflare R2 (14 daily / 8 weekly / 36
+monthly, self-checking with `restic check --read-data-subset=2%`).
+
+**It backs up only the stacks listed in `STACK_REFS` inside
+`/usr/local/bin/backup-cx53.sh`.** Not in the list = not backed up, and the run
+still exits 0 with a green heartbeat.
+
+**lebon-grace was not in that list.** Confirmed 2026-08-10 by counting dumps in
+the repository, not by reading the config: the latest snapshot held exactly two
+`.dump` files for exactly two refs, and this shop's was not among them — so a
+shop taking live Stripe payments had never had its database backed up. Ref
+`ezkokajmmqcv8bw8jy970l91` added; the next snapshot carried three dumps, and the
+copy pulled back out of R2 was confirmed readable by `pg_restore` with `orders`,
+`order_items`, `products`, `product_reviews` and `newsletter_subscribers` in it.
+
+Two traps when checking this: dumps are named `<ref>.dump` rather than by
+project, so searching for "lebon" finds nothing either way; and `pg_restore` is
+not installed on the host, so inspecting a dump from there silently reports zero
+tables. Verify inside the db container.

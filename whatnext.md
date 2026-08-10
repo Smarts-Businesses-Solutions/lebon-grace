@@ -11,7 +11,7 @@ Parked ideas live in [ENHANCEMENTS.md](ENHANCEMENTS.md) until they earn a slot.
 | # | Item | Owner | Notes |
 |---|---|---|---|
 | 1 | **Rotate the exposed credentials** | Evariste | Live Stripe keys first. Also Supabase service-role, `SENTRY_PAT`, AI keys, and the Coolify RSA key partially printed in session output |
-| 2 | **Finish the Coolify git registration** | Evariste | One click: app `lebon-grace-git` → *Source* → select `lebon-grace-github-deploy-key` → Deploy. API cannot do it (upstream bug) |
+| 2 | **Finish the Coolify git registration** | Evariste | **Deploy key no longer needed** — the repo is public, so `git_repository` was switched to HTTPS via the API on 2026-08-10 and `private_key_id` is irrelevant. The app still fails to deploy for a *different* reason, before any container is created on cx53; the API returns `logs: null`, so the next step is the deployment log in the Coolify UI. **Nothing is blocked** — the live shop deploys by the documented build path (P-005). |
 | ~~3~~ | ~~**Gate `/api/variants`**~~ | — | **Done 2026-08-09 — removed, not gated.** No product carries a `cjPid`, so the branch served only an attacker; the dropship model was abandoned. B-25. |
 
 ## Next (P1)
