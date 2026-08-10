@@ -421,6 +421,48 @@ discover whether an address has ordered here.
 Each waits on the request as the **precondition** for its absence assertion —
 without it, "no order shown" also passes on a form that never submitted (L-2).
 
+## B-25 · An unauthenticated proxy onto a metered third-party API
+
+Found walking production as the operator, 2026-08-09, by listing every API route
+against its gate. **Fixed.**
+
+Thirteen of fourteen routes were gated or rate-limited. `GET /api/variants` was
+neither, and its `?pid=` branch reached `fetchCJVariants()`, which POSTed to the
+CJ Dropshipping API using `CJDS_API_KEY`.
+
+Anyone on the internet could make this shop issue authenticated, **billable**
+requests to a metered third-party API, in a loop. Confirmed live before the fix:
+
+```
+GET /api/variants?pid=DOESNOTEXIST123
+-> 200 {"source":"cj","variants":[],"images":[],"error":"CJ API unavailable"}
+```
+
+`source:"cj"` proves the outbound call was attempted, and the key is set in
+production. Nothing was *exposed* — it was never a data leak. It was a free
+proxy for burning someone else's quota.
+
+**Removed, not gated.** `cjPid` survives in the generated catalogue only as an
+optional type field, so no product carries one and no visitor ever reached this
+branch — only an attacker could. The dropship model it belonged to was abandoned
+(A-10 archived its scripts). A gate on dead code is a thing to maintain and
+forget; deletion is not (L-8).
+
+`cjPid` itself stays: MDF products use it as a local marker
+(`product.cjPid?.startsWith("MDF")`), which never leaves the process.
+
+The test sets `CJDS_API_KEY` deliberately, so it proves the branch is **gone**
+rather than merely inert for want of a credential, and asserts on `fetch` never
+being called. Against the old route it fails with *"expected fetch to not be
+called at all, but actually been called 1 times"*.
+
+**The part worth remembering:** this was written down in FOR-EVARISTE *and* in
+ACTORS.md as the worked example of "a new API route is public on creation" — and
+stayed open anyway. Documenting a hole is not closing it. Both documents now
+describe it in the past tense.
+
+Verified live after deploy: `?pid=DOESNOTEXIST123` -> `{"source":"none"}`.
+
 ## Still open
 
 | Bug | Where |
