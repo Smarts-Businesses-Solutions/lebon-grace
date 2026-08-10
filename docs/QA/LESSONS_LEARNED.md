@@ -485,3 +485,35 @@ when it is a log.** "No `[operator-notice]` error in the container logs" was
 offered as evidence the send worked. The logs contained nothing at all — not one
 request line — so that check could not have failed. It was recognised as
 worthless only after Resend's API contradicted it.
+
+---
+
+## L-25 · The first fix passed every check and did nothing
+
+Fixing B-31 meant getting `Sentry.init` into the standalone output. The first
+attempt copied the missing chunk. Afterwards:
+
+- the chunk was in `.next/standalone` — **checked**;
+- `CaptureConsole` was greppable in the output — **checked**;
+- the build succeeded, tests passed, the guard I had written passed.
+
+It sent **nothing**. `.next/server/instrumentation.js` — the file Next loads to
+call `register()` — was also missing, so the chunk sat in the image with nothing
+importing it. Every check I had written was a check on *the thing I had done*,
+not on *the outcome I wanted*.
+
+The only reason it did not ship is that the outcome was testable: run the
+standalone server against a fake Sentry ingest and count envelopes. Zero before,
+one after. That check does not care which file was missing or why.
+
+**Write the assertion against the outcome, not the mechanism.** "The chunk is
+present" is a statement about my patch. "An event reaches the ingest" is a
+statement about the system, and it stays true through refactors, version bumps
+and whatever Next changes about tracing next.
+
+The corollary bit twice in one session: when a fix is about a *reporting*
+mechanism, static checks are especially weak, because the failure mode of
+reporting is silence and silence is what a passing static check also looks like.
+B-30 was the same shape (a send that returned true), and so was B-29 (a
+console.error that went nowhere). Three in a row, all found by asking "did the
+thing that was supposed to happen, happen?" rather than "is the code right?".

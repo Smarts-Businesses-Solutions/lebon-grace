@@ -36,6 +36,26 @@ npm run audit:contrast         # WCAG arithmetic over the declared colour pairs
 | Analytics | Umami, proxied through a `next.config` rewrite | continuous |
 | Deploy freshness | `npm run verify:deploy` | every deploy — **not optional** |
 
+### Server errors reach GlitchTip only because the build forces it
+
+`output: "standalone"` does not copy `.next/server/instrumentation.js` or the
+chunk holding `Sentry.init`, so server-side reporting was inert from the day
+standalone was adopted until 2026-08-10 (B-31). `npm run build` now ends with
+`scripts/seal-standalone.mjs`, which copies both and **fails the build** if
+either is missing — a silently uninstalled error reporter is invisible, so the
+build is the only place it can be caught.
+
+After changing the build, the output mode, `instrumentation.ts` or any Sentry
+config, prove it still works rather than reading it:
+
+```bash
+NEXT_PUBLIC_SENTRY_DSN="http://abc123@127.0.0.1:9999/1" npm run build
+node scripts/prove-sentry-init.mjs     # exit 0 means an event was actually sent
+```
+
+`NEXT_PUBLIC_*` are inlined at build time, so the DSN must be set for the
+build, not the run. Edge-runtime init is **not** covered by that proof.
+
 ## Incident quick reference
 
 **The shop is down.**
@@ -77,7 +97,6 @@ wrong twice.
 | Item | Impact |
 |---|---|
 | **E-mail delivers nothing (B-30)** | `lebon-grace.com` is not a verified sender on the Resend account, so every send returns 403. Verify it at resend.com/domains or set `MAIL_FROM_ADDRESS` to a verified domain. **Customers receive no order confirmations until this is done.** |
-| **Server-side Sentry never initialises (B-31)** | `output: "standalone"` copies 19 of 40 `[root-of-the-server]` chunks and drops the one holding `Sentry.init`. No server error has ever reached GlitchTip from the container; only browser-side reporting works. |
 | Secret rotation outstanding | Live Stripe keys, Supabase service-role key, PATs, one RSA key, and **`RESEND_API_KEY`** were exposed in session output |
 | **Redact env vars by LENGTH, never by pattern** | `sed 's/.*@//'` leaves a value with no `@` completely intact. That is how `RESEND_API_KEY` leaked on 2026-08-10: the redaction assumed an e-mail shape and the value was an API key, so `cut -c1-30` printed 30 of its 36 characters. Print `${#VAL}` and nothing else. |
 | 67 env vars in a public web container | 36 unread credentials, incl. `GitHub_PAT_classic` (A-0b) |

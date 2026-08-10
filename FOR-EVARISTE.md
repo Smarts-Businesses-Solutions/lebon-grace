@@ -279,7 +279,22 @@ that pass for exactly that reason.
   the retry hits the idempotency guard and does nothing. Fire-and-forget calls
   carry an explicit `.catch`.
 - **`NEXT_PUBLIC_*` are baked at build time.** Changing one at runtime does
-  nothing. Rebuild.
+  nothing. Rebuild. That is also why the Sentry DSN must be present for the
+  *build*, not just the run — set it at runtime and Next has already inlined
+  `undefined`.
+- **`output: "standalone"` ships less than your build produced.** It copies what
+  Next's file tracing thinks the server reaches, and under Turbopack that missed
+  `.next/server/instrumentation.js` entirely — so `register()` never ran and
+  **no server error ever reached GlitchTip** (B-31). `npm run build` now ends
+  with `scripts/seal-standalone.mjs`, which copies what was missed and *fails
+  the build* if it cannot. If you ever see "why is nothing being reported",
+  check what is in `.next/standalone`, not what is in `.next/server`.
+- **A library that returns errors instead of throwing will lie to a
+  `try/catch`.** `Resend.emails.send` resolves `{data, error}`. Every send path
+  here was written for throw-on-error, so a 403 came back as success and the
+  shop's e-mail silently did nothing for months (B-30). Check the error
+  convention of anything you `await`; the installed `.d.ts` answers it in
+  seconds.
 - **Module-scope SDK constructors break the build.** `new Resend(undefined)`
   throws during page-data collection — Next evaluates every route module at build
   time — so the *build* ends up needing runtime secrets. **Fixed 2026-08-09:**

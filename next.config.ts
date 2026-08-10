@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
   deploymentId: process.env.DEPLOYMENT_ID,
   output: "standalone",
 
+
   // Proxy the Umami tracker through this domain.
   //
   // Umami listens on loopback and on the internal docker network only, so it has
