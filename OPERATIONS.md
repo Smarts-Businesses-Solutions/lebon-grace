@@ -130,6 +130,17 @@ grep -inE "<key>" supabase.local | sed -E 's#[A-Za-z0-9_+/|.-]{28,}#<REDACTED>#g
 Delimiter-based redaction fails on PEM bodies, JWTs and base64. This has gone
 wrong twice.
 
+## What is left, and what it needs
+
+Every audit finding settleable in code is fixed and deployed. Four remain, each
+blocked on a decision rather than on effort — options, trade-offs, a
+recommendation and the single question that unblocks each are in
+[`docs/QA/REMAINING_WORK.md`](docs/QA/REMAINING_WORK.md).
+
+In short: **AD-02** identity (will anyone besides you use `/admin`?), **OP-02**
+engraving read-back (has one ever been cut wrong?), **TR-03** (wants a staging
+database, not more automation), and **#19/#20** (commercial briefs).
+
 ## Open operational debt
 
 | Item | Impact |
