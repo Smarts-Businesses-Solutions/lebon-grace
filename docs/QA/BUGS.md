@@ -505,6 +505,48 @@ Verified live after deploy: an unauthenticated `PUT` still answers **401**, so
 the admin gate runs *before* validation and an anonymous caller learns nothing
 about which statuses exist.
 
+## B-28 · A refund in Stripe never reached the shop
+
+Found walking production as the workshop operator, 2026-08-09 — **without
+touching Stripe**. **Fixed.**
+
+`checkout.session.completed` was the **only** event the webhook understood.
+
+So refunding a customer in the Stripe dashboard left the shop with no idea it
+had happened:
+
+- the order kept whatever status it had;
+- the customer's tracker went on showing it **progressing**;
+- it stayed in the **cutting queue**, so the workshop could cut a piece for an
+  order that had already been paid back.
+
+It depended entirely on the operator remembering to repeat the refund by hand in
+`/admin`, and nothing would say so if they forgot. That is B-5's shape —
+"telling a refunded customer their order is on its way" — one layer earlier.
+
+`refunded` was already a first-class status: in the CHECK constraint, with an
+email template, and drawn by the tracker as a terminal "Refund complete" card
+(B-19). **Only the automatic route into it was missing.**
+
+**Fix.** A `charge.refunded` branch. No schema change and no call out to Stripe:
+the event carries `payment_intent`, and the webhook has always written
+`stripe_payment_intent` on the order — the column was there and nothing read it.
+
+- **Partial refunds count.** This shop sells single made-to-order pieces at one
+  price, so a partial refund means a human decided something went wrong.
+- **Idempotent.** Stripe retries, and a second partial arrives as another event;
+  an order already `refunded` is left alone and not re-emailed.
+- **A charge with no matching order logs at ERROR** — *"the customer has their
+  money back and the shop does not know"* — but still answers **200**, because a
+  non-2xx would make Stripe retry an event that can never succeed.
+
+Driven entirely by **synthetic signed events**, which is the only reason any of
+the payment path could be tested at all while the shop is on live keys. Removing
+the branch fails three tests.
+
+Verified live after deploy: an unsigned POST still answers **400 Invalid
+signature**, so a forged refund event cannot move an order.
+
 ## Still open
 
 | Bug | Where |
