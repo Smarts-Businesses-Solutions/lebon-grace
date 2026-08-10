@@ -83,8 +83,11 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 // Delivery. Pickup is free and is the default: it is the best margin for the
 // workshop and avoids a courier fee that would otherwise exceed the price of a
 // single AED 15 puzzle.
-export const UAE_DELIVERY = 20;
-export const FREE_DELIVERY_OVER = 150;
+// Re-exported from lib/delivery so the browser and /api/checkout cannot drift.
+// These used to be defined here, which meant the server had no rule to check the
+// caller's `shipping` against and simply charged whatever arrived (SH-03).
+export { UAE_DELIVERY, FREE_DELIVERY_OVER } from "./delivery";
+import { deliveryFeeFor } from "./delivery";
 
 const CART_KEY = "lebon-grace-cart";
 const CART_EMAIL_KEY = "lebon-grace-cart-email";
@@ -260,8 +263,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   );
 
   const shipping = useMemo(() => {
-    if (deliveryMethod === "pickup") return 0;
-    return subtotal >= FREE_DELIVERY_OVER ? 0 : UAE_DELIVERY;
+    return deliveryFeeFor(subtotal, deliveryMethod);
   }, [subtotal, deliveryMethod]);
 
   const total = subtotal + shipping;

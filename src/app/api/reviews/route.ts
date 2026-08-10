@@ -43,9 +43,12 @@ export async function GET(request: NextRequest) {
     if (!REVIEWABLE_STATUSES.includes(String(order.status))) {
       return NextResponse.json({ items: [], delivered: false });
     }
-    const items = (await orderItems.getAll()).filter(
-      (i: Record<string, unknown>) => String(i.order_id) === String(order.id)
-    );
+    // Scoped in the database, like the POST below. This read `getAll()` and
+    // filtered in memory — pulling every order item in the table to answer a
+    // question about one order, with `idx_order_items_order_id` unused. The POST
+    // was fixed and this was left behind, which is the same "the fix missed its
+    // sibling" shape as B-33 (RV-01).
+    const items = await orderItems.getByOrder(String(order.id));
     const already = await reviews.getByOrder(String(order.id));
     const done = new Set(already.map((r: Record<string, unknown>) => String(r.product_slug)));
     return NextResponse.json({

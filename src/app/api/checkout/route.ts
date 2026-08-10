@@ -3,6 +3,7 @@ import Stripe from "stripe";
 import { stripe } from "@/lib/stripe";
 import { products } from "@/lib/products";
 import { rateLimit } from "@/lib/rate-limit";
+import { deliveryFeeFor } from "@/lib/delivery";
 import { getAppUrl } from "@/lib/app-url";
 import { isDeliverableEmail } from "@/lib/email-address";
 import { isUsablePhone } from "@/lib/phone";
@@ -13,10 +14,12 @@ export async function POST(request: NextRequest) {
   if (limited) return limited;
 
   const body = await request.json();
-  const { items, shipping, deliveryMethod, emirate, customer } = body as {
+  // `shipping` is deliberately NOT destructured: the body may still carry it
+  // (older clients do), and reading it is what SH-03 was. The fee is computed
+  // below from the validated subtotal.
+  const { items, deliveryMethod, emirate, customer } = body as {
     items: Array<{ name: string; price: number; quantity: number; image?: string; slug?: string; personalisation?: string }>;
     subtotal: number;
-    shipping: number;
     deliveryMethod: string;
     emirate?: string;
     customer?: { email?: string; phone?: string; name?: string };
@@ -112,7 +115,22 @@ export async function POST(request: NextRequest) {
   const subtotal = validatedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   // Calculate amounts (all in AED)
-  const total = subtotal + (shipping || 0);
+  /*
+   * The delivery fee is DECIDED HERE, not accepted from the caller.
+   *
+   * `shipping` used to go from the request body straight into the Stripe line
+   * item, so `{"shipping": 0}` bought free delivery — and every record
+   * downstream (the order, the confirmation email, the workshop queue) simply
+   * repeated whatever Stripe had been told to charge, so nothing could detect
+   * it (SH-03). Item prices were already re-read from the catalog; this was the
+   * one money value still on trust.
+   *
+   * Computed from the SERVER's subtotal — the one recomputed from catalog
+   * prices just above — because deriving it from the client's number would only
+   * launder the same untrusted value through a trustworthy-looking function.
+   */
+  const deliveryFee = deliveryFeeFor(subtotal, deliveryMethod);
+  const total = subtotal + deliveryFee;
   // Full payment at checkout. Made-to-order pieces are cut after payment, so
   // the old 50% deposit plus cash on delivery is gone: it added a courier COD
   // fee and meant spending material before being paid.
@@ -157,8 +175,9 @@ export async function POST(request: NextRequest) {
       })
     );
 
-    // Delivery as its own line item, charged in full.
-    if (shipping && shipping > 0) {
+    // Delivery as its own line item, charged in full — at the fee this server
+    // computed, never the one the caller asked for.
+    if (deliveryFee > 0) {
       lineItems.push({
         price_data: {
           currency: "aed",
@@ -166,7 +185,7 @@ export async function POST(request: NextRequest) {
             name: "Shipping Fee",
             metadata: { brand: "lebon-grace" },
           },
-          unit_amount: Math.round(shipping * 100), // delivery in full
+          unit_amount: Math.round(deliveryFee * 100), // delivery in full
         },
         quantity: 1,
       });
@@ -191,7 +210,7 @@ export async function POST(request: NextRequest) {
           order_type: "full_payment",
           total: String(total),
           subtotal: String(subtotal),
-          shipping: String(shipping || 0),
+          shipping: String(deliveryFee),
           deposit: String(depositAmount),
           cod_balance: String(codAmount),
           delivery_method: deliveryMethod || "delivery",

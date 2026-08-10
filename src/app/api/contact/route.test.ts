@@ -95,3 +95,36 @@ describe("POST /api/contact — a refused send is not a sent enquiry", () => {
     err.mockRestore();
   });
 });
+
+/**
+ * EN-03: the form asks for a phone number and the route threw it away.
+ *
+ * `ContactClient` collects `phone` and defaults it to "+971 ", so a customer who
+ * fills it in reasonably expects to be reachable on it. The route destructured
+ * `{ name, email, subject, message, website }` — the number never appeared in
+ * the e-mail, and the operator had only an address to reply to.
+ *
+ * For a shop whose customers reach it on WhatsApp, dropping the phone is
+ * dropping the channel they chose.
+ */
+describe("POST /api/contact — the phone reaches the operator", () => {
+  it("includes the phone number in the email", async () => {
+    await POST(post({ ...good, phone: "+971 50 123 4567" }));
+    const payload = m.send.mock.calls[0][0] as { html: string };
+    expect(payload.html, "the enquiry must carry the number the customer gave").toContain("971 50 123 4567");
+  });
+
+  it("says so plainly when no phone was given", async () => {
+    // PRECONDITION: without this, printing a constant would satisfy the above.
+    await POST(post(good));
+    const payload = m.send.mock.calls[0][0] as { html: string };
+    expect(payload.html).not.toContain("971 50 123 4567");
+  });
+
+  it("escapes the phone like every other supplied field", async () => {
+    await POST(post({ ...good, phone: '<img src=x onerror="alert(1)">' }));
+    const payload = m.send.mock.calls[0][0] as { html: string };
+    expect(payload.html).not.toContain("<img src=x");
+    expect(payload.html).toContain("&lt;img");
+  });
+});

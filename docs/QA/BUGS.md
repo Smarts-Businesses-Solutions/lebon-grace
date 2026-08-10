@@ -901,3 +901,109 @@ with a probe file (P-001).
 
 **Also closed:** EN-05, "no route test protects the contact workflow". Neither
 route had ever had a test; there are now seven across the two.
+
+---
+
+## B-34 · "Buy now" discarded the engraving and the variant
+
+From the shopper audit as SH-01, verified still live in code on 2026-08-10.
+**Fixed.**
+
+The product page has two ways out, and they did not agree:
+
+```tsx
+// Add to cart — carries everything
+addItem(cartItem, quantity, wantsName ? engraveName.trim() : undefined);
+
+// Buy now — carries neither the engraving nor the variant
+onClick={() => addItem(rawProduct!, quantity)}
+```
+
+So a customer who typed a name to be engraved and then took the faster-looking
+path **paid for a personalised piece and would have received a blank one**. The
+selected variant — which changes the name, image and *price* — was dropped the
+same way. Nothing on screen said so: checkout showed a normal-looking line, just
+without the engraving.
+
+This is B-7's family again — the workshop cuts what the order says, and the order
+no longer said it — except here the customer had already been shown their
+engraving on the product page, so both sides believed it was in hand.
+
+**Fix.** One `addConfiguredToCart()` used by both controls. Two call sites that
+must agree is exactly how they came to disagree, so there is now only one.
+
+**Test.** An e2e that types an engraving, clicks **Buy now**, and holds that path
+to the same assertion the Add-to-cart path already had: `checkout-engraving`
+visible and containing the name.
+
+**The first version of that test failed on its own precondition**, because I
+invented `[data-testid="summary-line"]` rather than reusing the locator the
+sibling test proves works. A red test that fails for the wrong reason
+demonstrates nothing — the fix is only justified because the retry failed on the
+engraving assertion with the precondition passing (L-2).
+
+---
+
+## B-35 · The delivery fee was the one money value the server took on trust
+
+From the shopper audit as SH-03, verified still live on 2026-08-10. **Fixed.**
+
+`/api/checkout` already re-read every item price from the catalog and explicitly
+ignored the client's subtotal. The delivery fee was the exception:
+
+```ts
+const { items, shipping, ... } = body;      // straight from the caller
+...
+unit_amount: Math.round(shipping * 100)     // straight onto the Stripe line
+```
+
+So `{"shipping": 0}` bought free delivery. Nothing downstream could notice: the
+order, the confirmation e-mail and the workshop queue all record whatever Stripe
+was told to charge, so the shop's own records would agree with the customer.
+
+The rule that decides the fee —
+`pickup ? 0 : subtotal >= FREE_DELIVERY_OVER ? 0 : UAE_DELIVERY` — lived only in
+`cart-context.tsx`, a **client** module. The server had nothing to check against
+even in principle.
+
+**Fix.** `src/lib/delivery.ts` holds the constants and `deliveryFeeFor(subtotal,
+method)`; `cart-context` re-exports them so the browser cannot drift, and
+`/api/checkout` computes the fee from **its own** validated subtotal.
+`shipping` is no longer destructured from the body at all — reading it was the
+bug, so the fix removes the ability rather than the intent.
+
+**Tests.** Four, red first, each showing the hole: `shipping: 0` charged nothing;
+`shipping: 999` charged 999; a 150 AED order was charged despite the free
+threshold; collection was charged despite being collection.
+
+**One existing test changed meaning.** "adds shipping as its own line item at the
+amount given" still passes — 20 is what the rule computes for a 15 AED delivery
+order — but its name asserted the very behaviour being removed, so it is renamed
+to say the server decides. A test whose name outlives its intent is how a
+vulnerability gets a green tick.
+
+---
+
+## B-36 · Two fixes that missed their sibling, found by re-reading the audits
+
+Both from 2026-08-10, both **fixed**, and both the same shape as B-33: a change
+was applied to one call site and its twin was left behind.
+
+**RV-01 — the reviews eligibility GET pulled the whole table.** The POST was
+moved to `orderItems.getByOrder(...)`; the GET kept `getAll()` and filtered in
+memory, so answering "what can this order review?" scanned every order item in
+the database, with `idx_order_items_order_id` unused. Behind the order-id +
+phone gate, so not an open scan — but it grows with the table forever.
+
+**EN-03 — the contact form's phone number was collected and discarded.**
+`ContactClient` asks for a phone and pre-fills `+971 `, and the route
+destructured `{ name, email, subject, message, website }`. The number never
+reached the operator, who had only an e-mail address to reply to — for a shop
+whose customers reach it on WhatsApp, that is dropping the channel they chose.
+Now included, escaped like every other supplied field, and rendered as "not
+given" when absent so "no number" is distinguishable from "the field broke".
+
+**Verified and NOT changed:** EN-04 / TR-02, rate limits resetting on deploy and
+not shared between replicas. `rate-limit.ts` says so in its own comment — one
+container, swap the Map for Redis if that changes. A documented trade-off, not a
+defect.

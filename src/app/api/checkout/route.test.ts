@@ -155,7 +155,10 @@ describe("POST /api/checkout — price integrity", () => {
     expect(create).not.toHaveBeenCalled();
   });
 
-  it("adds shipping as its own line item at the amount given", async () => {
+  // Renamed: it used to say "at the amount given", which is exactly what the
+  // server no longer does. It still passes because 20 is what the rule computes
+  // for a 15 AED delivery order — the value agrees, the reason changed (SH-03).
+  it("adds delivery as its own line item, at the fee the server computed", async () => {
     await POST(post({
       items: [{ slug: "abc-jigsaw-board", price: 15, quantity: 1 }],
       subtotal: 15, shipping: 20, deliveryMethod: "delivery", emirate: "Dubai",
@@ -184,5 +187,63 @@ describe("POST /api/checkout — price integrity", () => {
     const res = await POST(post({ items: [], subtotal: 0, shipping: 0, deliveryMethod: "pickup" }));
     expect(res.status).toBe(400);
     expect(create).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * The delivery fee was the one money value the server took on trust.
+ *
+ * Item prices are already re-read from the catalog ("ignore client subtotal"),
+ * so a caller cannot set their own price. `shipping` went straight from the
+ * request body into `unit_amount`, and the rule that decides it —
+ * `pickup ? 0 : subtotal >= FREE_DELIVERY_OVER ? 0 : UAE_DELIVERY` — lived only
+ * in `cart-context.tsx`, a client module the server never consults.
+ *
+ * So `{"shipping": 0}` bought free delivery, and nothing downstream could tell:
+ * the order, the confirmation email and the workshop queue all record whatever
+ * Stripe was told to charge (SH-03).
+ */
+describe("the delivery fee is computed by the server, not supplied by the caller", () => {
+  const item = { slug: "abc-jigsaw-board", price: 15, quantity: 1 }; // 15 < 150
+
+  it("charges delivery even when the caller claims it is free", async () => {
+    await POST(post({
+      items: [item], subtotal: 15, shipping: 0, deliveryMethod: "delivery", emirate: "Dubai",
+    }));
+
+    const items = sentLineItems();
+    const fee = items.find((l: { price_data: { product_data: { name: string } } }) =>
+      l.price_data.product_data.name === "Shipping Fee");
+    expect(fee, "a 15 AED delivery order must be charged delivery, whatever the body said").toBeTruthy();
+    expect(fee!.price_data.unit_amount).toBe(2000);
+  });
+
+  it("ignores an inflated fee too", async () => {
+    // Not an attack on the shop, but the same principle: the server decides.
+    await POST(post({
+      items: [item], subtotal: 15, shipping: 999, deliveryMethod: "delivery", emirate: "Dubai",
+    }));
+    const fee = sentLineItems().find((l: { price_data: { product_data: { name: string } } }) =>
+      l.price_data.product_data.name === "Shipping Fee");
+    expect(fee!.price_data.unit_amount).toBe(2000);
+  });
+
+  it("still gives free delivery over the threshold", async () => {
+    // PRECONDITION: proves the rule is applied, not that delivery is always charged.
+    await POST(post({
+      items: [{ ...item, quantity: 10 }], subtotal: 150, shipping: 20, deliveryMethod: "delivery", emirate: "Dubai",
+    }));
+    const names = sentLineItems().map((l: { price_data: { product_data: { name: string } } }) =>
+      l.price_data.product_data.name);
+    expect(names, "150 AED reaches the free-delivery threshold").not.toContain("Shipping Fee");
+  });
+
+  it("charges nothing for collection, whatever the body says", async () => {
+    await POST(post({
+      items: [item], subtotal: 15, shipping: 20, deliveryMethod: "pickup",
+    }));
+    const names = sentLineItems().map((l: { price_data: { product_data: { name: string } } }) =>
+      l.price_data.product_data.name);
+    expect(names).not.toContain("Shipping Fee");
   });
 });

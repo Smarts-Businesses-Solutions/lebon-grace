@@ -105,3 +105,55 @@ test.describe("@money the engraved name is shown back to the customer", () => {
     await expect(page.locator('[data-testid="cart-engraving"]')).toHaveCount(0);
   });
 });
+
+/**
+ * "Buy now" is the other way out of the product page, and it dropped everything
+ * the customer had configured.
+ *
+ * `Add to cart` builds the line from the current selection — the engraved name,
+ * and the chosen variant's name/price/image. `Buy now` called
+ * `addItem(rawProduct, quantity)` with neither. So a customer who typed a name
+ * and took the faster-looking path paid for a personalised piece and would have
+ * received a blank one, with nothing on the page to tell them (SH-01).
+ *
+ * Exercised through the SAME assertion as the Add-to-cart path: whatever route
+ * the customer takes, the checkout summary must show what will be cut.
+ */
+test.describe("@money Buy now carries the configuration", () => {
+  test("the engraving survives Buy now", async ({ page }) => {
+    await page.goto("/shop", { waitUntil: "load" });
+    const href = await page.locator('a[href^="/shop/"]').first().getAttribute("href");
+    expect(href, "the shop grid must list a product").toBeTruthy();
+    await page.goto(href!, { waitUntil: "load" });
+
+    let field = page.locator('input[maxlength="20"]').first();
+    if ((await field.count()) === 0) {
+      const toggle = page.locator('input[type="checkbox"], [role="switch"]').first();
+      await expect(toggle, "product page must offer engraving").toHaveCount(1);
+      await toggle.click();
+      field = page.locator('input[maxlength="20"]').first();
+    }
+    await expect(field, "engraving field must appear once opted in").toHaveCount(1);
+    await field.fill(ENGRAVING);
+
+    // The whole point: this path, not "Add to cart".
+    await page.getByRole("link", { name: /buy now/i }).first().click();
+    await page.waitForURL(/\/checkout/, { timeout: 15000 });
+
+    // Precondition (L-2): the summary rendered at all. Same locator the
+    // Add-to-cart test uses — invented test-ids made the first version of this
+    // fail on its own precondition, which proves nothing about the bug.
+    await expect(
+      page.getByText(/order summary/i),
+      "precondition: the checkout order summary must render"
+    ).toBeVisible({ timeout: 15000 });
+
+    // The same assertion the Add-to-cart path is held to.
+    const shown = page.locator('[data-testid="checkout-engraving"]');
+    await expect(
+      shown,
+      `Buy now must carry the engraving "${ENGRAVING}" — it is cut irreversibly into the piece`
+    ).toBeVisible({ timeout: 15000 });
+    await expect(shown).toContainText(ENGRAVING);
+  });
+});

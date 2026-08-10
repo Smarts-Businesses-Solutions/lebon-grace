@@ -24,6 +24,7 @@ const m = vi.hoisted(() => ({
   existsFor: vi.fn(async (_o: string, _s: string) => false),
   insertReview: vi.fn(async (r: Record<string, unknown>) => ({ id: "rev1", ...r })),
   getBySlug: vi.fn(async (_s: string) => [] as unknown[]),
+  getReviewsByOrder: vi.fn(async (_o: string) => [] as Record<string, unknown>[]),
   aggregates: vi.fn(async () => ({})),
   rateLimit: vi.fn(() => null as unknown),
 }));
@@ -31,7 +32,7 @@ const m = vi.hoisted(() => ({
 vi.mock("@/lib/store", () => ({
   orders: { getByTracking: m.getByTracking },
   orderItems: { getAll: m.getAllItems, getByOrder: m.getItemsByOrder },
-  reviews: { existsFor: m.existsFor, insert: m.insertReview, getBySlug: m.getBySlug, aggregates: m.aggregates },
+  reviews: { existsFor: m.existsFor, insert: m.insertReview, getBySlug: m.getBySlug, aggregates: m.aggregates, getByOrder: m.getReviewsByOrder },
 }));
 vi.mock("@/lib/rate-limit", () => ({ rateLimit: m.rateLimit }));
 // Spread the REAL module and override only what must not fire. `esc` is
@@ -256,4 +257,25 @@ it("escapes a comment that would otherwise break the alert apart", async () => {
   const [, html] = m.sendOperatorNotice.mock.calls[0];
   expect(html).toContain("&lt;b&gt;bold&lt;/b&gt; &amp; &quot;quoted&quot;");
   expect(html).not.toContain("<b>bold</b>");
+});
+
+/**
+ * RV-01: the eligibility GET pulled every order item in the table.
+ *
+ * The POST was fixed to use `getByOrder` and the GET was left on `getAll()` —
+ * the same "the fix missed its sibling" shape as B-33, in a different file. It
+ * is behind the order-id + phone gate so it is not an open scan, but it grows
+ * with the whole table to answer a question about one order, and
+ * `idx_order_items_order_id` sat unused for it.
+ */
+describe("GET /api/reviews?order=…&phone=… — scoped to the order", () => {
+  it("fetches items for the order and never calls getAll", async () => {
+    m.getByTracking.mockResolvedValue(delivered());
+    m.getItemsByOrder.mockResolvedValue([{ order_id: ORDER_ID, product_slug: "abc-jigsaw-board", product_name: "ABC" }]);
+
+    const res = await GET(new NextRequest(`https://x.test/api/reviews?order=${ORDER_ID}&phone=0501234567`));
+    expect(res.status).toBe(200);
+    expect(m.getItemsByOrder, "must ask for this order's items").toHaveBeenCalledWith(String(ORDER_ID));
+    expect(m.getAllItems, "must not pull the whole order_items table").not.toHaveBeenCalled();
+  });
 });

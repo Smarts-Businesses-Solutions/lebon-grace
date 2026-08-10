@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
   if (limited) return limited;
 
   const body = await request.json().catch(() => ({}));
-  const { name, email, subject, message, website } = body as Record<string, string>;
+  const { name, email, phone, subject, message, website } = body as Record<string, string>;
 
   // Honeypot: a field hidden from people and irresistible to bots. Anything
   // that fills it gets a cheerful 200 and no email, so the bot does not learn
@@ -35,8 +35,18 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "That message is too long" }, { status: 400 });
   }
 
+  // The form asks for a phone and defaults it to "+971 ", so a customer who
+  // fills it in expects to be reachable on it — and this shop's customers reach
+  // it on WhatsApp. It was collected and then dropped: the route never read it,
+  // so the operator had only an e-mail address to reply to (EN-03).
+  //
+  // Capped like the other supplied fields, and "not given" is stated rather than
+  // left blank, so the operator can tell "no number" from "the field broke".
+  const custPhone = String(phone || "").trim().slice(0, 32);
+
   const html = `
     <p><strong>From:</strong> ${esc(name)} (${esc(email)})</p>
+    <p><strong>Phone:</strong> ${custPhone ? esc(custPhone) : "not given"}</p>
     <p><strong>Subject:</strong> ${esc(subject || "No subject")}</p>
     <hr />
     <p style="white-space:pre-wrap">${esc(message)}</p>

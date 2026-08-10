@@ -115,7 +115,19 @@ export default function ProductDetailPage() {
 
   const displayPrice = selectedCjVariant?.price || product.price;
 
-  const handleAddToCart = () => {
+  /**
+   * Everything the customer configured on this page, in one place.
+   *
+   * "Add to cart" built this inline and "Buy now" called
+   * `addItem(rawProduct, quantity)` — with no engraving and no variant. So the
+   * faster-looking path silently discarded the engraved name and any variant
+   * choice: the customer paid for a personalised piece and would have received a
+   * blank one, with nothing on screen to say so (SH-01).
+   *
+   * Shared rather than duplicated, because two call sites that must agree are
+   * exactly how they came to disagree.
+   */
+  const addConfiguredToCart = () => {
     const cartItem = {
       ...rawProduct!,
       ...(selectedCjVariant ? {
@@ -125,6 +137,10 @@ export default function ProductDetailPage() {
       } : {}),
     };
     addItem(cartItem, quantity, wantsName ? engraveName.trim() : undefined);
+  };
+
+  const handleAddToCart = () => {
+    addConfiguredToCart();
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   };
@@ -394,9 +410,12 @@ export default function ProductDetailPage() {
               {added ? "Added to cart" : "Add to cart"}
             </button>
 
+            {/* Same configuration as "Add to cart" — see addConfiguredToCart.
+                This called addItem(rawProduct, quantity) directly and dropped
+                the engraving and the selected variant (SH-01). */}
             <Link
               href="/checkout"
-              onClick={() => addItem(rawProduct!, quantity)}
+              onClick={addConfiguredToCart}
               className="w-full py-3.5 text-sm text-center text-ink border-b border-ink/25 hover:border-ink transition-colors"
             >
               Buy now
