@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { catalog } from "@/lib/store";
 import { requireAdmin } from "@/lib/admin-auth";
+import { recordAdminAction } from "@/lib/audit";
 
 export async function GET() {
   // The live catalog ships in src/lib/products.ts. This endpoint returns any
@@ -31,6 +32,20 @@ export async function PUT(request: NextRequest) {
   updates.updated_at = new Date().toISOString();
 
   await catalog.upsert({ slug, ...updates });
+
+  /*
+   * B-42 shipped the audit trail covering only order status changes, and said so
+   * — this closes that gap. A price edit is a money change with no receipt: the
+   * row simply holds a different number afterwards, and "was this always 15 AED?"
+   * had no answer.
+   *
+   * `updated_at` is stripped from the record: it is a timestamp the code sets,
+   * not something the operator chose, and `created_at` on the audit row already
+   * says when. Keeping it would pad every entry with noise.
+   */
+  const { updated_at: _ignored, ...changed } = updates;
+  recordAdminAction("product.updated", "product", String(slug), { fields: changed });
+
   return NextResponse.json({ success: true, product: { slug, ...updates } });
 }
 
@@ -47,5 +62,10 @@ export async function DELETE(request: NextRequest) {
   }
 
   await catalog.remove(slug);
+
+  // The one action with no undo. Without a record, a product that vanishes from
+  // the shop leaves no evidence it ever existed, let alone when it went.
+  recordAdminAction("product.deleted", "product", String(slug), {});
+
   return NextResponse.json({ success: true });
 }

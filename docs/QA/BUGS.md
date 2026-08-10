@@ -1266,9 +1266,19 @@ customer had been told. It now derives from `notifiesCustomer()`. A record that
 asserts something it never checked is worse than no record, which is the whole
 lesson of B-29 turned on the tool built to audit it.
 
-**Scope, stated plainly:** only `order.status_changed` is recorded. Product
-edits and deletions are not, and the audit trail should not be described as
-complete until they are.
+**Scope when first shipped:** only `order.status_changed`. Product edits and
+deletions were not recorded, and this entry said so rather than letting the trail
+be described as complete.
+
+**Closed 2026-08-10, same day.** `product.updated` records which fields changed
+— a price edit is a money change that previously left no receipt, so "was this
+always 15 AED?" had no answer — and `product.deleted` records the one action with
+no undo. `updated_at` is stripped from the record: the code sets it, the operator
+did not choose it, and the audit row's own `created_at` already says when.
+
+Those are also the first tests `/api/products` has ever had, so the admin guard
+is pinned alongside them: it is the only thing between a stranger and the shop's
+prices, and nothing asserted it.
 
 ---
 
