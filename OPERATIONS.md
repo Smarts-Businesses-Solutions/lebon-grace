@@ -36,32 +36,34 @@ npm run audit:contrast         # WCAG arithmetic over the declared colour pairs
 | Analytics | Umami, proxied through a `next.config` rewrite | continuous |
 | Deploy freshness | `npm run verify:deploy` | every deploy — **not optional** |
 
-### Server errors do NOT reach GlitchTip (B-31, open)
+### Server errors reach GlitchTip — and that is guarded (B-31, fixed)
 
-`output: "standalone"` does not ship `.next/server/instrumentation.js` or the
-chunk holding `Sentry.init`, so server-side reporting has been inert since
-standalone was adopted. Only the **browser** bundle reports, plus the uptime
-check, which posts to GlitchTip directly from a shell script — so GlitchTip
-being non-empty says nothing about whether the app is reporting.
+For the whole life of this project `Sentry.init` never ran on the server:
+`instrumentation.ts` was at the repo root, and because this app uses `src/app`
+the hook must be **`src/instrumentation.ts`**. Next ignores a root-level file in
+that layout without any warning. GlitchTip stayed populated by the browser
+bundle and the uptime check, so its not being empty proved nothing.
 
-> **Do not fix this by copying the chunk into the standalone output.** It was
-> tried on 2026-08-10 and crashed the container at boot —
-> `Cannot find module 'require-in-the-middle-…'` — because Next excludes the
-> instrumentation subgraph *including its node_modules externals*. Eleven
-> minutes of downtime, rolled back via `lebon-grace:rollback-b31`.
+`npm run build` now **fails** if the compiled Sentry init is missing from the
+standalone output. That is a proxy for "the chain is intact", not proof of
+delivery.
 
-`npm run build` warns when the entry is absent. It does **not** fail: a build
-without instrumentation is correct and deployable, just unmonitored.
-
-Anything attempted here must be verified **in the container**:
+For proof of delivery, count envelopes:
 
 ```bash
-docker run --rm --entrypoint sh <image> -c "cd /app && timeout 20 node server.js"
+NEXT_PUBLIC_SENTRY_DSN="http://abc123@127.0.0.1:9999/1" npm run build
+node scripts/prove-sentry-init.mjs     # exit 0 = an event actually left the server
 ```
 
-A local `node .next/standalone/server.js` proves nothing — run from the project
-root it resolves externals from the full `node_modules`, which the pruned image
-does not have (L-26).
+`NEXT_PUBLIC_*` are inlined, so the DSN must be set for the **build**. The proof
+runs from an isolated copy of `.next/standalone` with no parent `node_modules`,
+because a local run inside the repo resolves externals the container does not
+have — that mistake shipped a crash-looping image once (L-26).
+
+> **Never repair this by copying build artefacts into `.next/standalone`.** It
+> was tried and crash-looped the container on a missing external. Fix the input.
+
+Edge-runtime init is not covered by that proof.
 
 ## Incident quick reference
 

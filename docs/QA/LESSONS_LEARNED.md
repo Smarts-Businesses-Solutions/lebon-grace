@@ -552,3 +552,30 @@ Two smaller things this also taught:
 - **Tag a rollback before recreating, always.** `lebon-grace:rollback-b31`
   existed because P-005 says to make one, and it turned an outage into an
   11-minute one instead of a rebuild-under-pressure.
+
+---
+
+## L-27 · Compare against a known-good configuration before theorising
+
+B-31 took three attempts. The first two blamed `output: "standalone"` and
+Turbopack file tracing, and produced an elaborate, entirely wrong story —
+complete with chunk-count tables — that survived because every measurement I
+took was *consistent* with it. 19 of 40 chunks copied, `instrumentation.js`
+missing from standalone, `@sentry` absent from the pruned `node_modules`: all
+true, all irrelevant.
+
+The step that ended it took two minutes: **run the same test against
+`next start`.** It sent zero envelopes too. Standalone was not the variable.
+
+I had never checked whether the thing worked in *any* configuration before
+explaining why it failed in one. Every fact I gathered was about the failing
+setup, so nothing could contradict the theory — I was measuring inside the
+hypothesis.
+
+**Before explaining why X fails under condition C, check whether X works
+without C.** If it fails both ways, C was never the cause and every hour spent
+on C is wasted. It is the cheapest possible experiment and it goes first.
+
+The second half of the same lesson: when a hypothesis needs a *mechanism* to
+explain it — tracing, pruning, bundler internals — that complexity is itself
+evidence against it. The actual cause was a file in the wrong folder.

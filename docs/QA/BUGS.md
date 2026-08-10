@@ -717,74 +717,87 @@ change only makes the failure audible instead of silent.
 
 ---
 
-## B-31 · `output: "standalone"` never ships the instrumentation entry, so Sentry never initialises
+## B-31 · `instrumentation.ts` was in the wrong folder, so Sentry never initialised
 
-Found 2026-08-10. **STILL OPEN.** Two attempted fixes; the second caused an
-**11-minute production outage** and was rolled back.
+Found 2026-08-10. **Fixed.** Root cause identified on the third attempt; the
+second attempt caused an **11-minute production outage**.
 
-### The fault
+### The fault, and it is one line
 
-| | `.next/server` | `.next/standalone/.next/server` |
-|---|---|---|
-| `instrumentation.js` (**the entry Next calls `register()` on**) | present | **missing** |
-| chunk holding `Sentry.init` | present | **missing** |
-| `tracesSampleRate`, `beforeSend`, `CaptureConsole` | present | **absent** |
+`instrumentation.ts` sat at the **repo root**. This app keeps its code in
+`src/app`, and when `src/` is used the hook must be **`src/instrumentation.ts`**.
+Next silently ignores a root-level file in that layout — no build warning, no
+boot warning, no runtime error.
 
-The only Sentry in the image is `/app/.next/static/chunks/…` — the **browser**
-bundle. So server-side error reporting has never run in this deployment. Every
-server `console.error` and every unhandled server exception since
-`output: "standalone"` was adopted has gone nowhere. GlitchTip does receive
-events — from the browser bundle and from the uptime shell script, which posts
-directly — which is why GlitchTip having *something* in it was never evidence
-that the app was reporting.
+So **`register()` had never been called, once, in the life of this project.**
+`Sentry.init` never ran. Every server `console.error` and every unhandled server
+exception went nowhere. GlitchTip stayed populated the whole time — by the
+browser bundle and by the uptime check, which is a shell script that posts
+directly — which is exactly why nobody noticed.
 
-### Ruled out, with evidence
+### The measurement that found it
 
-- **`instrumentation.ts` placement.** Fine. Next's
-  `getPossibleInstrumentationHookFilenames` checks both the project root and
-  `src/`.
-- **Turbopack chunk naming.** Not it — `.next/server/instrumentation.js` exists,
-  it is simply not copied.
-- **`outputFileTracingIncludes`.** Tried `{"/*": [".next/server/chunks/*.js"]}`.
-  Changed nothing: Next excludes its own `.next` output from tracing input.
+Two earlier diagnoses blamed `output: "standalone"` and Turbopack file tracing.
+Both were wrong, and one test killed them:
 
-### Attempt 2, and why it took the shop down
+| | envelopes reaching a fake ingest |
+|---|---|
+| root hook, standalone server | **0** |
+| root hook, **`next start`** | **0** ← not standalone-specific at all |
+| `src/` hook, webpack build | 2 |
+| `src/` hook, **Turbopack (default)** | **1** ✓ |
 
-Copying the chunk and the entry into the standalone output after the build. This
-booted a crash loop in the container:
+`next start` failing identically ruled out standalone, tracing and the bundler
+in a single step. A temporary `console.log` inside `register()` then never
+printed, which named the cause outright.
+
+### The fix
+
+Move the file. `instrumentation.ts` → `src/instrumentation.ts`, with `../`
+imports because the Sentry configs stay at the repo root (`withSentryConfig` and
+the Sentry CLI expect them there). **No bundler change** — Turbopack was checked
+specifically, so the `next build --webpack` workaround discussed in
+[vercel/next.js#88844](https://github.com/vercel/next.js/issues/88844) is not
+needed here.
+
+### What went wrong on the way, and why it matters more than the fix
+
+**Attempt 1** added `outputFileTracingIncludes`. No effect — Next excludes its
+own `.next` output from tracing input.
+
+**Attempt 2** copied the Sentry chunk and `instrumentation.js` into the
+standalone output. It passed every static check and a behavioural check, then
+crash-looped the container:
 
 ```
 Failed to prepare server Error: An error occurred while loading instrumentation
 hook: Cannot find module 'require-in-the-middle-2ca7b9c2766f317e'
-Require stack:
-  /app/.next/server/chunks/[root-of-the-server]__03127c7._.js
-  /app/.next/server/instrumentation.js
 ```
 
-**Next does not merely forget the instrumentation chunk — it excludes the whole
-instrumentation subgraph, including its `node_modules` externals.** Those
-externals are absent from the pruned standalone `node_modules`, so a copied
-chunk loads, requires something that was never shipped, and kills the process.
-The silent gap became an outage: `/` served nothing for ~11 minutes until
-`lebon-grace:rollback-b31` was restored.
+Next excludes the whole instrumentation subgraph *including its node_modules
+externals*, so a copied chunk requires something that was never shipped. **The
+behavioural check passed because it ran `node .next/standalone/server.js` from
+inside the repo, where Node walks up into the full `node_modules`.** The
+container has only the pruned copy (L-26). `scripts/prove-sentry-init.mjs` now
+runs from an isolated copy outside the project tree.
 
-**It passed a local runtime proof first**, which is the part worth keeping:
-`node .next/standalone/server.js` run from the project root resolves the missing
-external by walking up into the FULL `node_modules`. The container has only the
-pruned copy. The proof ran in an environment that does not exist in production
-(L-26).
+**And the false certainty that made attempt 2 possible:** I had recorded
+"instrumentation.ts placement — ruled out, Next's
+`getPossibleInstrumentationHookFilenames` checks both the root and `src/`". That
+function enumerates *candidates*; it is not the resolution rule. A plausible
+citation, confidently written down, sent two attempts in the wrong direction —
+which is L-22 again, this time in my own notes rather than someone else's
+comment.
 
-### Where it stands
+### Guard
 
-`scripts/seal-standalone.mjs` no longer copies anything — it only warns during
-the build, because a build without instrumentation is *correct and deployable*,
-just unmonitored. Failing the build would block every deploy on an unsolved
-upstream issue, and copying is proven harmful.
+`scripts/seal-standalone.mjs` runs as part of `npm run build` and **fails** if
+the compiled Sentry init is absent from the standalone output. Forced in both
+directions: hook removed → exit 1; hook restored → exit 0. It no longer copies
+anything and says so, because copying is what caused the outage.
 
-**Next avenue, untried:** make Next trace the instrumentation subgraph rather
-than reconstructing it by hand — `serverExternalPackages`, or the webpack (not
-Turbopack) build, or whatever `@sentry/nextjs` requires for Next 16 standalone.
-Whatever is attempted, **verify it in the container**, not against a local tree
-with full `node_modules`, and confirm the process still boots before it reaches
-production.
+Presence of the marker is a proxy for "the chain is intact", not proof of
+delivery. For that, `scripts/prove-sentry-init.mjs` counts envelopes arriving at
+a real ingest from an isolated standalone copy — run it after any change to the
+build, the bundler, the hook, or the Sentry config.
 

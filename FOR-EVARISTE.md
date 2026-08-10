@@ -282,21 +282,21 @@ that pass for exactly that reason.
   nothing. Rebuild. That is also why the Sentry DSN must be present for the
   *build*, not just the run — set it at runtime and Next has already inlined
   `undefined`.
-- **`output: "standalone"` ships less than your build produced.** It copies what
-  Next's file tracing thinks the server reaches, and that misses
-  `.next/server/instrumentation.js` entirely — so `register()` never runs and
-  **no server error reaches GlitchTip** (B-31, still open). If you ever ask "why
-  is nothing being reported", look at `.next/standalone`, not `.next/server`.
-  **Do not repair it by copying the chunk across**: I tried that, and it crashed
-  production at boot, because Next drops the whole instrumentation subgraph
-  including its `node_modules` externals — so the copy loads and then requires
-  something that was never shipped. Ship all of a subgraph or none of it.
-- **"It works locally" is a different claim from "it works in the image."** That
-  copy-the-chunk fix passed a real behavioural test — a fake Sentry ingest, an
-  envelope counted — because I ran the standalone server from the project root,
-  where Node walks up into the full `node_modules`. The container has only the
-  pruned copy. For anything that ships as a container, run the proof with
-  `docker run` against the actual image (L-26).
+- **If you use `src/`, `instrumentation.ts` must be `src/instrumentation.ts`.**
+  Ours sat at the repo root, so Next silently ignored it and `Sentry.init` never
+  ran — for the entire life of the project. No warning anywhere. If you ever ask
+  "why is nothing being reported", check that file's folder first (B-31).
+- **Check whether it works in ANY configuration before explaining why it fails
+  in one.** I spent two attempts blaming `output: "standalone"` and Turbopack,
+  with evidence that all fitted. Running the same test against `next start` —
+  two minutes — showed it failed there too, so standalone was never the
+  variable. Measuring only inside your hypothesis can never contradict it
+  (L-27).
+- **"It works locally" is a different claim from "it works in the image."** A
+  fix that passed a real behavioural test — fake Sentry ingest, envelope counted
+  — still crash-looped production, because I ran the standalone server from the
+  project root where Node walks up into the full `node_modules`. The container
+  has only the pruned copy. Run the proof against the artefact you ship (L-26).
 - **A library that returns errors instead of throwing will lie to a
   `try/catch`.** `Resend.emails.send` resolves `{data, error}`. Every send path
   here was written for throw-on-error, so a 403 came back as success and the

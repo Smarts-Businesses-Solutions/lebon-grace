@@ -22,6 +22,9 @@
  */
 import { createServer } from "node:http";
 import { spawn } from "node:child_process";
+import { mkdtempSync, cpSync, existsSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 const INGEST_PORT = 9999;
 const APP_PORT = 3101;
@@ -39,7 +42,27 @@ const ingest = createServer((req, res) => {
 await new Promise((r) => ingest.listen(INGEST_PORT, "127.0.0.1", r));
 console.log(`  fake Sentry ingest listening on ${INGEST_PORT}`);
 
-const app = spawn(process.execPath, [".next/standalone/server.js"], {
+/*
+ * Run from an ISOLATED COPY, outside the project tree.
+ *
+ * This is the whole reason the previous B-31 fix reached production broken.
+ * `node .next/standalone/server.js` executed inside the repo resolves missing
+ * externals by walking UP into the project's full node_modules. The deployed
+ * container has only the pruned standalone copy, so the proof passed on a build
+ * that could not boot in the image (L-26).
+ *
+ * Copying standalone somewhere with no parent node_modules reproduces the
+ * container's isolation, which is the condition that actually matters.
+ */
+const ISOLATED = mkdtempSync(join(tmpdir(), "lg-standalone-"));
+cpSync(".next/standalone", ISOLATED, { recursive: true });
+if (existsSync(".next/static")) {
+  cpSync(".next/static", join(ISOLATED, ".next/static"), { recursive: true });
+}
+console.log(`  isolated copy at ${ISOLATED} (no parent node_modules)`);
+
+const app = spawn(process.execPath, ["server.js"], {
+  cwd: ISOLATED,
   env: {
     ...process.env,
     NODE_ENV: "production",

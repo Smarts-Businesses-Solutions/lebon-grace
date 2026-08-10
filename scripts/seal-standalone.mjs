@@ -1,53 +1,87 @@
 #!/usr/bin/env node
 /**
- * Report — do NOT fix — the standalone output's missing Sentry init. (B-31)
+ * Fail the build if the server cannot report its own errors. (B-31)
  *
- * ## This script used to copy. Copying took the shop down.
+ * ## What this is guarding against
  *
- * `output: "standalone"` does not ship `.next/server/instrumentation.js` or the
- * chunk holding `Sentry.init`, so server-side error reporting has never run in
- * the container. The obvious repair — copy them in after the build — was tried,
- * shipped, and crashed the server at boot:
+ * `instrumentation.ts` lived at the repo root while this app keeps its code in
+ * `src/app`. Next silently ignored it — no warning at build, none at boot, no
+ * error at runtime — so `register()` never ran and `Sentry.init` never
+ * executed. Server-side error reporting had never worked, and nothing could
+ * have told you: a reporter that is switched off produces exactly the same
+ * output as one that is working and has nothing to report.
  *
- *   Failed to prepare server Error: An error occurred while loading
- *   instrumentation hook: Cannot find module
- *   'require-in-the-middle-2ca7b9c2766f317e'
+ * ## What it does NOT do any more
  *
- * Next does not merely *forget* the instrumentation chunk. It excludes the whole
- * instrumentation subgraph, **including its node_modules externals**, and those
- * externals are not in the pruned standalone `node_modules`. So the copied chunk
- * loads, requires something that was never shipped, and takes the process with
- * it. A silent gap became an outage.
+ * An earlier version of this script tried to *repair* the standalone output by
+ * copying the Sentry chunk into it. That shipped, and crash-looped the
+ * container on a missing external (`require-in-the-middle-…`), because Next
+ * excludes the whole instrumentation subgraph including its node_modules
+ * dependencies. Eleven minutes of downtime. **Do not copy build artefacts
+ * around; fix the input instead.** The real cause was the file's location.
  *
- * It passed a local runtime proof first, which is the part worth remembering:
- * `node .next/standalone/server.js` run from the project root resolves the
- * missing module by walking up into the FULL `node_modules`. The container has
- * only the pruned copy. The proof ran in an environment that does not exist in
- * production (L-26).
+ * ## Why a marker string is enough here
  *
- * So this script now only reports. Fixing B-31 properly means getting Next to
- * trace the instrumentation subgraph — not hand-copying pieces of it.
+ * `CaptureConsole` only exists in the compiled output if `sentry.server.config`
+ * was reachable from the instrumentation hook, which only happens if Next
+ * resolved the hook at all. It is a cheap proxy for "the chain is intact".
+ *
+ * It is NOT proof that events are delivered — that needs
+ * `scripts/prove-sentry-init.mjs`, which counts envelopes arriving at a real
+ * ingest from an isolated copy of the standalone output. Run that after any
+ * change to the build, the bundler, this hook, or the Sentry config.
  */
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { join } from "node:path";
 
-if (!existsSync(".next/standalone")) {
-  console.log("[seal-standalone] no standalone output — nothing to do");
+const ROOT = ".next/standalone";
+const MARKER = "CaptureConsole";
+
+if (!existsSync(ROOT)) {
+  console.log("[seal-standalone] no standalone output — nothing to check");
   process.exit(0);
 }
 
-const entry = ".next/standalone/.next/server/instrumentation.js";
-if (existsSync(entry)) {
-  console.log("[seal-standalone] instrumentation entry present in standalone");
-} else {
-  // A warning, not a failure. The build is CORRECT and deployable without it —
-  // it simply has no server-side error reporting, which is B-31 and is tracked.
-  // Failing here would block every deploy on an unsolved upstream issue.
-  console.warn(
-    [
-      "[seal-standalone] NOTE: .next/server/instrumentation.js is absent from the",
-      "  standalone output, so Sentry.init will not run and server-side errors will",
-      "  not reach GlitchTip. This is B-31, still open. Do NOT 'fix' it by copying",
-      "  the chunk in — that crashes the server at boot on a missing external.",
-    ].join("\n")
-  );
+/** Walk the standalone tree looking for the marker in any .js file. */
+function hasMarker(dir) {
+  for (const name of readdirSync(dir)) {
+    const p = join(dir, name);
+    let st;
+    try {
+      st = statSync(p);
+    } catch {
+      continue; // a symlink into a pruned tree; not our concern
+    }
+    if (st.isDirectory()) {
+      if (hasMarker(p)) return true;
+    } else if (name.endsWith(".js")) {
+      try {
+        if (readFileSync(p, "utf8").includes(MARKER)) return true;
+      } catch {
+        /* unreadable file — keep looking */
+      }
+    }
+  }
+  return false;
 }
+
+if (hasMarker(ROOT)) {
+  console.log("[seal-standalone] Sentry server init reached the standalone output");
+  process.exit(0);
+}
+
+console.error(
+  [
+    `[seal-standalone] FAILED: "${MARKER}" is not in the standalone output.`,
+    "  Sentry.init will not run, so the server will report NO errors — silently,",
+    "  which is exactly how this went unnoticed for the life of the project (B-31).",
+    "",
+    "  Most likely cause: the instrumentation hook is not where Next looks.",
+    "  This app uses src/app, so it must be src/instrumentation.ts — a root-level",
+    "  instrumentation.ts is ignored without any warning.",
+    "",
+    "  Do NOT 'fix' this by copying chunks into .next/standalone. That was tried,",
+    "  and it crash-loops the container on a missing external.",
+  ].join("\n")
+);
+process.exit(1);
