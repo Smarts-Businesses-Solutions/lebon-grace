@@ -1,7 +1,20 @@
 # Session State — Shop Lebon Grace
 ## Last Updated: 2026-07-01
 
-### How to Resume
+> **SUPERSEDED — do not resume from this file.** It is five weeks stale as of
+> 2026-08-09 and describes code that has since been rewritten (the store moved to
+> supabase-js, the catalogue is generated, the shop pivoted to hand-made
+> laser-cut goods, and the whole `/api/variants` CJ path has been deleted).
+> Following its instructions would reintroduce assumptions that are no longer
+> true.
+>
+> **Start here instead:** `README.md` for how to run and verify, `DECISIONS.md`
+> for why things are the way they are, `docs/QA/BUGS.md` for what has broken and
+> how it was fixed, and `whatnext.md` for what is actually outstanding.
+>
+> Kept for history, not for resuming.
+
+### How to Resume (as of 2026-07-01 — historical)
 1. Start a new session in `C:\Users\user\Desktop\aprojects\lebon-grace`
 2. Say: "Read SESSION-STATE.md and continue from where we left off"
 3. The file contains all context needed to resume without losing progress

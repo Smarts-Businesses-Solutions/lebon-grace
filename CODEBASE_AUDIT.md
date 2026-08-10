@@ -1,5 +1,21 @@
 # Lebon Grace — Codebase Audit
 
+> **Read the date before the findings.** This is a snapshot of
+> `fix/email-sender-domain` @ `eefd24f` on **2026-08-05**, kept as a record. Its
+> statements were true then and several are not now — they are deliberately
+> **not** rewritten, because an audit edited to match later reality stops being
+> evidence of anything.
+>
+> Resolved since, and the reason a reader will trip on them here:
+>
+> | This audit says | Now |
+> |---|---|
+> | "there is no CI" / "nothing runs them automatically" | CI runs on Forgejo on every push (D-014). It had genuinely never executed until 2026-08-09 (D-013), so the finding was correct and simply took a while to fix. |
+> | "the 15 unit tests pass" | 276 unit tests, plus 231 Playwright across three viewports. |
+> | Various API-surface findings | See `docs/QA/BUGS.md` B-13…B-28 for what was found and fixed after this audit, including the `/api/variants` hole this audit's DevOps section anticipated. |
+>
+> For current state use `README.md`, `DECISIONS.md` and `docs/QA/BUGS.md`.
+
 **Date:** 2026-08-05
 **Branch audited:** `fix/email-sender-domain` @ `eefd24f`
 **Method:** direct inspection + non-destructive validation runs. No code changed during the audit.
