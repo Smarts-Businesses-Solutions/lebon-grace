@@ -62,7 +62,36 @@ export async function requireStaging(): Promise<StagingHandle> {
     );
   }
 
-  const db = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+  /*
+   * Two shapes of staging, and the difference is one URL prefix.
+   *
+   * The long-lived stack on cx53 runs kong in front of PostgREST exactly as
+   * production does, so supabase-js's `${url}/rest/v1/...` lands correctly and
+   * nothing special is needed.
+   *
+   * CI runs PostgREST as a service container with NO kong. Kong contributes
+   * API-key auth, ACLs and CORS — none of which this suite exercises — and its
+   * declarative config has to be a mounted FILE, which a service container
+   * cannot have because it starts before the repo is checked out. So CI talks
+   * to PostgREST directly and this shim removes the prefix kong would have
+   * stripped.
+   *
+   * Stated explicitly via an env var rather than sniffed from the URL: a guess
+   * that is usually right is exactly the kind of thing that fails silently
+   * against a host somebody adds later.
+   */
+  const direct = process.env.STAGING_REST_DIRECT === "1";
+  const db = createClient(url, key, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: direct
+      ? {
+          fetch: (input: RequestInfo | URL, init?: RequestInit) => {
+            const href = typeof input === "string" ? input : input.toString();
+            return fetch(href.replace("/rest/v1/", "/"), init);
+          },
+        }
+      : undefined,
+  });
 
   // Braces: the actual guard.
   const { data, error } = await db.from("staging_marker").select("safe_to_destroy").eq("id", 1);

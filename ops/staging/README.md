@@ -99,9 +99,50 @@ Both were verified by watching them refuse:
 | `sb-lebon-grace.axiomsynapse.com` | refuses by name, 0 tests run |
 | staging | 6 passed, 0 rows left behind |
 
-There is a second, independent barrier: the suite lives in its own Vitest config
-and is not collected by `npm test` or by CI. Either barrier alone would probably
-do. Both, because the failure mode is writing to a live shop.
+There is a second, independent barrier: the suite lives in its own Vitest config,
+so `npm test` never collects it. CI runs it deliberately, in a dedicated job
+against a database it creates itself — never as a side effect of the ordinary
+test run. Either barrier alone would probably do. Both, because the failure mode
+is writing to a live shop.
+
+## How it runs in CI
+
+Not against this stack. The `lifecycle` job in `.forgejo/workflows/ci.yml`
+starts its **own** Postgres and PostgREST as Forgejo Actions *service
+containers* — same image versions, created empty at the start of the job,
+reachable only from that job's private network, destroyed when it ends.
+
+That was chosen over pointing CI at this long-lived stack, and the reasons are
+worth keeping:
+
+- **No shared-infrastructure change.** Service containers share the job's
+  network automatically, so nothing has to be attached to the `coolify` network
+  and CI stays uncoupled from any long-lived machine.
+- **No shared state.** Concurrent runs cannot race on cleanup, and a cancelled
+  run leaves nothing behind.
+- **CI does not go red because staging is down** for maintenance.
+- **Every migration is applied from nothing on every push**, so a migration that
+  only works against an already-migrated database fails in CI rather than at the
+  next deploy.
+
+CI runs **without kong**, talking to PostgREST directly with
+`STAGING_REST_DIRECT=1`. Kong contributes API-key auth, ACLs and CORS — none of
+which this suite exercises — and its declarative config must be a mounted file,
+which a service container cannot have because it starts before checkout. Both
+shapes were verified against this stack before the job was written, and the
+`STAGING_REST_DIRECT` shim was proven to actually do something by watching the
+same URL be refused without it.
+
+CI also connects PostgREST as **`postgres`, not `authenticator`**. That is not a
+shortcut: `authenticator` has no password on a fresh volume, it is a reserved
+role only a superuser may alter, `postgres` is not a superuser in this image,
+and `supabase_admin` refuses a passwordless connection from another container.
+`postgres` is already a member of `anon` and `service_role`, which is all
+PostgREST needs. Verified by running a real PostgREST wired that way and getting
+a 200 for a service_role query.
+
+This stack remains the place to run the suite **by hand**, and it is the one
+that exercises the full production-shaped path including kong.
 
 ## Schema parity
 

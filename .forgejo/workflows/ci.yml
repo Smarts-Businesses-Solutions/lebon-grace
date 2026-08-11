@@ -154,3 +154,163 @@ jobs:
             playwright-report/
             test-results/
           retention-days: 7
+
+  # ───────────────────────────────────────────────────────────────────────────
+  lifecycle:
+    name: Order lifecycle (real database)
+    runs-on: docker
+    timeout-minutes: 15
+
+    # An EPHEMERAL database per run, not the long-lived staging stack.
+    #
+    # Forgejo Actions supports `services:` in GitHub's format: each is started
+    # before the job, shares the job's network, is addressable by name with no
+    # port binding, and is destroyed afterwards. That is why this needs no
+    # change to shared infrastructure — no attaching containers to the coolify
+    # network, no permanent coupling between CI and a long-lived machine.
+    #
+    # Per-run beats pointing at the long-lived staging database: no shared state
+    # between concurrent runs, no cleanup races, nothing left behind if a run is
+    # cancelled, and CI does not go red because staging is down for maintenance.
+    # It also re-applies every migration from nothing on every push, so a
+    # migration that only works against an already-migrated database fails here
+    # rather than at the next deploy.
+    #
+    # Same image versions as production. A test database on a different Postgres
+    # is not a test database, it is a second thing to debug.
+    #
+    # NO kong, unlike production and the long-lived stack. Kong contributes
+    # API-key auth, ACLs and CORS — none of which this suite exercises — and its
+    # declarative config must be a mounted FILE, which a service container
+    # cannot have because it starts before the repo is checked out. So the suite
+    # talks to PostgREST directly with STAGING_REST_DIRECT=1. Both shapes were
+    # verified against the long-lived stack before this job was written.
+    services:
+      db:
+        image: public.ecr.aws/supabase/postgres:17.6.1.111
+        env:
+          # Throwaway, and deliberately in the open: this database is created
+          # empty, holds only rows this suite invents, is reachable solely from
+          # this job's network, and is destroyed when the job ends. Putting it
+          # in a secret would imply it protects something.
+          POSTGRES_PASSWORD: ci-ephemeral-not-a-real-password
+          POSTGRES_DB: postgres
+          JWT_SECRET: ci-ephemeral-jwt-secret-at-least-32-chars-long
+      rest:
+        image: public.ecr.aws/supabase/postgrest:v14.10
+        env:
+          # Connects as `postgres`, NOT the conventional `authenticator`.
+          #
+          # The supabase image does not give `authenticator` a password on a
+          # fresh volume (supabase/supabase#18836), and it cannot be set from
+          # here: it is a RESERVED role only a superuser may alter, `postgres`
+          # is not a superuser in this image, and `supabase_admin` refuses a
+          # passwordless connection from another container — the active pg_hba
+          # trusts 127.0.0.1 only, and service traffic arrives from a 10.x
+          # address. Verified by trying it.
+          #
+          # `postgres` is already a member of `anon` and `service_role`, which
+          # is all PostgREST needs to switch roles per the JWT. Verified against
+          # the long-lived stack: a real PostgREST wired this way answered 200
+          # for a service_role query.
+          PGRST_DB_URI: postgres://postgres:ci-ephemeral-not-a-real-password@db:5432/postgres
+          PGRST_DB_SCHEMAS: public
+          PGRST_DB_ANON_ROLE: anon
+          PGRST_JWT_SECRET: ci-ephemeral-jwt-secret-at-least-32-chars-long
+          PGRST_DB_USE_LEGACY_GUCS: "false"
+
+    steps:
+      - uses: https://code.forgejo.org/actions/checkout@v4
+
+      - uses: https://code.forgejo.org/actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Install psql
+        run: apt-get update -qq && apt-get install -y -qq postgresql-client
+
+      - name: Wait for Postgres
+        env:
+          PGPASSWORD: ci-ephemeral-not-a-real-password
+        run: |
+          for i in $(seq 1 60); do
+            if psql -h db -U postgres -d postgres -tAc 'select 1' >/dev/null 2>&1; then
+              echo "postgres ready"; exit 0
+            fi
+            sleep 2
+          done
+          echo "postgres never became ready" >&2; exit 1
+
+      # Applying every migration from nothing is half the value of this job: it
+      # proves the forward migrations still build the schema, on every push.
+      #
+      # The baseline is a production pg_dump restored into an image that already
+      # owns the auth and storage schemas, so it emits ~300 harmless "already
+      # exists" errors and is applied permissively. Any error touching `public`
+      # fails the job — that is the part that matters.
+      - name: Apply every migration from nothing
+        env:
+          PGPASSWORD: ci-ephemeral-not-a-real-password
+        run: |
+          for f in supabase/migrations/*.sql; do
+            name=$(basename "$f")
+            if [ "$name" = "00000000000000_baseline.sql" ]; then
+              psql -h db -U postgres -d postgres -q -f "$f" >/dev/null 2>/tmp/mig.err || true
+              if grep -q 'ERROR.*public\.' /tmp/mig.err; then
+                echo "baseline failed inside the public schema:"
+                grep 'ERROR.*public\.' /tmp/mig.err
+                exit 1
+              fi
+              echo "  ok  $name (permissive — see comment)"
+            else
+              psql -h db -U postgres -d postgres -v ON_ERROR_STOP=1 -q -f "$f" \
+                || { echo "  FAIL $name"; exit 1; }
+              echo "  ok  $name"
+            fi
+          done
+
+      # The fail-closed proof-of-staging the suite demands. Without this row the
+      # tests refuse to run, which is exactly the point: no marker, no writes.
+      - name: Mark this database disposable
+        env:
+          PGPASSWORD: ci-ephemeral-not-a-real-password
+        run: |
+          psql -h db -U postgres -d postgres -v ON_ERROR_STOP=1 -q -c "
+            CREATE TABLE IF NOT EXISTS staging_marker (
+              id int PRIMARY KEY DEFAULT 1,
+              safe_to_destroy boolean NOT NULL DEFAULT true,
+              note text NOT NULL,
+              CONSTRAINT one_row CHECK (id = 1));
+            INSERT INTO staging_marker (id, safe_to_destroy, note)
+            VALUES (1, true, 'ephemeral CI database, destroyed when this job ends')
+            ON CONFLICT (id) DO NOTHING;"
+
+      # PostgREST caches the schema at connect time and never polls, so every
+      # migration above is invisible to it until this NOTIFY. Without it the
+      # suite fails with PGRST204 naming a column that demonstrably exists.
+      - name: Reload the PostgREST schema cache
+        env:
+          PGPASSWORD: ci-ephemeral-not-a-real-password
+        run: |
+          psql -h db -U postgres -d postgres -q -c "NOTIFY pgrst, 'reload schema'"
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' http://rest:3000/ || true)
+            if [ "$code" = "200" ]; then echo "postgrest ready"; exit 0; fi
+            sleep 2
+          done
+          echo "postgrest never became ready" >&2; exit 1
+
+      - name: Order lifecycle against a real database
+        env:
+          STAGING_SUPABASE_URL: http://rest:3000
+          STAGING_REST_DIRECT: "1"
+        run: |
+          # A service_role JWT signed with the throwaway secret above, built here
+          # rather than committed — so there is no key-shaped string in the repo
+          # for a scanner, or a human, to mistake for a real one.
+          export STAGING_SUPABASE_SERVICE_KEY=$(node scripts/ci-service-jwt.mjs)
+          npm run test:lifecycle
