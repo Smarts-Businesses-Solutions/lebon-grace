@@ -778,3 +778,88 @@ It only surfaced because there were failures to upload — which means **on a
 genuinely failing run, the trace, video and screenshots would be lost**, and
 the workflow's own comment says that evidence is the point. Raised separately;
 it is a Forgejo problem, not a repo one.
+
+---
+
+## L-33 · A safety guard should be an allowlist, not a blocklist
+
+The lifecycle suite creates orders, walks them through every status and deletes
+them. Pointed at the live shop it would put fake orders in the workshop queue,
+and a run that died halfway would leave them there.
+
+The obvious guard is to reject production's URL:
+
+```ts
+if (url.includes("sb-lebon-grace.axiomsynapse.com")) throw new Error("not production!");
+```
+
+That is **fail-open**, and the failure is silent. It permits every URL that is
+*not* on the list — so a typo in an env var, a copied config, a second
+production host, or a future domain all pass straight through and start writing
+to the live database. The list has to be exhaustive to work, and there is no
+signal when it stops being exhaustive.
+
+**The fail-closed inverse is barely more work and cannot degrade quietly.** The
+staging database holds one row saying, in its own words, that it is safe to
+destroy. The suite refuses to run unless it can read that row:
+
+```ts
+const { data } = await db.from("staging_marker").select("safe_to_destroy").eq("id", 1);
+if (data?.[0]?.safe_to_destroy !== true) throw new NotStagingError(...);
+```
+
+Production has never had that table and never will. The check cannot be
+satisfied by omission or accident — only by someone having deliberately built a
+throwaway database. Every new environment defaults to *refused* rather than
+*allowed*.
+
+The blocklist is still there as a second belt, but it is **not the guard** — it
+is a clearer error message for the most likely mistake. Naming which one is
+load-bearing matters, because otherwise the cheap check gets "simplified" into
+the only check.
+
+**Both directions were verified, because a guard nobody has watched refuse is a
+guess:**
+
+| Pointed at | Result |
+|---|---|
+| nothing configured | refuses, 0 tests run |
+| the production host | refuses by name, 0 tests run |
+| staging | 6 passed, 0 rows left behind |
+
+The "0 tests run" column is the one that matters. A guard that throws *after* the
+first insert has already written to production.
+
+---
+
+## L-34 · A mock agrees with whatever schema you imagined
+
+The first version of the lifecycle test inserted orders with `email`, `phone`
+and `delivery_method`. Every one of those columns is invented — the real table
+has `customer_email`, `customer_phone`, and no delivery-method column at all.
+
+Against a mocked store it would have passed. The mock returns whatever it is
+told to return, so it would have cheerfully confirmed a lifecycle over a table
+that does not exist, and the suite would have been green and worthless.
+
+PostgREST rejected it on the first insert: `PGRST204: Could not find the
+'delivery_method' column of 'orders'`.
+
+That is the entire argument for TR-03 in one incident, and it generalises: unit
+tests with a mocked data layer prove the code is **self-consistent**, not that it
+matches the database. B-7 was the same shape — the webhook wrote a status value
+that no other part of the system recognised, and every test passed because they
+all shared the same wrong assumption.
+
+Worth pairing with the trap immediately after it. When the corrected test still
+failed, the error named a column that demonstrably *did* exist:
+
+```
+PGRST204: Could not find the 'delivery_method' column ... in the schema cache
+```
+
+**PostgREST caches the schema at connect time and never polls.** Migrations
+applied after it connected are invisible until `NOTIFY pgrst, 'reload schema'`.
+The same error text covers both "your column is imaginary" and "your column is
+new" — so read it as *the cache disagrees with the database*, and check which
+one is wrong before editing anything.

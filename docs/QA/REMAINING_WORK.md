@@ -47,27 +47,49 @@ be worth the friction to everyone using it.
 
 ---
 
-## TR-03 — a production regression for the returned-order lifecycle 🔨 QUEUED
+## TR-03 — the returned-order lifecycle ✅ BUILT (CI wiring pending a decision)
 
-**Answered 2026-08-11: build the staging database.**
+**Answered 2026-08-11: build the staging database.** Done.
 
-The problem in plain terms: there is exactly one database, the live one with
-real orders. A test that follows an order all the way to `refunded` has to
-create an order, walk it through statuses, and delete it. Run that automatically
-on every CI run and it is writing and deleting real rows in the live shop
-several times a day — and a run that dies halfway leaves a fake order sitting in
-the workshop queue. Playbook **P-006** covers it manually for exactly that
-reason.
+**What exists now.** A second, disposable Supabase-shaped stack on cx53 — the
+same three containers as production at the same image versions, not
+Coolify-managed, not publicly routed, everything prefixed `lg-staging-`. Full
+detail in `ops/staging/README.md`.
 
-A staging database is a second copy the tests can wreck freely. The automation
-was never the hard part; the safe place to run it was.
+```bash
+npm run test:lifecycle:staging
+```
 
-**Queued as task #68.** Scope: a second Postgres on cx53 with its own volume and
-credentials, migrations `0001`→head applied to it (which doubles as the A-8
-forward-migration check), staging credentials in CI and in `supabase.local`, the
-lifecycle test pointed at it by env, and — the guard that matters — **the test
-refuses to run if handed the production URL.** That is the failure this whole
-task exists to prevent, so it should be impossible rather than merely avoided.
+One command: opens the tunnel, fetches the key, walks an order
+`deposit_paid → processing → shipped → out_for_delivery → delivered → refunded`
+against real Postgres, tears down. **6 passed, 0 rows left behind, production
+untouched.** That replaces the manual walk in playbook P-006.
+
+**The guard is fail-closed, and that was the whole design question.** A blocklist
+of production URLs is fail-OPEN — it permits every URL not on the list, so a
+typo or a future production domain sails through to the live shop. Instead the
+staging database holds a row saying it is safe to destroy, and the suite refuses
+unless it can read that row. Production has never had that table. Verified by
+watching it refuse: nothing configured → 0 tests run; production URL → refuses by
+name, 0 tests run; staging → 6 passed.
+
+**A-8 is answered as a side effect.** `ops/staging/verify-schema.sh` compares
+staging against production — 130 columns, 31 constraints, 32 indexes, all
+matching — so the forward migrations really do rebuild production from nothing.
+Proven able to detect drift by injecting a column and an index and watching it
+name both.
+
+**What is left, and it needs your call.** Running this automatically on every CI
+push needs the CI job container to reach staging. Job containers run on the
+`coolify` docker network; staging is on its own. The one-line fix is to attach
+staging's kong to the `coolify` network as well — additive, reversible, restarts
+nothing, and it cannot become publicly reachable because Traefik routes by label
+and staging has none.
+
+That is a change to shared infrastructure, so it is not mine to make
+unilaterally. **See "Operator actions" below.** Until then the suite is run on
+demand with one command, which is already a large improvement on a manual
+playbook.
 
 ---
 
@@ -128,10 +150,23 @@ This is the only lock on the shop's admin.
 least once.** It is the way back in if a hash is pasted wrong. Remove it once
 named logins are proven — that is what turns off the shared password for good.
 
-**2. Revoke the old Resend API key.** The replacement is proven delivering
+**2. Decide how the lifecycle test should run automatically.** Two options:
+
+- **Attach staging to the `coolify` network** (recommended) — one command,
+  reversible, restarts nothing:
+  ```bash
+  docker network connect coolify lg-staging-kong
+  ```
+  CI job containers could then reach it at `http://lg-staging-kong:8000`. It
+  cannot become publicly reachable: Traefik routes by label and staging carries
+  none. After that, two Forgejo secrets and one workflow step finish the job.
+- **Leave it on demand.** `npm run test:lifecycle:staging` already replaces the
+  manual playbook. Nothing is broken; it simply needs someone to run it.
+
+**3. Revoke the old Resend API key.** The replacement is proven delivering
 (`status=delivered`, verified end to end). The old key was exposed in session
 output and is still live until you revoke it.
 
-**3. Save the new Resend key to `supabase.local`.** It was deliberately never
+**4. Save the new Resend key to `supabase.local`.** It was deliberately never
 seen from here — handling key values is what produced the leak in the first
 place.
