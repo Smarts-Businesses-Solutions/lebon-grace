@@ -1,0 +1,47 @@
+_format_version: '2.1'
+_transform: true
+
+# Kong routing for the lebon-grace STAGING stack (TR-03).
+#
+# Production's config carries routes for auth, realtime and storage whose
+# upstream containers deliberately do not run — it is the stock Supabase
+# template, trimmed at the compose layer rather than here. This file carries
+# only what actually exists, because a route to a container that was never
+# started is a 502 waiting to be misdiagnosed as a broken test.
+#
+# The application uses PostgREST and nothing else: `store.ts` and its callers
+# contain 42 `.from(...)` calls and zero `.rpc(`, `.auth.`, `.storage.` or
+# `.channel(`. So `/rest/v1/` is the whole surface that needs to work for the
+# lifecycle test to exercise the real code path.
+
+consumers:
+  - username: anon
+    keyauth_credentials:
+      - key: ${ANON_KEY}
+  - username: service_role
+    keyauth_credentials:
+      - key: ${SERVICE_ROLE_KEY}
+
+acls:
+  - consumer: anon
+    group: anon
+  - consumer: service_role
+    group: admin
+
+services:
+  - name: rest-v1
+    _comment: 'PostgREST: /rest/v1/* -> http://rest:3000/*'
+    url: http://rest:3000/
+    routes:
+      - name: rest-v1-all
+        strip_path: true
+        paths: [/rest/v1/]
+    plugins:
+      - name: cors
+      - name: key-auth
+        config:
+          hide_credentials: true
+      - name: acl
+        config:
+          hide_groups_header: true
+          allow: [admin, anon]

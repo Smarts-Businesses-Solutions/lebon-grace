@@ -1,0 +1,109 @@
+# lebon-grace STAGING database (TR-03)
+#
+# A second Supabase-shaped stack that tests may freely wreck, so the returned-
+# order lifecycle can be exercised end to end without writing rows into the live
+# shop. Playbook P-006 covers that manually today for exactly that reason.
+#
+# Deliberately mirrors production's three containers and their EXACT image
+# versions, because a staging database that is a different Postgres is not a
+# staging database — it is a second thing to debug. Production runs no auth,
+# realtime or storage container, so neither does this.
+#
+# Three properties this file exists to guarantee:
+#
+#   1. NOT Coolify-managed. No `coolify.*` labels, so it never appears in the
+#      Coolify UI and cannot be Deployed, restarted or deleted by a mis-click
+#      meant for the live stack. It is brought up by hand, from this file.
+#   2. NOT publicly reachable. No Traefik labels and every port bound to
+#      127.0.0.1, so it has no hostname and no route in from the internet.
+#   3. Impossible to confuse with production. Every container, volume and
+#      network is prefixed `lg-staging-`, and the ports are one above the live
+#      stack's (8114/9114 vs 8113/9113) rather than adjacent-but-arbitrary.
+#
+# Bring up:  cd ops/staging && docker compose --env-file .env.staging up -d
+# Tear down: docker compose --env-file .env.staging down -v      (-v drops data)
+
+name: lg-staging
+
+services:
+  db:
+    image: 'public.ecr.aws/supabase/postgres:17.6.1.111'
+    container_name: lg-staging-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_HOST: /var/run/postgresql
+      POSTGRES_PORT: 5432
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: postgres
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXP: 3600
+    volumes:
+      # Its own volume. Sharing production's would defeat the entire point.
+      - 'lg-staging-db-data:/var/lib/postgresql/data'
+    ports:
+      # 127.0.0.1 only: reachable through an SSH tunnel, never from the internet.
+      - '127.0.0.1:9114:5432'
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-U', 'postgres', '-h', 'localhost']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    shm_size: 256mb
+    networks:
+      - lg-staging
+
+  rest:
+    image: 'public.ecr.aws/supabase/postgrest:v14.10'
+    container_name: lg-staging-rest
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGRST_DB_URI: postgres://authenticator:${POSTGRES_PASSWORD}@db:5432/postgres
+      PGRST_DB_SCHEMAS: public,storage,graphql_public
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      PGRST_DB_USE_LEGACY_GUCS: 'false'
+      PGRST_APP_SETTINGS_JWT_SECRET: ${JWT_SECRET}
+      PGRST_APP_SETTINGS_JWT_EXP: 3600
+    networks:
+      - lg-staging
+
+  kong:
+    image: 'public.ecr.aws/supabase/kong:2.8.1'
+    container_name: lg-staging-kong
+    restart: unless-stopped
+    depends_on:
+      - rest
+    environment:
+      KONG_DATABASE: 'off'
+      KONG_DECLARATIVE_CONFIG: /home/kong/kong.yml
+      KONG_DNS_ORDER: LAST,A,CNAME
+      KONG_PLUGINS: request-transformer,cors,key-auth,acl,basic-auth
+      KONG_NGINX_PROXY_PROXY_BUFFER_SIZE: 160k
+      KONG_NGINX_PROXY_PROXY_BUFFERS: 64 160k
+      KONG_NGINX_WORKER_PROCESSES: 1
+      KONG_MEM_CACHE_SIZE: 64m
+      SUPABASE_ANON_KEY: ${ANON_KEY}
+      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
+    volumes:
+      # kong.yml is GENERATED from kong.template.yml by setup.mjs, because it
+      # must contain the literal keys. Production's does too — relying on the
+      # image to expand ${...} at start-up is undocumented behaviour to hang a
+      # test environment on.
+      - './kong.yml:/home/kong/kong.yml:ro'
+    ports:
+      # This is the URL the app and the tests point at: http://127.0.0.1:8114
+      - '127.0.0.1:8114:8000'
+    mem_limit: 512m
+    networks:
+      - lg-staging
+
+volumes:
+  lg-staging-db-data:
+    name: lg-staging-db-data
+
+networks:
+  lg-staging:
+    name: lg-staging
