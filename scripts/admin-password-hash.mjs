@@ -52,4 +52,18 @@ rl.question("", (password) => {
   console.log("\nAdd this to ADMIN_USERS (comma-separate multiple operators):\n");
   console.log(`${email}:${salt}$${hash}`);
   console.log("\nThe password itself was not stored or transmitted by this script.");
+
+  // The `$` between salt and hash is a variable reference to Docker Compose, and
+  // a hash beginning with a letter gets silently deleted on its way into the
+  // container. It cost a debugging session on 2026-08-12: the .env was correct,
+  // the container's copy was 129 characters shorter, and the only symptom was a
+  // 401 for one operator and a clean login for the other.
+  //
+  // Intermittent, too — a hash starting with a digit is not a valid variable
+  // name and survives untouched, which is roughly five times in eight.
+  console.log("\nIf you are pasting into a docker-compose .env, use THIS form instead —");
+  console.log("doubling the $ is how Compose spells a literal one:\n");
+  console.log(`${email}:${salt}$$${hash}`);
+  console.log("\nOr skip the paste entirely: scripts/setup-admin-users.mjs handles the");
+  console.log("escaping, and checks afterwards that the container really got the value.");
 });

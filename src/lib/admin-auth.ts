@@ -54,6 +54,11 @@ export function verifyPassword(input: string): boolean {
  * Format, one entry per operator, comma-separated:
  *   ADMIN_USERS="a@example.com:<salt>$<hash>,b@example.com:<salt>$<hash>"
  *
+ * That `$` is a hazard anywhere the value passes through a docker-compose
+ * `.env`, where it reads as a variable reference and deletes the hash behind it.
+ * Double it to `$$` in that one context — scripts/lib/compose-env.mjs does this
+ * and carries the incident notes.
+ *
  * The hash is scrypt (built into Node — no new dependency, and memory-hard, so
  * unlike a bare SHA it resists the offline attack that matters if the env ever
  * leaks). Generate one with `node scripts/admin-password-hash.mjs`, which never
