@@ -863,3 +863,51 @@ applied after it connected are invisible until `NOTIFY pgrst, 'reload schema'`.
 The same error text covers both "your column is imaginary" and "your column is
 new" — so read it as *the cache disagrees with the database*, and check which
 one is wrong before editing anything.
+
+---
+
+## L-35 · An uncalibrated detector is a rumour generator
+
+A cross-engine adversarial sweep — 40 discovered routes, 3 engines, 5 viewports,
+both orientations, four injected failure modes — reported **1,901 findings, 185
+of them HIGH**.
+
+Every single one was false. Verifying before reporting cost twenty minutes and
+saved a day of chasing ghosts.
+
+| Category | Count | Why it was wrong |
+|---|---|---|
+| WebKit: blank pages, broken images, failed requests | 1,421 | WebKit upgrades subresource requests to **HTTPS**. The local server is HTTP, so every stylesheet, script and image failed and pages rendered blank. A harness artifact reported as product defects. |
+| `horizontal-overflow` at 320px | 80 | Compared `scrollWidth` to viewport width. `overflow-x: hidden` clips the excess — `scrollTo(9999, 0)` moves **0px**. Nobody can scroll sideways. |
+| `control-covered` | 64 | `document.elementFromPoint` returned a different element. Playwright's trial click — a real hit-test — says **CLICKABLE** on every one. |
+
+The common thread is that each check measured a **proxy** rather than the
+**outcome**:
+
+- `scrollWidth > viewport` is a proxy. *Can the user scroll sideways* is the
+  outcome.
+- `elementFromPoint` is a proxy. *Can the user click it* is the outcome.
+- "the page loaded in a browser engine" is a proxy. *The engine could fetch the
+  assets over this protocol* was the unchecked precondition.
+
+**Rewritten to assert outcomes, the same sweep reports 0 high, 0 crashes, 0
+blank pages, 0 unclickable controls, 0 overflow, 0 uncaught exceptions** — and
+one real finding: a 20×20 footer icon link, below WCAG 2.2 SC 2.5.8's 24×24
+minimum.
+
+Two further lessons in the wreckage:
+
+**A skipped engine beats a lying one.** WebKit cannot be meaningfully tested
+against plain HTTP. The script now skips it there and *prints why*, rather than
+emitting confident nonsense. Silence with a stated reason is information;
+1,421 false findings are not.
+
+**`waitUntil: "load"` never fired**, because an analytics request never settles
+locally. Combined with `.catch(() => {})` every navigation silently burned its
+30-second timeout and pages were probed mid-load. A swallowed timeout is the
+same failure as L-28 and L-32: the run looked like it worked.
+
+The rule this leaves: **before trusting a new detector, deliberately verify a
+sample of what it reports — including at least one it calls HIGH.** A detector
+that has never been checked against ground truth is not evidence, it is a
+rumour with a line number.
