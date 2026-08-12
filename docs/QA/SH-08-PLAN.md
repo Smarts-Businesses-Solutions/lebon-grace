@@ -59,20 +59,45 @@ failure was invisible because only the successful GitHub line was read. Under
 auto-deploy-from-GitHub, **each of those would have deployed code that CI had
 never seen.**
 
-Coolify is the SaaS instance at `app.coolify.io`, so it can only clone what is
-publicly reachable. Forgejo is not — `ROOT_URL=http://localhost:3900`, no
-published ports, no Traefik route. It cannot clone from the primary today.
+Coolify is the SaaS instance at `app.coolify.io`, and Forgejo has no public
+route — `ROOT_URL=http://localhost:3900`, no published ports, no Traefik entry.
+That looked like it settled the question. It did not; see below.
+
+### A wrong assumption, corrected
+
+The plan first said Coolify "can only clone what is publicly reachable, and
+Forgejo is not". **That is wrong, and it was never checked.**
+
+Coolify's control plane is SaaS, but **the build runs on the connected server**.
+`/data/coolify/applications/m11i6a5ekwhbflhnfb9ipr48` exists on cx53, which is
+where the clone happens — and cx53 reaches Forgejo perfectly well. A test clone
+from `http://10.210.27.3:3000/kairos/lebon-grace.git` failed with
+`could not read Username`, which is not a network failure: it connected and
+asked for credentials.
+
+So deploying from the primary is available without exposing anything. What it
+needs is authentication, because every repo on this Forgejo is private
+(`is_private=1` for all nine), even though this one's content is public on
+GitHub.
 
 ### The options
 
 | | Approach | Cost | What it gets wrong |
 |---|---|---|---|
 | **A** | Deploy from GitHub on push | nothing to build | Deploys whatever reached the fallback, tested or not. This is the failure that already happened. |
-| **B** | Expose Forgejo publicly, deploy from it | TLS, a hostname, an auth surface on a box running eight other projects | Adds public attack surface to shared infrastructure to solve a deploy problem |
+| **B** | ~~Expose Forgejo publicly~~ | ~~TLS, a hostname, an auth surface~~ | **Withdrawn — it was based on a wrong assumption. See B2.** |
+| **B2** | **Clone from Forgejo internally**, with a token | one token in Coolify's config | Nothing structural. The token sits in Coolify's DB, which is the real cost |
 | **C** | **Deploy only a commit CI has passed** | one webhook or one polling script | Nothing — it makes "deployable" mean "verified" |
 | **D** | Leave it; automate the hand-build instead | least work | Keeps the gap between "CI is green" and "that is what is running" |
 
-**Recommendation: C.** The requirement was never *"build from git."* It is
+**Recommendation: B2 + C together**, now that B2 is known to be possible.
+
+They answer different halves and neither is sufficient alone. **B2 makes the
+deploy read the primary**, so what is built is what CI ran against, by
+construction rather than by coincidence. **C makes a green CI run the trigger**,
+so an untested commit does not deploy even though Forgejo has it.
+
+The requirement was never *"build from git."* It is
 **"never run a commit CI has not passed."** Building from git is one way to get
 there and, on its own, does not get there at all — option A is source-driven and
 still ships untested code.
@@ -93,15 +118,24 @@ Each step ends in a check. Nothing proceeds on a step that has not been seen to
 work — the live shop takes payments.
 
 ### Phase 0 — decide (blocking, ~5 minutes of your time)
-Confirm option C, or pick another. Everything below assumes C.
+Confirm **B2 + C**, or pick another. Everything below assumes both.
 
-### Phase 1 — make the git app reachable and current
-1. Fix the routing so the sslip FQDN answers. Compare its Traefik labels with
-   the live service's; the live one works, so the difference is the answer.
-   **Check:** `curl` returns 200, not 000.
-2. Trigger a rebuild at current `main`.
-   **Check:** its image tag is HEAD's SHA, not `705b0fe`; `?dpl=` on the page
-   matches the new build.
+B2 needs one decision of its own: how Coolify authenticates to Forgejo. A token
+embedded in the clone URL works today but lives in Coolify's database and shows
+in its UI. A deploy key is cleaner and must be attached through the UI — the API
+could not do it (it fails in 8s with no log, recorded previously). Neither is
+wrong; the token is faster, the key is tidier.
+
+### Phase 1 — make the git app current  ✅ DONE 2026-08-12
+1. ~~Fix the routing.~~ **There was nothing to fix.** The FQDN answers 200 from
+   cx53; the earlier 000 was measured from a workstation, and cx53's 80/443 are
+   firewalled to Cloudflare, so a raw-IP `sslip.io` name is unreachable from
+   outside BY DESIGN. Verified through an SSH tunnel with a `Host` header —
+   which is also how Phase 3 will have to run the E2E suite.
+2. Rebuilt at current `main`. Image tag is exactly `HEAD`
+   (`7715ff1c3ed2…`), build stamp moved `20260810061647` → `20260812065106`,
+   and the image carries the SH-06 guard, the footer target, the EN-02 margin
+   and the Sentry init.
 
 ### Phase 2 — configuration parity
 3. Diff the 56 live variables against the git app's 11 and close the gap.
@@ -114,7 +148,10 @@ Confirm option C, or pick another. Everything below assumes C.
    `/api/admin/login` returns JSON rather than a 500.
 
 ### Phase 3 — prove it on the throwaway FQDN
-5. Run the full E2E suite against the sslip URL (`QA_BASE_URL=…`), read-only.
+5. Run the full E2E suite against it, read-only. NOT directly against the sslip
+   URL — that is unreachable from a workstation. Open a tunnel
+   (`ssh -L 8180:127.0.0.1:80`) and point the suite at `http://127.0.0.1:8180`
+   with the sslip name as the `Host` header.
    **Check:** the same 268 passing that the live build gets.
 6. Run `npm run verify:deploy` against it.
 7. Place **one real order** end to end on the throwaway FQDN with a real card,
