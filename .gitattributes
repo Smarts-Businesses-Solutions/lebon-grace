@@ -1,0 +1,20 @@
+# Keep out of `git archive`, which is how a release reaches the server.
+#
+# `git archive` does NOT read .dockerignore, so every deploy tarball carried the
+# whole repository — 912 MB, of which ~440 MB was data the Docker build discards
+# on arrival because .dockerignore already excludes it. Thirteen of those had
+# accumulated on cx53: 12 GB to ship the same few megabytes of application.
+#
+# These paths stay in git and in every clone. `export-ignore` only affects
+# archives, so history is untouched and nothing becomes unrecoverable.
+#
+# Each line below is also in .dockerignore. If you add a path to one, add it to
+# the other — they answer the same question ("does the image need this?") for
+# two different tools.
+originals/      export-ignore
+screenshots/    export-ignore
+audits/         export-ignore
+docs/           export-ignore
+tests/          export-ignore
+ops/            export-ignore
+.claude/        export-ignore
