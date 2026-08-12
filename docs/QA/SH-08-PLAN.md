@@ -160,12 +160,46 @@ wrong; the token is faster, the key is tidier.
    **Check:** the order appears in `/admin`, the confirmation e-mail arrives,
    the refund completes.
 
-### Phase 4 — deploy on green CI, not on push
-8. Add a final CI step that calls the Coolify deploy webhook, gated on the whole
-   workflow having passed and on `github.ref == main`.
-   **Check:** push a trivial commit; a run appears, goes green, and *then* a
-   deployment starts. Push a deliberately failing commit on a branch; nothing
-   deploys.
+### Phase 4 — deploy on green CI, not on push  ✅ DONE 2026-08-12
+
+The gate is `needs: [check, lifecycle]` plus `if: github.ref == main`, and it
+targets the STAGING application. Production still deploys by hand until the
+domain moves in Phase 5, so the automation gets exercised on every push while a
+mistake costs a throwaway container instead of the shop. At cut-over this step
+becomes the production deploy with no change but the uuid.
+
+**Both directions were observed, not assumed.**
+
+*Green* — run 457 on `d49e350`: all three jobs succeeded, `deploy` **ran**
+rather than being skipped, and the staging container came up on image tag
+`d49e35098b0092…`, exactly repo HEAD. Push → CI → green → deployed, end to end.
+
+*Red* — a deliberately failing test on a throwaway branch, run 467:
+
+| Job | Status |
+|---|---|
+| Typecheck, test, build | **2 — failure** |
+| Order lifecycle | 6 — still running when check failed |
+| **Deploy** | **7 — blocked, never ran** |
+
+The staging container stayed on `d49e35098b0092…` and no Coolify deployment was
+created. `blocked` rather than `skipped` is the informative part: that is the
+`needs:` edge holding it, not merely the branch filter.
+
+Three failure modes that would have made this step green while deploying
+nothing, each closed deliberately:
+
+- a missing `COOLIFY_DEPLOY_TOKEN` fails loudly instead of skipping;
+- curl exits 0 on a 4xx/5xx, so the status code is captured and checked rather
+  than trusting the exit code;
+- Coolify answers "queued", not "deployed", so the step polls for a terminal
+  status. Going green on the acceptance is the exact shape of B-30, where Resend
+  accepted a call, refused the send, and the code reported success.
+
+`COOLIFY_DEPLOY_TOKEN` is a Forgejo repo secret, written over stdin so the value
+never reached an argument list or a shell history. Replacing it with a dedicated
+scoped token would be better than reusing the account token, and can be done in
+place.
 
 ### Phase 5 — cut the domain across
 9. Move `shop.lebon-grace.com` from the service to the application.
