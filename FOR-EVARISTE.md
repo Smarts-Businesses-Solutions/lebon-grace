@@ -547,6 +547,60 @@ The rule worth keeping: **do not buy friction before you have the failure.** If
 a piece is ever actually cut wrong, that is the day typing-back becomes worth it,
 and the day everyone using it will understand why.
 
+### 15.4 The bug that only happens some of the time
+
+This one is worth studying, because the *shape* of it will come back.
+
+Setting up the two operators, everything reported success. The `.env` on the
+server held all 383 characters. Both entries had a 32-character salt and a
+128-character hash. Then the last check failed: one operator signed in, the
+other got a 401.
+
+The temptation is to suspect the password. It was not the password.
+
+The container's copy of `ADMIN_USERS` was **254** characters, not 383. Same
+emails, same salts, and the second hash had length **zero**. It had been deleted
+somewhere between the file and the running program.
+
+**Why.** A credential looks like `email:<salt>$<hash>`. A `.env` sitting next to
+a `docker-compose.yml` is not a plain list of `KEY=VALUE` — Compose reads it to
+fill in `${...}` placeholders, so a `$` in a *value* is a variable reference.
+`$abc123...` was read as "the variable named abc123...", which does not exist,
+so it became nothing.
+
+**Now the interesting part.** Why had this never happened before? Because a
+variable name cannot start with a digit. A hash is hex, so it starts with a
+digit ten times in sixteen and gets left alone — it works. Start with `a`-`f`
+and it is destroyed. The first operator's hash happened to start with a digit.
+
+So the same script, run twice, with the same password, can succeed and then
+fail, because the random salt changed. That is the worst kind of bug: it looks
+like a typo, and re-running "fixes" it about 40% of the time.
+
+**Two fixes, and the second is the one that matters.**
+
+The direct fix is to write `$$`, which is how Compose spells a literal `$`.
+That closes this cause.
+
+The fix that will still be working in a year is different: the script now takes
+a SHA-256 of the value it *meant* to send, takes a SHA-256 of what the container
+actually has, and refuses to continue if they differ.
+
+```
+container holds exactly what was written : yes
+```
+
+That one line does not care *why* a value got mangled. Quoting, encoding, a
+different orchestrator, something nobody has thought of — it all comes out as
+the same loud failure at the moment it happens, instead of a mysterious 401 six
+weeks later.
+
+**The transferable lesson:** "the file is correct" and "the program has the
+value" are two different claims. Everything in between — a shell, a compose
+file, an orchestrator, a container runtime — is allowed to rewrite what passes
+through it. When the value is a credential, check that it arrived. It costs one
+command.
+
 ## 16. Glossary
 
 | Term | Plain words |
