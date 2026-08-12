@@ -331,3 +331,98 @@ jobs:
           # for a scanner, or a human, to mistake for a real one.
           export STAGING_SUPABASE_SERVICE_KEY=$(node scripts/ci-service-jwt.mjs)
           npm run test:lifecycle
+
+  # ───────────────────────────────────────────────────────────────────────────
+  deploy:
+    name: Deploy (staging app, on green only)
+    runs-on: docker
+    timeout-minutes: 15
+
+    # THE GATE. Both jobs must have passed, and this must be main.
+    #
+    # `needs` gives the first half: a failing check or lifecycle job means this
+    # never starts. `if` gives the second: a green branch build does not deploy.
+    #
+    # This is the whole point of SH-08. Deploying "from git" does not by itself
+    # mean deploying something that works — auto-deploy-on-push is source-driven
+    # and still ships whatever landed. The requirement is "never run a commit CI
+    # has not passed", and that is a `needs:` edge, not a build pack.
+    needs: [check, lifecycle]
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      # Targets the STAGING application (lebon-grace-git), NOT the live shop.
+      #
+      # Production still deploys by hand until the domain moves in SH-08 Phase 5.
+      # Wiring this to staging first means the automation is exercised on every
+      # push for as long as it takes to trust it, while a mistake here costs a
+      # throwaway container rather than the shop.
+      #
+      # When the domain does move, this same step becomes the production deploy
+      # with no change other than the uuid — which is the point of doing it in
+      # this order.
+      - name: Trigger the Coolify build
+        env:
+          COOLIFY_DEPLOY_TOKEN: ${{ secrets.COOLIFY_DEPLOY_TOKEN }}
+          APP_UUID: m11i6a5ekwhbflhnfb9ipr48
+        run: |
+          if [ -z "$COOLIFY_DEPLOY_TOKEN" ]; then
+            echo "COOLIFY_DEPLOY_TOKEN is not set — refusing to continue." >&2
+            echo "A missing secret must fail loudly. Skipping quietly would leave" >&2
+            echo "the pipeline looking green while nothing had been deployed." >&2
+            exit 1
+          fi
+
+          echo "Deploying ${GITHUB_SHA:-HEAD} to the staging application."
+
+          # -f so a 4xx/5xx is a failure rather than a body written to stdout and
+          # an exit code of 0. curl's default is to succeed on an HTTP error,
+          # which is exactly how a deploy step ends up green while deploying
+          # nothing.
+          code=$(curl -sS -o /tmp/deploy.json -w '%{http_code}' -X POST \
+            -H "Authorization: Bearer ${COOLIFY_DEPLOY_TOKEN}" \
+            -H "Accept: application/json" \
+            "https://app.coolify.io/api/v1/deploy?uuid=${APP_UUID}&force=false") || true
+
+          echo "Coolify answered ${code}"
+          cat /tmp/deploy.json 2>/dev/null || true
+          echo
+
+          case "$code" in
+            2*) ;;
+            *) echo "Coolify refused the deploy (${code})." >&2; exit 1 ;;
+          esac
+
+          # A queued deployment is not a finished one. Without this the job goes
+          # green the moment the request is accepted, which says nothing about
+          # whether the build worked — the same "accepted != done" mistake that
+          # made a mail send look successful in B-30.
+          uuid=$(node -e "
+            let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{
+              try { console.log(JSON.parse(d).deployments?.[0]?.deployment_uuid || '') }
+              catch { console.log('') }
+            });" < /tmp/deploy.json)
+
+          if [ -z "$uuid" ]; then
+            echo "No deployment uuid in the response — cannot confirm it ran." >&2
+            exit 1
+          fi
+          echo "deployment ${uuid} queued; waiting for it to finish"
+
+          for i in $(seq 1 60); do
+            st=$(curl -sS -H "Authorization: Bearer ${COOLIFY_DEPLOY_TOKEN}" \
+                   -H "Accept: application/json" \
+                   "https://app.coolify.io/api/v1/deployments/${uuid}" \
+                 | node -e "
+                     let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{
+                       try { console.log(JSON.parse(d).status || 'unknown') } catch { console.log('unreadable') }
+                     });")
+            case "$st" in
+              finished|success)          echo "deployment finished"; exit 0 ;;
+              failed|error|cancelled*)   echo "deployment $st" >&2; exit 1 ;;
+            esac
+            sleep 20
+          done
+
+          echo "deployment did not finish within 20 minutes" >&2
+          exit 1
