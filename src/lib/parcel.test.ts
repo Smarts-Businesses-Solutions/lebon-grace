@@ -36,8 +36,10 @@ describe("parseDimensions", () => {
   });
 
   it("returns null rather than guessing when it cannot read the value", () => {
-    // One visible product ("Duck Shape Board") has no dimensions at all. A
-    // parser that invented a default would hide that from the operator.
+    // "Duck Shape Board" shipped with no dimensions at all until they were
+    // read off its own product photo (130 x 130mm) on 2026-08-12. A parser
+    // that invented a default would have hidden that gap instead of exposing
+    // it — the catalogue is now complete precisely because it did not.
     for (const bad of ["", "medium", "assorted sizes", "196mm"]) {
       expect(parseDimensions(bad), `should not parse: ${bad}`).toBeNull();
     }

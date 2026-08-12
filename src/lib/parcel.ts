@@ -9,7 +9,7 @@
  *
  * WHY PRESETS AND NOT PER-PRODUCT MEASUREMENTS. Measuring hundreds of products
  * is the kind of task that never finishes. It also turned out to be
- * unnecessary: of 610 products only 41 are visible, 40 of those already carry
+ * unnecessary: of 610 products only 41 are visible, and all 41 now carry
  * `details.dimensions`, and every one fits inside 201 x 234mm. The entire
  * sellable catalogue needs two box sizes.
  *
@@ -93,9 +93,10 @@ const WEIGHT_SAFETY = 1.1;
 /**
  * Reads `details.dimensions`, which the catalogue stores as "196mm x 149mm".
  *
- * Returns null rather than a default for anything it cannot read. One visible
- * product has no dimensions at all, and a silent default would hide it — the
- * whole point is that a missing measurement must be visible, not papered over.
+ * Returns null rather than a default for anything it cannot read. This is what
+ * surfaced "Duck Shape Board" as the one visible product with no dimensions;
+ * they were then read off its own product photo. A silent default would have
+ * quoted a made-up parcel for it forever instead.
  */
 export function parseDimensions(raw: string | null | undefined): Dimensions | null {
   if (!raw) return null;
