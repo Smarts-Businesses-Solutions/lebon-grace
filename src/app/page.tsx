@@ -396,9 +396,30 @@ export default function HomePage() {
             </div>
             <div className="lg:col-span-6 lg:col-start-7">
             {subscribed ? (
-              <p className="font-heading text-lg text-sage border-t border-sage pt-5">
-                You are on the list. We will email you when there is something new.
-              </p>
+              /*
+               * "You are on the list" was false, and quietly so (NS-02).
+               *
+               * Double opt-in (B-43) means the address is PENDING until the
+               * link in the confirmation e-mail is clicked. Someone who read
+               * the old message and never opened that e-mail believed they had
+               * subscribed, would never hear anything, and would reasonably
+               * conclude the shop was dead — the exact impression this message
+               * exists to prevent.
+               *
+               * The audit's suggested wording ("no confirmation email yet") was
+               * written before double opt-in shipped and would now be a fresh
+               * untruth. Copy that describes the system has to be re-checked
+               * against the system, not against the ticket that requested it.
+               */
+              <div className="border-t border-sage pt-5">
+                <p className="font-heading text-lg text-sage">
+                  Almost there — check your inbox and click the link to confirm.
+                </p>
+                <p className="text-ink-soft/80 text-sm mt-2 leading-relaxed">
+                  We only write when there is workshop news, never on a schedule.
+                  Nothing arrives until you confirm.
+                </p>
+              </div>
             ) : (
               <form onSubmit={handleSubscribe} className="flex gap-3 items-end">
                 {/* Honeypot. Hidden from people, filled by bots. */}
