@@ -145,8 +145,25 @@ jobs:
 
       # Evidence for a red run: trace, video, screenshots. Without this a CI
       # failure is a stack trace and a guess.
+      #
+      # continue-on-error, because THE UPLOAD IS NOT THE GATE. On 2026-08-11 it
+      # failed with ECONNREFUSED 127.0.0.1:3900 and five 500s from the artifact
+      # service, and that turned a job into a failure whose only real problem
+      # was that the evidence could not be filed. Losing the screenshots is
+      # annoying; losing the test result underneath them is misleading — you go
+      # looking for a bug in the app and the bug is in the artifact store.
+      #
+      # It only runs `if: failure()`, so this cannot mask a passing run. The
+      # job's verdict is already decided by the time it executes.
+      #
+      # The underlying cause is a runner pointed at localhost:3900 for uploads,
+      # which is the SSH-tunnel port, not the address the runner can reach
+      # (forgejo:3000 works — the checkout step uses it in the same job). That
+      # is runner configuration on shared infrastructure, so it is flagged
+      # rather than changed here.
       - name: Upload Playwright report
         if: failure()
+        continue-on-error: true
         uses: https://code.forgejo.org/actions/upload-artifact@v3
         with:
           name: playwright-report

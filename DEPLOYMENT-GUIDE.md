@@ -61,6 +61,31 @@ Two build-arg rules learned the hard way:
   placeholders you do pass live in the builder stage only and never reach the
   runner. Construct SDK clients inside a function, never at module scope.
 
+## Prune the staged tarballs
+
+Every deploy leaves an `lg-<sha>.tar.gz` in `/root/build`. Thirteen had
+accumulated by 2026-08-12 — **12 GB** to hold the same few megabytes of
+application, repeatedly.
+
+```bash
+ssh -i ~/.ssh/hetzner_ed25519 root@116.203.242.215   'cd /root/build && ls -t lg-*.tar.gz | tail -n +3 | xargs -r rm -f'
+```
+
+Keep the newest two: the live build, and the one before it to roll back to.
+Everything older is reproducible with `git archive <sha>` — verify the SHA is
+still in git before deleting anything you are unsure of.
+
+The archives are also **half the size they were**: `.gitattributes` now marks
+`originals/`, `screenshots/`, `audits/`, `docs/`, `tests/` and `ops/` as
+`export-ignore`, all of which `.dockerignore` already excluded from the build.
+`git archive` does not read `.dockerignore`, so they were being shipped and
+discarded — 912 MB became 441 MB.
+
+**A caveat that follows from that:** the deploy tarball no longer contains
+`ops/`, `tests/` or `docs/`. It is an input to `docker build` and nothing else.
+If you need those on the server — `ops/staging/setup.sh`, for instance — use a
+separate checkout, which is what `/root/lg-staging` already is.
+
 ## The `lebon-grace:cx53` tag must always exist
 
 The compose file pins `image: 'lebon-grace:cx53'`. A running container does not
