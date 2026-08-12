@@ -106,13 +106,13 @@ export default function ContactClient() {
                 <div>
                   <label className="block text-xs text-gray-600 tracking-wide mb-1.5">Full Name *</label>
                   <input type="text" name="name" value={form.name} onChange={handleChange}
-                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:border-[#A8874D] focus:ring-2 focus:ring-[#A8874D]/20 outline-none transition-all" placeholder="Your name" />
+                    className="scroll-mt-20 w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:border-[#A8874D] focus:ring-2 focus:ring-[#A8874D]/20 outline-none transition-all" placeholder="Your name" />
                   {errors.name && <p className="mt-1 text-red-500 text-xs">{errors.name}</p>}
                 </div>
                 <div>
                   <label className="block text-xs text-gray-600 tracking-wide mb-1.5">Email Address *</label>
                   <input type="email" name="email" value={form.email} onChange={handleChange}
-                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:border-[#A8874D] focus:ring-2 focus:ring-[#A8874D]/20 outline-none transition-all" placeholder="you@example.com" />
+                    className="scroll-mt-20 w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:border-[#A8874D] focus:ring-2 focus:ring-[#A8874D]/20 outline-none transition-all" placeholder="you@example.com" />
                   {errors.email && <p className="mt-1 text-red-500 text-xs">{errors.email}</p>}
                 </div>
               </div>
@@ -121,12 +121,12 @@ export default function ContactClient() {
                 <div>
                   <label className="block text-xs text-gray-600 tracking-wide mb-1.5">Phone Number</label>
                   <input type="tel" name="phone" value={form.phone} onChange={handleChange}
-                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:border-[#A8874D] focus:ring-2 focus:ring-[#A8874D]/20 outline-none transition-all" placeholder="+971 5X XXX XXXX" />
+                    className="scroll-mt-20 w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:border-[#A8874D] focus:ring-2 focus:ring-[#A8874D]/20 outline-none transition-all" placeholder="+971 5X XXX XXXX" />
                 </div>
                 <div>
                   <label className="block text-xs text-gray-600 tracking-wide mb-1.5">Subject</label>
                   <select aria-label="What is your message about?" name="subject" value={form.subject} onChange={handleChange}
-                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:border-[#A8874D] focus:ring-2 focus:ring-[#A8874D]/20 outline-none transition-all cursor-pointer">
+                    className="scroll-mt-20 w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:border-[#A8874D] focus:ring-2 focus:ring-[#A8874D]/20 outline-none transition-all cursor-pointer">
                     <option>General Inquiry</option>
                     <option>Order Issue</option>
                     <option>Product Question</option>
@@ -141,7 +141,7 @@ export default function ContactClient() {
               <div>
                 <label className="block text-xs text-gray-600 tracking-wide mb-1.5">Message *</label>
                 <textarea name="message" value={form.message} onChange={handleChange} rows={6}
-                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:border-[#A8874D] focus:ring-2 focus:ring-[#A8874D]/20 outline-none transition-all resize-none" placeholder="Tell us how we can help..." />
+                  className="scroll-mt-20 w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:border-[#A8874D] focus:ring-2 focus:ring-[#A8874D]/20 outline-none transition-all resize-none" placeholder="Tell us how we can help..." />
                 {errors.message && <p className="mt-1 text-red-500 text-xs">{errors.message}</p>}
               </div>
 

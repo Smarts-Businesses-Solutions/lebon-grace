@@ -47,9 +47,17 @@ export default function Footer() {
                 handle when there is one. */}
             <div className="mt-6 flex gap-4">
               {/* Email */}
+              {/*
+                * min-w-11/min-h-11 gives a 44px tap target around a 20px icon.
+                *
+                * Without it the anchor shrink-wraps to the SVG's 20x20, under
+                * WCAG 2.2 SC 2.5.8's 24x24 minimum. The header's icon buttons
+                * already use this exact pattern; the footer's did not, which is
+                * the kind of inconsistency nobody catches by reading.
+                */}
               <a
                 href="/contact"
-                className="text-offwhite/70 hover:text-sand transition-colors"
+                className="min-w-11 min-h-11 inline-flex items-center justify-center text-offwhite/70 hover:text-sand transition-colors"
                 aria-label="Contact us"
               >
                 <svg

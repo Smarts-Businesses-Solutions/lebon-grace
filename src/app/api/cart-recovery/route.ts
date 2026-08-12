@@ -3,6 +3,7 @@ import { fromAddress, deliver } from "@/lib/email";
 import { rateLimit } from "@/lib/rate-limit";
 import { getProductBySlug } from "@/lib/products";
 import { isDeliverableEmail } from "@/lib/email-address";
+import { mayRecover, recordRecoverySend } from "@/lib/cart-recovery-guard";
 
 interface CartItem {
   product: { name: string; price: number; slug: string };
@@ -35,6 +36,30 @@ export async function POST(request: NextRequest) {
   }
   if (!Array.isArray(items) || items.length > 50) {
     return NextResponse.json({ error: "Invalid cart" }, { status: 400 });
+  }
+
+  /*
+   * The RECIPIENT's protection, distinct from the caller's rate limit (SH-06).
+   *
+   * The limit above bounds one IP to 3 requests an hour. That caps a single
+   * attacker's throughput and does nothing for the person being mailed:
+   * rotating IPs costs pennies and every one of them can reach the same inbox
+   * again. This check follows the recipient instead — one mail per address per
+   * day, and never to an address that opted out.
+   *
+   * Refusals are answered EXACTLY like a successful send. A different status or
+   * message would turn an unauthenticated endpoint into an oracle for "has this
+   * address been mailed recently" and "has this person opted out", which is
+   * information about a third party that no caller is entitled to.
+   */
+  const decision = await mayRecover(email);
+  if (decision !== "allow") {
+    // Logged so a real pattern of abuse is visible even though the caller is
+    // told nothing. The address is not logged; the decision is the signal.
+    if (decision === "unavailable") {
+      console.error("[cart-recovery] refusing to send: the recipient cooldown could not be checked");
+    }
+    return NextResponse.json({ success: true });
   }
 
   // ─── Resolve every item against OUR catalog ───
@@ -126,5 +151,11 @@ export async function POST(request: NextRequest) {
   if (!sent) {
     return NextResponse.json({ error: "Failed to send email" }, { status: 500 });
   }
+
+  // Only after a send that actually happened. Recording unconditionally would
+  // extend the cooldown on every failure too, letting a stream of refused
+  // attempts keep a real shopper locked out of their own cart mail.
+  await recordRecoverySend(email);
+
   return NextResponse.json({ success: true });
 }

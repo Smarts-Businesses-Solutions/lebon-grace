@@ -24,7 +24,13 @@ const SUPABASE_URL =
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
 let _client: SupabaseClient | null = null;
-function db(): SupabaseClient {
+/**
+ * Exported so other modules can query tables that do not belong to any of the
+ * accessors below — currently the cart-recovery cooldown (SH-06), which is an
+ * anti-abuse control rather than shop data and has no business living in the
+ * `orders`/`products` API surface.
+ */
+export function db(): SupabaseClient {
   if (_client) return _client;
   if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
     throw new Error(

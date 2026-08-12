@@ -171,15 +171,42 @@ const LAYOUT_PROBE = `(() => {
 
 /** Tap-target check, separate because it only applies to touch viewports. */
 const TAP_PROBE = `(() => {
+  /*
+   * WCAG 2.2 SC 2.5.8 — Target Size (Minimum), 24x24 CSS px.
+   *
+   * The EFFECTIVE target, not the element's own box. Three things made the
+   * first version report 327 findings of which exactly one was real:
+   *
+   *   - A 16x16 checkbox wrapped in a 327x38 <label> is a 327x38 target. The
+   *     thumb hits the label.
+   *   - An <a> shrink-wrapped to a line of text is 17-21px tall, but SC 2.5.8
+   *     exempts targets in a block of text (inline exception) and targets with
+   *     enough clearance (spacing exception). Footer nav lists are both.
+   *   - Only a control that is small in BOTH dimensions is plausibly hard to
+   *     hit. A 361x19 list item is not; a 20x20 icon is.
+   *
+   * So: resolve to the label or the nearest larger interactive ancestor, then
+   * report only when both dimensions are still under 24.
+   */
   const small = [];
-  for (const el of document.querySelectorAll("a,button,input[type=checkbox],input[type=radio],[role=button]")) {
-    const r = el.getBoundingClientRect();
+  const sel = "a,button,input[type=checkbox],input[type=radio],[role=button]";
+  for (const el of document.querySelectorAll(sel)) {
+    let r = el.getBoundingClientRect();
     if (r.width < 2 || r.height < 2) continue;
-    if (r.height < 24 || r.width < 24) {
-      small.push({ el: el.tagName.toLowerCase(),
-                   label: (el.textContent || el.getAttribute("aria-label") || "").trim().slice(0, 30),
-                   size: Math.round(r.width) + "x" + Math.round(r.height) });
+
+    // The label is the target for a checkbox or radio.
+    const id = el.getAttribute("id");
+    const label = (id && document.querySelector('label[for="' + id + '"]')) || el.closest("label");
+    if (label) {
+      const lr = label.getBoundingClientRect();
+      if (lr.width > r.width || lr.height > r.height) r = lr;
     }
+
+    if (r.width >= 24 || r.height >= 24) continue;
+
+    small.push({ el: el.tagName.toLowerCase(),
+                 label: (el.getAttribute("aria-label") || el.textContent || "").trim().slice(0, 30),
+                 size: Math.round(r.width) + "x" + Math.round(r.height) });
   }
   return small.slice(0, 10);
 })()`;
