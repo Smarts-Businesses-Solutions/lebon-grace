@@ -123,6 +123,47 @@ matter.
 
 ---
 
+## Phase 1 — closed 2026-08-12
+
+Four findings from the role walkthroughs, each with a test watched failing
+first.
+
+**SH-06 — cart-recovery was a mail relay.** The endpoint sends branded mail from
+our domain to an address supplied in the request body, limited only to 3 per
+hour PER IP. That caps one attacker and does nothing for the victim: rotating
+IPs is cheap and every one reaches the same inbox. The audit rated it LOW
+because every e-mail was being refused at the time (B-30) — fixing the sender
+domain made it live. **A dormant abuse path became reachable because an
+unrelated bug was fixed, and no test noticed.**
+
+The limit now follows the recipient: one mail per address per 24h however many
+IPs ask, plus permanent suppression. It fails CLOSED — if the cooldown cannot be
+checked, nothing is sent. Refusals are answered identically to sends, so the
+endpoint is not an oracle for "has this address been mailed" or "has this person
+opted out". Addresses are stored as a keyed HMAC, never in clear: this table
+must not become a list of people who never asked to be on one.
+
+**EN-02 — the sticky header covered the contact form.** 64px over the focused
+message field, 44px over the name field. `scroll-mt-20` on every field.
+
+**Footer icon** — 20x20, under WCAG 2.2 SC 2.5.8's 24x24. Now a 44px target,
+matching the pattern the header already used. This was the single real finding
+out of the 1,901 the adversarial sweep first reported (L-35).
+
+**NS-02 — the newsletter claimed people were subscribed when they were not.**
+"You are on the list" became false when double opt-in shipped (B-43): the
+address is pending until the link is clicked. Someone who read it and never
+opened the e-mail would believe they had signed up, hear nothing, and conclude
+the shop was dead. The audit's own suggested wording ("no confirmation email
+yet") had gone stale the same way and would have shipped a fresh untruth —
+**copy describing the system has to be re-checked against the system, not
+against the ticket that requested it.**
+
+Migration 0010 applied to production and staging; parity re-verified at 134
+columns / 32 constraints / 34 indexes.
+
+---
+
 ## Operator actions — the things only you can do
 
 **1. Set up your two admin logins.** For each address, run:
