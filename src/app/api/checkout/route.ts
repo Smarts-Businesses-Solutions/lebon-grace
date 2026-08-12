@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { BRAND } from "@/lib/brand";
 import Stripe from "stripe";
 import { stripe } from "@/lib/stripe";
 import { products } from "@/lib/products";
@@ -163,7 +164,7 @@ export async function POST(request: NextRequest) {
             name: item.personalisation ? `${item.name} (engraved: ${item.personalisation})` : item.name,
             images: absoluteImage(item.image),
             metadata: {
-              brand: "lebon-grace",
+              brand: BRAND,
               entity: "shop-lebon-grace",
               slug: item.slug || "",
               personalisation: item.personalisation || "",
@@ -183,7 +184,7 @@ export async function POST(request: NextRequest) {
           currency: "aed",
           product_data: {
             name: "Shipping Fee",
-            metadata: { brand: "lebon-grace" },
+            metadata: { brand: BRAND },
           },
           unit_amount: Math.round(deliveryFee * 100), // delivery in full
         },
@@ -205,7 +206,7 @@ export async function POST(request: NextRequest) {
       payment_intent_data: {
         statement_descriptor_suffix: "LBGRACE",
         metadata: {
-          brand: "lebon-grace",
+          brand: BRAND,
           entity: "shop-lebon-grace",
           order_type: "full_payment",
           total: String(total),
@@ -222,7 +223,7 @@ export async function POST(request: NextRequest) {
       success_url: `${getAppUrl()}/checkout?success=true&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${getAppUrl()}/checkout?canceled=true`,
       metadata: {
-        brand: "lebon-grace",
+        brand: BRAND,
         entity: "shop-lebon-grace",
         order_type: "full_payment",
         total: String(total),

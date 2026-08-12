@@ -80,6 +80,9 @@ function completedEvent(overrides: Record<string, unknown> = {}) {
         payment_intent: "pi_test_1",
         customer_details: { email: "buyer@example.com", name: "From Stripe", phone: "" },
         metadata: {
+          // Real sessions carry this — /api/checkout stamps it. Its absence
+          // here was why the fan-out bug went unnoticed for so long.
+          brand: "lebon-grace",
           total: "15",
           subtotal: "15",
           shipping: "0",
@@ -600,5 +603,73 @@ describe("the signature-failure diagnostic must not leak the secret", () => {
       return v;
     };
     expect(await run()).toBe(await run());
+  });
+});
+
+describe("POST /api/stripe-webhook — sessions belonging to another project", () => {
+  /**
+   * This Stripe account serves more than one shop. On 2026-08-12 it had two
+   * LIVE endpoints subscribed to `checkout.session.completed`:
+   * `shop.lebon-grace.com/api/stripe-webhook` and a `sell-fast-partout` one.
+   *
+   * Stripe fans an event out to EVERY subscribed endpoint, signing each
+   * delivery with that endpoint's own secret. So a purchase on the other shop
+   * arrives here with a signature that verifies perfectly — the signature says
+   * "Stripe sent this", never "this sale was yours".
+   *
+   * Without an ownership check the handler builds an order out of it, and every
+   * field has a fallback ready: `customer_name || "Customer"`,
+   * `emirate || "Dubai"`, total from `amount_total`. The result is a fake order
+   * in the production queue and a confirmation email to somebody else's
+   * customer promising them a hand-made puzzle they never bought.
+   */
+  const foreign = () => ({
+    type: "checkout.session.completed",
+    data: {
+      object: {
+        id: "cs_live_from_the_other_shop",
+        amount_total: 9900,
+        payment_intent: "pi_other_1",
+        customer_details: { email: "someone@elsewhere.com", name: "Other Shop Buyer", phone: "" },
+        metadata: { brand: "sell-fast-partout", order_id: "sfp_123" },
+      },
+    },
+  });
+
+  it("ignores a session stamped for another brand", async () => {
+    constructEvent.mockReturnValue(foreign());
+    const res = await POST(post());
+
+    expect(insert, "must not create an order from another shop's sale").not.toHaveBeenCalled();
+    // 200, not 4xx: the event is legitimate, it is simply not ours. A non-2xx
+    // makes Stripe retry for days and eventually disable the endpoint — which
+    // would take down the REAL orders too.
+    expect(res.status).toBe(200);
+  });
+
+  it("ignores a session with no brand at all, rather than assuming it is ours", async () => {
+    // Fail closed. A blocklist of known-foreign brands would let anything new
+    // through; requiring positive proof cannot be satisfied by accident.
+    const unmarked = foreign();
+    unmarked.data.object.metadata = { order_id: "whatever" } as never;
+    constructEvent.mockReturnValue(unmarked);
+
+    const res = await POST(post());
+    expect(insert).not.toHaveBeenCalled();
+    expect(res.status).toBe(200);
+  });
+
+  it("still accepts our own sessions — the guard must not block the shop", async () => {
+    // PRECONDITION for the two tests above: proves `insert` is reachable at all
+    // with this setup, so "not called" above means the guard worked rather than
+    // the test being broken.
+    constructEvent.mockReturnValue(completedEvent({ metadata: {
+      brand: "lebon-grace", total: "15", subtotal: "15", shipping: "0",
+      customer_name: "Real Buyer", customer_phone: "+971500000000",
+      delivery_method: "pickup", emirate: "Dubai",
+    } }));
+    const res = await POST(post());
+    expect(insert).toHaveBeenCalledTimes(1);
+    expect(res.status).toBe(200);
   });
 });

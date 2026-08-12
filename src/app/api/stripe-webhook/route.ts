@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { BRAND } from "@/lib/brand";
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { stripe, stripeMode } from "@/lib/stripe";
@@ -105,6 +106,29 @@ export async function POST(request: NextRequest) {
     const session = event.data.object as Stripe.Checkout.Session;
     const metadata = session.metadata || {};
 
+    // ─── IS THIS SALE EVEN OURS? ───
+    // The signature check above proves Stripe sent this event. It does NOT
+    // prove the sale was ours: this Stripe account serves more than one shop,
+    // and Stripe delivers checkout.session.completed to every subscribed
+    // endpoint, signed with that endpoint's own secret.
+    //
+    // Without this, another shop's purchase becomes a lebon-grace order —
+    // every field has a fallback waiting (`customer_name || "Customer"`,
+    // `emirate || "Dubai"`, total from amount_total), so it would land in the
+    // production queue looking real and email a stranger about a puzzle.
+    //
+    // Positive proof, not a blocklist: excluding brands we know about would
+    // admit every shop added to this account later.
+    if (metadata.brand !== BRAND) {
+      console.log(
+        `[stripe-webhook] ignoring session ${session.id} — brand=${metadata.brand || "(none)"}, not this shop.`
+      );
+      // 200 deliberately. The event is valid, just not ours; a non-2xx makes
+      // Stripe retry for days and eventually disable the endpoint, which would
+      // take the real orders down with it.
+      return NextResponse.json({ received: true, ignored: "not-this-shop" });
+    }
+
     // ─── IDEMPOTENCY CHECK ───
     // If Stripe retries this event, don't create a duplicate order.
     // Must match on the Stripe session id (stored as stripe_session_id), NOT the
@@ -154,7 +178,9 @@ export async function POST(request: NextRequest) {
       // and a separate change; agreeing with the other six places is this one.
       status: "deposit_paid",
       metadata: JSON.stringify({
-        brand: metadata.brand || "lebon-grace",
+        // Past the guard above, metadata.brand is BRAND by definition — the
+        // fallback was covering for a check that did not exist.
+        brand: BRAND,
         entity: metadata.entity || "shop-lebon-grace",
         order_type: metadata.order_type || "full_payment",
         cod_balance: String(codBalance),
