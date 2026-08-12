@@ -22,6 +22,13 @@
 #      vacuously true on a repo that does no work at all (L-2).
 #   1. A runner is online. With no runner, jobs are accepted and queue forever;
 #      the UI shows them pending and nothing ever fails.
+#   1b. The repo has Forgejo's git hooks. A repo CREATED AS A MIRROR never gets
+#      them — mirrors are updated internally, so they have no use for a
+#      post-receive — and converting it to a normal repo does not add them.
+#      The result is silent and total: `git push` updates the refs, reports
+#      success, and fires NO workflow event. CI simply never runs, and every
+#      other check here still passes because the runs that DO exist are green.
+#      Found 2026-08-12 on this repo and on mirrortales, both ex-mirrors.
 #   2. Forgejo (PRIMARY) and GitHub (FALLBACK) have not diverged. Reported
 #      differently depending on direction: Forgejo behind GitHub means code
 #      nothing has tested; GitHub behind Forgejo means a stale off-site copy.
