@@ -22,9 +22,9 @@
 #      vacuously true on a repo that does no work at all (L-2).
 #   1. A runner is online. With no runner, jobs are accepted and queue forever;
 #      the UI shows them pending and nothing ever fails.
-#   2. The mirror is not stale — a commit that has been on GitHub longer than
-#      MAX_MIRROR_LAG_MIN must have reached Forgejo. This catches the mirror
-#      breaking, after which CI keeps passing happily against old code.
+#   2. Forgejo (PRIMARY) and GitHub (FALLBACK) have not diverged. Reported
+#      differently depending on direction: Forgejo behind GitHub means code
+#      nothing has tested; GitHub behind Forgejo means a stale off-site copy.
 #   3. Nothing is stuck. A job waiting or running past MAX_STUCK_MIN is not
 #      going to finish, and it will never turn red by itself.
 #
@@ -41,7 +41,8 @@
 #     FORGEJO_TOKEN_FILE=/root/.fj-token
 #     FORGEJO_REPO=kairos/lebon-grace
 #     GITHUB_REPO=Smarts-Businesses-Solutions/lebon-grace
-#     MAX_MIRROR_LAG_MIN=45              mirror interval is 10m; this is generous
+#     MAX_DIVERGENCE_MIN=45              tolerates the gap between the two
+#                                        halves of one `git push`
 #     MAX_STUCK_MIN=60                   a full green run takes ~20m
 #
 # NOTE: deliberately NOT `set -o pipefail` — see the long note in
@@ -56,7 +57,9 @@ FORGEJO_TOKEN_FILE=${FORGEJO_TOKEN_FILE:-/root/.fj-token}
 FORGEJO_REPO=${FORGEJO_REPO:-kairos/lebon-grace}
 GITHUB_REPO=${GITHUB_REPO:-Smarts-Businesses-Solutions/lebon-grace}
 FORGEJO_CTR=${FORGEJO_CTR:-forgejo-apdhrb0srx5y8uhe0yzsexyg}
-MAX_MIRROR_LAG_MIN=${MAX_MIRROR_LAG_MIN:-45}
+# Renamed from MAX_MIRROR_LAG_MIN when the mirror became a two-way push. The
+# old name is still honoured so an existing /etc conf keeps its tuning.
+MAX_DIVERGENCE_MIN=${MAX_DIVERGENCE_MIN:-${MAX_MIRROR_LAG_MIN:-45}}
 MAX_STUCK_MIN=${MAX_STUCK_MIN:-60}
 
 CURL="curl -sS --max-time 20"
@@ -165,15 +168,32 @@ else
   fi
 fi
 
-# ── 2. the mirror is not stale ───────────────────────────────────────────────
-# The mirror is what connects GitHub (where work actually lands) to Forgejo
-# (where it is checked). If it breaks, CI goes on passing against whatever it
-# last managed to pull, which is worse than no CI: it reports success about code
-# nobody is running.
+# ── 2. Forgejo and GitHub have not diverged ──────────────────────────────────
 #
-# Compared by COMMIT AGE rather than "the SHAs differ", so a push thirty seconds
-# ago does not read as a broken mirror. Only a commit that has had longer than
-# the sync interval to arrive counts as missing.
+# The topology changed: **Forgejo is primary, GitHub is the fallback.** The repo
+# is no longer a pull mirror — `git push` sends to both URLs on one remote, and
+# CI runs on whatever reaches Forgejo.
+#
+# That gives two DIFFERENT failure modes, and the old check could only describe
+# one of them, in language about a mirror that no longer exists:
+#
+#   A. Forgejo is BEHIND GitHub. Something reached the fallback and not the
+#      primary — the push to Forgejo failed (its URL needs an SSH tunnel, and a
+#      failure there is easy to miss behind the GitHub line that succeeded), or
+#      the repo was read-only. NOTHING HAS TESTED THAT CODE. This is the
+#      dangerous one, and it happened on 2026-08-12: three pushes reported clean
+#      while their Forgejo half had failed.
+#
+#   B. GitHub is BEHIND Forgejo. CI is fine; the off-site copy is stale. Not an
+#      immediate risk, but if cx53 is lost so is the newest work.
+#
+# Which one it is cannot be decided by comparing SHAs — that only says "these
+# differ". It is decided by ASKING FORGEJO WHETHER IT HAS GITHUB'S COMMIT. If it
+# does, Forgejo is ahead (case B). If it does not, GitHub holds work Forgejo has
+# never seen (case A).
+#
+# Age still gates both, so the seconds between the two halves of one `git push`
+# do not read as divergence.
 gh_json=$($CURL -H 'Accept: application/vnd.github+json' "https://api.github.com/repos/${GITHUB_REPO}/commits/main")
 gh_sha=$(printf '%s' "$gh_json" | sha40)
 gh_date=$(printf '%s' "$gh_json" | grep -oE '"date" *: *"[0-9T:Z.-]+"' | head -1 | grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9:]+')
@@ -181,24 +201,30 @@ gh_date=$(printf '%s' "$gh_json" | grep -oE '"date" *: *"[0-9T:Z.-]+"' | head -1
 if [ -z "$gh_sha" ]; then
   # Unauthenticated GitHub API is 60/hr per IP; at two calls an hour this should
   # never rate-limit, but say so plainly rather than silently skipping the check.
-  note "could not read GitHub's main HEAD — mirror freshness UNVERIFIED this run"
-elif [ -n "${TOKEN}" ]; then
+  note "could not read GitHub's main HEAD — primary/fallback divergence UNVERIFIED this run"
+elif [ -z "${TOKEN}" ]; then
+  note "no Forgejo token at ${FORGEJO_TOKEN_FILE} — primary/fallback divergence UNVERIFIED this run"
+else
   fj_sha=$($CURL -H "Authorization: token ${TOKEN}" "${FORGEJO_API}/repos/${FORGEJO_REPO}/branches/main" | sha40)
   if [ -z "$fj_sha" ]; then
-    note "could not read Forgejo's main HEAD for ${FORGEJO_REPO}"
+    note "could not read Forgejo's main HEAD for ${FORGEJO_REPO} — the PRIMARY is unreachable"
   elif [ "$fj_sha" != "$gh_sha" ]; then
     age=$(( ( $(date -u +%s) - $(date -u -d "${gh_date}Z" +%s 2>/dev/null || echo 0) ) / 60 ))
-    if [ "$age" -gt "$MAX_MIRROR_LAG_MIN" ] 2>/dev/null; then
-      note "mirror is STALE: GitHub main is ${gh_sha:0:7} (${age}m old), Forgejo still has ${fj_sha:0:7} — CI is checking code nobody is running"
+    if [ "$age" -gt "$MAX_DIVERGENCE_MIN" ] 2>/dev/null; then
+      # Does the primary know GitHub's commit? 200 = yes (Forgejo is ahead).
+      code=$($CURL -o /dev/null -w '%{http_code}' -H "Authorization: token ${TOKEN}"              "${FORGEJO_API}/repos/${FORGEJO_REPO}/git/commits/${gh_sha}")
+      if [ "$code" = "200" ]; then
+        note "GitHub fallback is BEHIND: Forgejo has ${fj_sha:0:7}, GitHub still ${gh_sha:0:7} (${age}m) — CI is fine, the off-site copy is stale"
+      else
+        note "CI IS BLIND: GitHub main ${gh_sha:0:7} is ${age}m old and Forgejo does NOT have it — that code has never been tested. Check the push to the primary succeeded (it needs the tunnel on 3900)"
+      fi
     fi
   fi
-else
-  note "no Forgejo token at ${FORGEJO_TOKEN_FILE} — mirror freshness UNVERIFIED this run"
 fi
 
 # ── report ───────────────────────────────────────────────────────────────────
 if [ ${#problems[@]} -eq 0 ]; then
-  echo "ci-freshness: OK ${FORGEJO_REPO} (${runs:-?} runs, mirror current)"
+  echo "ci-freshness: OK ${FORGEJO_REPO} (${runs:-?} runs, primary and fallback agree)"
   exit 0
 fi
 
