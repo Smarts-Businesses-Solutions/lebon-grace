@@ -134,6 +134,45 @@ configuration: the 19 the code reads and nothing else. Phase 3's real order then
 closes the gap, and Tier 1 can come off production with the evidence already in
 hand rather than as an experiment on the live shop.
 
+## DONE on production — 2026-08-12
+
+Tier 1 removed, and `ADMIN_PASSWORD` with it. **56 -> 37 variables.**
+
+Where they actually lived matters, because the earlier plan guessed wrong about
+this. They were NOT in Coolify: the API reports **0 environment entries** for
+this service. All 56 sat in the `environment:` block of
+`/data/coolify/services/.../docker-compose.yml` on cx53. So editing that file is
+the durable fix — there is no Coolify-side copy to overwrite it — and it is also
+the only copy, which is why every step below took a backup first.
+
+| Step | Result |
+|---|---|
+| backup before each edit | `docker-compose.yml.bak-20260812-120503`, `...bak-adminpw-20260812-120615` |
+| Tier 1 removal | 56 -> 38 entries, exactly 18, aborts if the count differs |
+| `docker compose config -q` | validates before anything touches the container |
+| all 12 public pages | 200 |
+| server-rendered product page | 200 (so the database path is intact) |
+| the 18 inside the container | **0 remain** |
+| the six that must survive | Stripe secret + webhook, Supabase service role, Resend, admin session secret, ADMIN_USERS — all present |
+| container logs | no errors |
+
+`ADMIN_PASSWORD` went in a separate step so a failure would be attributable to
+one change or the other. After it: `namedLogins: true`, a wrong password still
+401s, `/admin` still 200. Named logins are now the only way in.
+
+**Rollback** is one line, and the backup holds the old value:
+
+```bash
+cd /data/coolify/services/lixqbqbkz39l0bnz9xv2227t
+cp docker-compose.yml.bak-adminpw-20260812-120615 docker-compose.yml
+docker compose up -d --force-recreate --no-deps lebon-grace
+```
+
+**Still outstanding: the 17 credentials are removed, not rotated.** They sat in a
+web container's environment and removing them does not un-expose them. Anything
+that read them still holds them. Rotating each at its own provider is the part
+that actually ends the exposure.
+
 ## Doing it safely
 
 Environment changes are not covered by any test, so sequence matters:
