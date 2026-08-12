@@ -101,6 +101,39 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY   public by design; harmless, and RLS assumes it e
 STRIPE_PUBLISHABLE_KEY_LIVE     DIFFERENT from the NEXT_PUBLIC one — investigate before touching
 ```
 
+## Tier 1 has already been tested — on staging, by accident
+
+Asked to "remove Tier 1 from staging first", the answer turned out to be that
+there is nothing to remove: **the staging git app has 0 of the 18.** It was
+built from this repository with only the variables someone deliberately set, and
+nobody ever set a Shopify token on it.
+
+That makes staging an unplanned but complete experiment. It has been running the
+pruned configuration since it was created, and on 2026-08-12, with **zero Tier 1
+credentials present**:
+
+| Check | Result |
+|---|---|
+| `/`, `/shop`, `/cart`, `/checkout`, `/track`, `/account`, `/contact`, `/faq`, `/terms`, `/privacy`, `/review`, `/about` | **all 200** |
+| a server-rendered product page | **200** |
+| container logs | **no errors, nothing "not configured"** |
+| `/api/admin/login` | answers JSON, route intact |
+
+So every one of the 18 can be removed from production without affecting
+rendering, routing, the catalogue, or the API surface. That is not an inference
+from a grep any more; it is a running container.
+
+**What this does NOT yet prove.** Staging is still missing the eight real
+secrets, so the payment, e-mail and database-write paths cannot be exercised on
+it. A Tier 1 variable and a missing `STRIPE_SECRET_KEY` are indistinguishable on
+those paths today. None of the 18 is plausibly involved — they are keys for
+OpenAI, Shopify, Vercel, Twitter — but "not plausible" is weaker than "tested".
+
+Once the eight secrets are in, staging becomes **exactly** the post-prune
+configuration: the 19 the code reads and nothing else. Phase 3's real order then
+closes the gap, and Tier 1 can come off production with the evidence already in
+hand rather than as an experiment on the live shop.
+
 ## Doing it safely
 
 Environment changes are not covered by any test, so sequence matters:
