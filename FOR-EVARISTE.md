@@ -601,7 +601,126 @@ file, an orchestrator, a container runtime — is allowed to rewrite what passes
 through it. When the value is a credential, check that it arrived. It costs one
 command.
 
-## 16. Glossary
+## 16. The day the shop opened — 2026-08-13
+
+The first real order went through today. Payment, webhook, order record,
+customer confirmation, operator alerts to three addresses. Everything in this
+section either came out of that order or was found while getting ready for it.
+
+Read this one for the pattern, not the list.
+
+### 16.1 The bug that only a real order could find
+
+Order ids are uuids: `c6568cbb-c503-4b91-924f-39ccd7cf135c`. Every place a
+customer sees an order — the confirmation e-mail, the success page, the account
+page — prints the first eight characters with a hash: `#c6568cbb`.
+
+You placed an order, took the number the shop gave you, typed it into Track
+Order, and got **"Order not found"**.
+
+The shop was handing out a reference it then refused to accept. Every customer
+would have hit it, arriving from the "Track Your Order" button in their own
+confirmation e-mail. Four hundred and sixty tests were passing at the time.
+
+**Why no test caught it.** Each half was correct on its own. The e-mail template
+correctly shortens the id. The lookup correctly matches an id. Nobody had tested
+the two together, because that requires an actual order to exist.
+
+### 16.2 The fix that shipped broken, and why that is the more useful story
+
+I fixed it, tested it, deployed it, and told you it was done.
+
+It was not. I tested it against the real order afterwards and the short
+reference still failed.
+
+The cause: `id` is a **uuid column**, and my fix matched short references with
+`ilike("id", "c6568cbb%")`. Postgres has no `ilike` for uuid:
+
+```
+operator does not exist: uuid ~~* unknown
+```
+
+PostgREST reported that as an error, and the code read the error as "no rows
+found" and returned null. The query never ran. The failure was completely
+silent. And every unit test still passed, because they exercised the string
+parsing and never touched a database.
+
+That is the same shape as the bug it was fixing: **something that cannot work,
+failing quietly, verified by tests that could not see it.**
+
+The real fix uses a uuid range. uuid comparison is bytewise, so a hex prefix is
+a contiguous span: pad with zeros for the low bound, `f`s for the high. No cast,
+exact, and the primary key index still applies.
+
+**The lesson, and it is the main one in this document:** a passing test tells you
+the code does what the test says. It does not tell you the code does what you
+need. The only thing that caught either bug was using the real thing, on the
+live site, with real data.
+
+### 16.3 Things that were true once and quietly stopped being true
+
+Three separate findings today share a cause. Each was a correct decision that
+became wrong when something around it changed, and nothing failed when it did.
+
+**The admin reported a business model that no longer exists.** Four of six
+headline tiles showed Deposits Collected, COD Pending, COD Collected — from the
+50% deposit and cash-on-delivery flow that was deleted from checkout. Stripe
+takes the full amount now, so "deposits" restated revenue and both COD figures
+were permanently zero. Thirteen references across three files.
+
+**A public API leaked supplier cost prices.** `GET /api/products` was
+unauthenticated while PUT and DELETE were gated — and `proxy.ts` had a comment
+saying exactly that, so it read as considered. It *was* considered: a shop's
+catalogue is public information. Then supplier columns were added to the same
+rows, and it started returning 611 records with `cj_price` on 515 of them.
+Anyone could compute your margin on almost everything.
+
+**The e-mail told one person.** Operator alerts went to a single address. With
+two operators that means one of them learns about an order and the other does
+not, decided by an environment variable nobody looks at.
+
+The pattern: **"it looked deliberate" is not the same as "it is still right."**
+When you change a model, hunt for everything that described the old one.
+
+### 16.4 Zero and unknown are different claims
+
+The dashboard said "Delivery Success 0%" when nothing had been delivered yet.
+Arithmetically true. It reads as *every delivery failed*, which on a
+made-to-order shop with a 2-3 day lead time is exactly backwards.
+
+The 14-day charts floored every bar at 2% height, so a quiet week drew a row of
+slivers — indistinguishable from a chart that failed to load.
+
+Three components were making the first claim while meaning the second. They now
+show an em dash or a plain sentence, with the basis named: "none delivered yet",
+"2 customers", "no orders in the last 14 days".
+
+### 16.5 The value of a test that fails first
+
+Several fixes today were verified by running the NEW tests against the OLD
+production site and watching them fail — then passing after deploy.
+
+The SEO specs failed on missing og:image, missing canonical, and an indexable
+unlisted product. The legal specs failed 3-of-4. Then both passed.
+
+That is worth more than a green run. A test that has never failed has not been
+shown to test anything.
+
+The same discipline applies to absence. "The unlisted product is not in the
+sitemap" would pass on an **empty** sitemap, so every such check is paired with
+a precondition proving a real product IS there.
+
+### 16.6 What is still true and unfinished
+
+- **The 17 pruned credentials are removed, not rotated.** They sat in a web
+  container's environment for months. Removing them does not un-expose them;
+  anything that read them still holds them.
+- **Sending domains and DMARC** are DNS changes on infrastructure shared with
+  other projects, so they need a decision rather than a commit.
+- The admin's cosmetic layer — typography, spacing, palette — is deliberately
+  untouched until you have used the corrected version.
+
+## 17. Glossary
 
 | Term | Plain words |
 |---|---|

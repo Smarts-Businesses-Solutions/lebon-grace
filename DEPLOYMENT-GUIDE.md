@@ -39,7 +39,21 @@ Until the migration finishes, **deploying means building the image yourself.**
 ssh -i ~/.ssh/hetzner_ed25519 root@116.203.242.215 \
   "docker tag lebon-grace:cx53 lebon-grace:rollback-$(date +%Y%m%d)"
 
-# 2. get the source onto the box (/root/build/lebon-grace)
+# 2. ship the EXACT commit CI verified — do NOT copy the working tree
+#
+#    `git archive <sha>` emits the committed tree, so what gets built is what
+#    CI passed rather than whatever happens to be on your disk. It also honours
+#    .gitattributes export-ignore, keeping audits/, tests/, ops/ and originals/
+#    out of the build context (912 MB -> 441 MB).
+#
+#    Extract into a FRESH directory. Overwriting the previous one leaves files
+#    deleted since the last build sitting there to be compiled in.
+#
+#    git archive --format=tar <sha> | ssh -i ~/.ssh/hetzner_ed25519 root@116.203.242.215 \n#      "rm -rf /root/build/lg-<sha> && mkdir -p /root/build/lg-<sha> && tar x -C /root/build/lg-<sha>"
+#
+#    /tmp/buildenv.txt does NOT survive a reboot. Regenerate it from the RUNNING
+#    container so the build matches what production actually holds:
+#      docker exec <container> env | grep -E "^(NEXT_PUBLIC_[A-Z0-9_]+|UMAMI_ORIGIN|APP_URL)=" | sort > /tmp/buildenv.txt
 
 # 3. build — real values for NEXT_PUBLIC_* and UMAMI_ORIGIN, placeholders for the rest
 docker build \

@@ -7,6 +7,55 @@ Finding IDs (S-1, D-3, …) refer to that document.
 
 ---
 
+## Status — 2026-08-13: the shop is open
+
+The first real order completed today: payment, webhook, order record, customer
+confirmation, and operator alerts to three addresses. Before it, the orders
+table held exactly one row, from June, under a payment model since deleted — so
+the money path had never actually run end to end.
+
+Shipped and verified live today, each gated on green CI and confirmed by
+`?dpl=` changing rather than assumed:
+
+| | |
+|---|---|
+| Named operators | three, `ADMIN_PASSWORD` removed, passwords in `supabase.local` |
+| Webhook ownership guard | another shop on the same Stripe account could have created orders here |
+| `/api/products` | was public with supplier cost prices on 515 rows — now 401 |
+| Env prune | 56 -> 37 variables; 18 foreign credentials removed |
+| Operator alerts | every operator, not one mailbox |
+| Parcel presets | all 41 sellable products now priceable by a carrier |
+| Unlisted products | AED 2 internal test item, buyable, invisible |
+| SEO | per-product metadata, OG cards, Product JSON-LD, noindex on unlisted |
+| RFC 8058 | one-click unsubscribe on marketing mail |
+| Legal | `LEBON GRACE LLC` named in Terms and Privacy |
+| `/track` | short references work — see below |
+| Admin | dead deposit/COD model removed, order detail, honest empty states, own shell |
+
+**Two findings worth carrying forward.**
+
+`/track` rejected the order number the shop itself prints. Found by placing a
+real order, not by 480 passing tests — and the first fix SHIPPED BROKEN
+(`ilike` against a uuid column errors, PostgREST reported it, the code read the
+error as "no rows"). Both halves were individually correct and untested
+together. See `FOR-EVARISTE.md` §16.
+
+Three separate things were reporting a world that had changed: the admin's
+deposit/COD tiles, the public products endpoint, the single-recipient alerts.
+Each was a reasonable decision that quietly stopped being right.
+
+**Still open, and not code:**
+
+- the 17 pruned credentials are **removed, not rotated** — the largest
+  remaining security item
+- sending-domain split and DMARC `p=none` -> `quarantine`: DNS changes on
+  infrastructure shared with other projects, awaiting a decision
+- Emirates Post's Prices API is an empty stub in their own collection; their
+  developer portal has no DNS. Live international rates are blocked on their
+  reply, not on us. See the `emirates-post-api` memory note.
+
+---
+
 ## Phase 0 — Emergency remediation
 
 > **Revised 2026-08-08** after estate context arrived. The first draft said "nothing qualifies". That was wrong — it was written without knowing a second, newer deployment existed on Hetzner. See `CODEBASE_AUDIT.md` §0.
