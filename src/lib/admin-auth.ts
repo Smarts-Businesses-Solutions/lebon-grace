@@ -129,6 +129,18 @@ export function verifyOperator(email: string, password: string): string | null {
 }
 
 /** Are named operators configured at all? */
+/**
+ * The e-mail address of every configured operator.
+ *
+ * Used to decide who gets told about a new order. Deriving the notification
+ * list from the people who can actually SIGN IN means the two cannot drift:
+ * add an operator and they start receiving alerts, remove one and they stop.
+ * A separate recipient list would be one more thing to forget.
+ */
+export function operatorEmails(): string[] {
+  return parseAdminUsers().map((u) => u.email);
+}
+
 export function hasNamedOperators(): boolean {
   return parseAdminUsers().length > 0;
 }

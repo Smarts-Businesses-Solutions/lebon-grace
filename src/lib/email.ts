@@ -1,6 +1,7 @@
 import { Resend } from "resend";
 import { getAppUrl } from "./app-url";
 import { CONTACT } from "./contact";
+import { operatorEmails } from "./admin-auth";
 import { generateWhatsAppLink } from "./whatsapp";
 
 /**
@@ -416,15 +417,40 @@ export interface OperatorAlertItem {
  * check would then skip the real work — so the notice would be lost *and* the
  * order mishandled.
  */
+/**
+ * Everyone who should hear about shop operations.
+ *
+ * Was a single address, so with two operators one of them learned about a new
+ * order and the other did not — decided by an environment variable nobody
+ * looks at. Now: every operator who can sign in, PLUS the shared mailbox, which
+ * may be watched by someone who never opens /admin.
+ *
+ * Case-insensitive dedupe, because an operator being the notify address too is
+ * the normal case, not an edge case.
+ */
+function operatorRecipients(): string[] {
+  const mailbox = process.env.ORDER_NOTIFY_EMAIL || CONTACT.email;
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const raw of [...operatorEmails(), mailbox]) {
+    const addr = (raw || "").trim();
+    const key = addr.toLowerCase();
+    if (!addr || seen.has(key)) continue;
+    seen.add(key);
+    out.push(addr);
+  }
+  return out;
+}
+
 export async function sendOperatorNotice(subject: string, bodyHtml: string): Promise<boolean> {
-  const to = process.env.ORDER_NOTIFY_EMAIL || CONTACT.email;
-  if (!to) {
-    console.error("[operator-notice] no ORDER_NOTIFY_EMAIL or CONTACT_EMAIL — nobody will be told");
+  const to = operatorRecipients();
+  if (!to.length) {
+    console.error("[operator-notice] no operators and no ORDER_NOTIFY_EMAIL — nobody will be told");
     return false;
   }
   return deliver("operator-notice", {
     from: fromAddress(),
-    to: [to],
+    to,
     subject,
     html: bodyHtml,
   });
@@ -434,9 +460,9 @@ export async function sendOperatorOrderAlert(
   order: EmailOrder & { delivery_method?: string; customer_phone?: string },
   items: OperatorAlertItem[] = []
 ): Promise<boolean> {
-  const to = process.env.ORDER_NOTIFY_EMAIL || CONTACT.email;
-  if (!to) {
-    console.error("[operator-alert] no ORDER_NOTIFY_EMAIL or CONTACT_EMAIL — nobody will be told about orders");
+  const to = operatorRecipients();
+  if (!to.length) {
+    console.error("[operator-alert] no operators and no ORDER_NOTIFY_EMAIL — nobody will be told about orders");
     return false;
   }
 
@@ -512,7 +538,7 @@ export async function sendOperatorOrderAlert(
   // operator was told nothing.
   return deliver(`operator-alert:${short}`, {
     from: fromAddress(),
-    to: [to],
+    to,
     subject: `New order #${short} — AED ${order.total}${engraved.length ? " (engraved)" : ""}`,
     html,
   });
