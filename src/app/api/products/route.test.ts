@@ -30,7 +30,7 @@ vi.mock("@/lib/store", () => ({
 vi.mock("@/lib/admin-auth", () => ({ requireAdmin: m.requireAdmin, adminActor: m.adminActor }));
 vi.mock("@/lib/audit", () => ({ recordAdminAction: m.recordAdminAction }));
 
-import { PUT, DELETE } from "./route";
+import { GET, PUT, DELETE } from "./route";
 
 const req = (body: unknown) =>
   new NextRequest("https://shop.lebon-grace.com/api/products", {
@@ -124,5 +124,49 @@ describe("who gets the blame", () => {
     await PUT(req({ slug: "abc-jigsaw-board", price: 25 }));
     const [, , , , actor] = m.recordAdminAction.mock.calls[0] as [string, string, string, unknown, string];
     expect(actor).toBe("");
+  });
+});
+
+describe("GET /api/products — this is not public data", () => {
+  /**
+   * GET was unauthenticated while PUT and DELETE were gated, and proxy.ts
+   * allowlists the path with a comment saying exactly that — so it was a
+   * deliberate call, made on the reasonable-sounding belief that a shop's
+   * catalogue is public information.
+   *
+   * It stopped being true once supplier data landed in the rows. On
+   * 2026-08-13 the live endpoint returned 611 entries to an unauthenticated
+   * caller: the whole products table, including 569 retired products and
+   * `cj_price` on 515 of them. That is the supplier's cost, so it is the
+   * shop's margin, readable by anyone who guesses the URL.
+   *
+   * The only consumer is /admin, which already sends the cookie, so gating it
+   * costs nothing.
+   */
+  const getReq = () => new NextRequest("https://shop.lebon-grace.com/api/products");
+
+  it("refuses an unauthenticated caller", async () => {
+    m.requireAdmin.mockReturnValue(false);
+    const res = await GET(getReq());
+    expect(res.status).toBe(401);
+  });
+
+  it("does not even read the catalogue when refused", async () => {
+    // Status alone is not enough: a handler that fetches, then returns 401,
+    // still does the work and can leak through logs or timing.
+    m.requireAdmin.mockReturnValue(false);
+    await GET(getReq());
+    expect(m.getAll).not.toHaveBeenCalled();
+  });
+
+  it("still serves an authenticated admin — the precondition", async () => {
+    // Without this, the two above would pass on a handler that refuses
+    // everyone, which would silently break the admin product manager.
+    m.requireAdmin.mockReturnValue(true);
+    m.getAll.mockResolvedValueOnce([{ slug: "abc-jigsaw-board", cj_price: "3.10" }]);
+    const res = await GET(getReq());
+    expect(res.status).toBe(200);
+    expect(await res.json()).toHaveLength(1);
+    expect(m.getAll).toHaveBeenCalled();
   });
 });

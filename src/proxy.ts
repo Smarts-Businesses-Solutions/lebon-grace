@@ -60,7 +60,9 @@ const PUBLIC_API = new Set([
   // Mixed: a guest branch AND an admin branch in one handler, which gates
   // itself. `/api/orders` serves track (order id + phone) and account
   // (email + phone); its unfiltered listing is behind requireAdmin.
-  // `/api/products` serves the catalogue; PUT and DELETE are behind requireAdmin.
+  // `/api/products` is admin-only on EVERY verb since 2026-08-13 — its rows
+  // carry supplier ids and cost prices. It stays listed here because the path
+  // must reach the handler that does the gating.
   "/api/orders",
   "/api/products",
 

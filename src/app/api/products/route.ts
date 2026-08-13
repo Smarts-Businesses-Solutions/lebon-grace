@@ -3,7 +3,21 @@ import { catalog } from "@/lib/store";
 import { requireAdmin, adminActor } from "@/lib/admin-auth";
 import { recordAdminAction } from "@/lib/audit";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  // ADMIN ONLY. This was open, and PUT/DELETE being gated made it look
+  // considered — a shop's catalogue reads like public information.
+  //
+  // It is not. These rows carry `cj_pid` and `cj_price`: the supplier's id and
+  // the cost we pay. On 2026-08-13 this endpoint handed 611 records to an
+  // unauthenticated caller — the entire table, 569 retired products, and a cost
+  // price on 515 of them. Anyone could compute the margin on almost everything
+  // in the shop.
+  //
+  // Gating rather than field-stripping because the only consumer is /admin,
+  // which already sends the cookie. Nothing public reads this.
+  if (!requireAdmin(request)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   // The live catalog ships in src/lib/products.ts. This endpoint returns any
   // Supabase-style overrides/imports stored locally (imported data wins).
   const overrides = await catalog.getAll();
