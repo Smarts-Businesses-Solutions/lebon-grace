@@ -151,3 +151,40 @@ export const NOTIFIES_CUSTOMER: ReadonlySet<string> = new Set([
 export function notifiesCustomer(status: string): boolean {
   return NOTIFIES_CUSTOMER.has(status);
 }
+
+/**
+ * One display name per status, for customers and operators alike.
+ *
+ * The two surfaces had drifted. /track called `deposit_paid` "Payment
+ * Confirmed" and `processing` "Preparing"; /admin called the same states
+ * "Deposit Paid" and "Processing", and its dropdown just replaced underscores,
+ * so an operator read raw column values.
+ *
+ * "Deposit Paid" is the stale one — there is no deposit, Stripe collects the
+ * full amount. The customer page was already right, which is the opposite of
+ * where you would look for the correct wording.
+ *
+ * THE KEYS DO NOT CHANGE. `deposit_paid` stays as the stored value: track,
+ * admin, the operations pipeline and the metrics buckets all filter on it, and
+ * renaming it once made new orders invisible in all four simultaneously. The
+ * name was the only stale thing, so the name is the only thing fixed.
+ */
+const STATUS_LABEL: Record<string, string> = {
+  pending: "Awaiting payment",
+  deposit_paid: "Payment confirmed",
+  paid: "Payment confirmed",
+  processing: "Preparing",
+  shipped: "Shipped",
+  out_for_delivery: "Out for delivery",
+  delivered: "Delivered",
+  completed: "Completed",
+  cancelled: "Cancelled",
+  refunded: "Refunded",
+  failed: "Payment failed",
+};
+
+/** A human name for a status; falls back to the raw key made readable. */
+export function statusLabel(status: string | null | undefined): string {
+  const key = String(status || "").toLowerCase();
+  return STATUS_LABEL[key] || key.replace(/_/g, " ") || "Unknown";
+}

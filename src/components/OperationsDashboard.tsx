@@ -37,8 +37,8 @@ interface MetricsData {
 }
 
 const PIPELINE_STAGES = [
-  { key: "deposit_paid", label: "Deposit Paid", icon: "💳", color: "bg-yellow-400" },
-  { key: "processing", label: "Processing", icon: "📦", color: "bg-blue-400" },
+  { key: "deposit_paid", label: "Payment confirmed", icon: "💳", color: "bg-yellow-400" },
+  { key: "processing", label: "Preparing", icon: "📦", color: "bg-blue-400" },
   { key: "shipped", label: "Shipped", icon: "🚚", color: "bg-indigo-400" },
   { key: "out_for_delivery", label: "Out for Delivery", icon: "🛵", color: "bg-purple-400" },
   { key: "delivered", label: "Delivered", icon: "✅", color: "bg-green-400" },

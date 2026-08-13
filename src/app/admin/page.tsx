@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, Fragment } from "react";
 import ProductImage from "@/components/ProductImage";
 import Link from "next/link";
+import { statusLabel } from "@/lib/order-status";
 import OperationsDashboard from "@/components/OperationsDashboard";
 import { SETTABLE_STATUSES, notifiesCustomer, type OrderStatus } from "@/lib/order-status";
 
@@ -405,7 +406,7 @@ export default function AdminPage() {
                 <button onClick={() => setOrderStatusFilter("All")} className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${orderStatusFilter === "All" ? "bg-ink text-bone" : "bg-bone text-ink-soft border border-rule"}`}>All ({orders.length})</button>
                 {ORDER_STATUSES.filter(s => orderStatusCounts[s] > 0).map((s) => {
                   const sc = colorFor(s);
-                  return (<button key={s} onClick={() => setOrderStatusFilter(s)} className={`px-3 py-1.5 text-xs font-medium rounded-full capitalize ${orderStatusFilter === s ? "bg-ink text-bone" : `${sc.bg} ${sc.text} border border-rule`}`}>{s.replace(/_/g, " ")} ({orderStatusCounts[s]})</button>);
+                  return (<button key={s} onClick={() => setOrderStatusFilter(s)} className={`px-3 py-1.5 text-xs font-medium rounded-full capitalize ${orderStatusFilter === s ? "bg-ink text-bone" : `${sc.bg} ${sc.text} border border-rule`}`}>{statusLabel(s)} ({orderStatusCounts[s]})</button>);
                 })}
               </div>
               <input type="text" value={orderSearch} onChange={(e) => setOrderSearch(e.target.value)} placeholder="Search by name or phone..." className="px-4 py-2 border border-rule rounded-xl text-sm w-full sm:w-64 focus:border-sand-dark outline-none" />
@@ -445,7 +446,7 @@ export default function AdminPage() {
                         <td className="px-5 py-3"><span className={`px-2 py-0.5 rounded text-xs font-medium ${o.delivery_method === 'pickup' ? 'bg-blue-50 text-blue-700' : 'bg-paper-deep text-ink-soft'}`}>{o.delivery_method === 'pickup' ? 'Pickup' : 'Delivery'}</span></td>
                         <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}><select aria-label="Order status" value={o.status} onChange={(e) => updateOrderStatus(o.id, e.target.value)} disabled={updatingOrderId === o.id}
                           className={`px-2 py-1 rounded-lg text-xs font-medium border border-rule outline-none ${sc.bg} ${sc.text}`}>
-                          {ORDER_STATUSES.map((s) => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>)}
+                          {ORDER_STATUSES.map((s) => <option key={s} value={s}>{statusLabel(s)}</option>)}
                         </select></td>
                         <td className="px-5 py-3 text-ink-soft text-xs">{o.created_at ? new Date(o.created_at).toLocaleDateString("en-AE", { year: "numeric", month: "short", day: "numeric" }) : "-"}</td>
                         <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}>

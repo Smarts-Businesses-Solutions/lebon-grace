@@ -3,7 +3,7 @@
 import { useState } from "react";
 import WhatsAppLink from "@/components/WhatsAppLink";
 import Link from "next/link";
-import { STATUS_PRESENTATION, isOrderStatus } from "@/lib/order-status";
+import { statusLabel, STATUS_PRESENTATION, isOrderStatus } from "@/lib/order-status";
 
 const STATUS_STEPS = [
   { key: "deposit_paid", label: "Payment Confirmed", icon: "💳" },
@@ -161,7 +161,7 @@ export default function TrackClient() {
                     ? "bg-paper-deep text-ink-soft"
                     : "bg-blue-50 text-blue-700"
                 }`}>
-                  {order.status.replace(/_/g, " ")}
+                  {statusLabel(order.status)}
                 </span>
               </div>
 
@@ -230,8 +230,13 @@ export default function TrackClient() {
                 <div className="flex justify-between"><span className="text-ink-muted">Ordered</span><span className="text-ink">{formatDate(order.created_at)}</span></div>
                 <hr className="border-rule" />
                 <div className="flex justify-between"><span className="text-ink-muted">Total</span><span className="font-semibold text-ink">{formatPrice(order.total)}</span></div>
-                <div className="flex justify-between"><span className="text-[#5F7355]">✓ Paid (card)</span><span className="font-semibold text-[#5F7355]">{formatPrice(order.deposit_amount)}</span></div>
-                <div className="flex justify-between"><span className="text-[#C9A96E]">● Pay on delivery</span><span className="font-semibold text-[#C9A96E]">{formatPrice(order.cod_amount)}</span></div>
+                {/*
+                  This said "Paid (card) AED 2.00" and "Pay on delivery AED
+                  0.00" — the 50% deposit and cash-on-delivery model, deleted
+                  from checkout months ago. A customer reading their own order
+                  saw a line implying they might still owe something.
+                */}
+                <div className="flex justify-between"><span className="text-[#5F7355]">✓ Paid in full</span><span className="font-semibold text-[#5F7355]">{formatPrice(order.total)}</span></div>
               </div>
             </div>
 
