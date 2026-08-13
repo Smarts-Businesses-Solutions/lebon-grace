@@ -17,6 +17,17 @@ export default function PrivacyPage() {
 
       <section className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16 space-y-8">
         <div>
+          <h2 className="font-heading text-xl font-semibold tracking-tight mb-3">Who we are</h2>
+          <p className="text-charcoal text-sm leading-relaxed">
+            This website is operated by <strong>LEBON GRACE LLC</strong>, trading as Lebon Grace, a
+            company registered in the United Arab Emirates with its registered office at Sharjah Media
+            City, Al Messaned, Al Bataeh, Sharjah, United Arab Emirates. We are the controller of the
+            personal information described in this policy. You can reach us at{" "}
+            <a href="mailto:care@lebon-grace.com" className="underline">care@lebon-grace.com</a>.
+          </p>
+        </div>
+
+        <div>
           <h2 className="font-heading text-xl font-semibold tracking-tight mb-3">1. Information We Collect</h2>
           <p className="text-charcoal text-sm leading-relaxed">
             We collect information you provide directly to us, including your name, email address, phone number, shipping address, and any name you ask us to engrave. If you join our mailing list we store the email address you give us, and nothing else. We also collect certain information automatically when you visit our website, such as your IP address, browser type, and browsing activity. We never see or store your card details: those go directly to Stripe.

@@ -19,7 +19,12 @@ export default function TermsPage() {
         <div>
           <h2 className="font-heading text-xl font-semibold tracking-tight mb-3">1. Introduction</h2>
           <p className="text-charcoal text-sm leading-relaxed">
-            Welcome to Lebon Grace. By accessing or using our website and services, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our services.
+            Welcome to Lebon Grace, the trading name of <strong>LEBON GRACE LLC</strong>, a company
+            registered in the United Arab Emirates with its registered office at Sharjah Media City,
+            Al Messaned, Al Bataeh, Sharjah, United Arab Emirates (&ldquo;Lebon Grace&rdquo;,
+            &ldquo;we&rdquo;, &ldquo;us&rdquo;). By accessing or using our website and services, you
+            agree to be bound by these Terms of Service. If you do not agree to these terms, please do
+            not use our services.
           </p>
         </div>
 
