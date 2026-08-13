@@ -186,11 +186,29 @@ function KpiCard({ icon, label, value, sub, color }: { icon: string; label: stri
   );
 }
 
+/**
+ * What a chart shows when there is nothing to show.
+ *
+ * Every bar was floored at 2% height, so a period with no orders rendered a row
+ * of slivers under a title — indistinguishable from a chart that failed to
+ * load. On a shop with one order that is most of the dashboard, and "broken"
+ * and "quiet" are very different messages to open your morning with.
+ */
+function NoData({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="h-32 flex items-center justify-center">
+      <p className="text-xs text-ink-soft">{children}</p>
+    </div>
+  );
+}
+
 function MiniBarChart({ data, label, color = "bg-ink" }: { data: { label: string; value: number }[]; label: string; color?: string }) {
   const max = Math.max(...data.map((d) => d.value), 1);
+  const empty = data.length === 0 || data.every((d) => !d.value);
   return (
     <div className="bg-bone rounded-xl border border-rule p-5">
       <h3 className="text-sm font-semibold text-ink mb-4">{label}</h3>
+      {empty ? <NoData>Nothing recorded yet</NoData> : (
       <div className="space-y-2">
         {data.map((d, i) => (
           <div key={i} className="flex items-center gap-3">
@@ -202,6 +220,7 @@ function MiniBarChart({ data, label, color = "bg-ink" }: { data: { label: string
           </div>
         ))}
       </div>
+      )}
     </div>
   );
 }
@@ -358,6 +377,9 @@ export default function OperationsDashboard() {
         {/* Revenue Chart */}
         <div className="bg-bone rounded-xl border border-rule p-5">
           <h3 className="text-sm font-semibold text-ink mb-4">Revenue (Last 14 Days)</h3>
+          {revenueChart.every((d) => !d.amount) ? (
+            <NoData>No revenue in the last 14 days</NoData>
+          ) : (
           <div className="flex items-end gap-1 h-32">
             {revenueChart.map((d, i) => {
               const h = Math.max((d.amount / chartMax) * 100, 2);
@@ -369,11 +391,15 @@ export default function OperationsDashboard() {
               );
             })}
           </div>
+          )}
         </div>
 
         {/* Orders Chart */}
         <div className="bg-bone rounded-xl border border-rule p-5">
           <h3 className="text-sm font-semibold text-ink mb-4">Orders (Last 14 Days)</h3>
+          {ordersChart.every((d) => !d.count) ? (
+            <NoData>No orders in the last 14 days</NoData>
+          ) : (
           <div className="flex items-end gap-1 h-32">
             {ordersChart.map((d, i) => {
               const maxCount = Math.max(...ordersChart.map((o) => o.count), 1);
@@ -386,6 +412,7 @@ export default function OperationsDashboard() {
               );
             })}
           </div>
+          )}
         </div>
       </div>
 
