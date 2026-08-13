@@ -1,6 +1,63 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getProductBySlug } from "@/lib/products";
+import { getAppUrl } from "@/lib/app-url";
 import ProductDetailClient from "./ProductDetailClient";
+
+/**
+ * Per-product title, description, canonical and share card.
+ *
+ * Every product page used to serve the ROOT LAYOUT's metadata, so all 41 shared
+ * one title and one description. That cost two things that matter: a link
+ * shared on WhatsApp rendered a generic shop card rather than the puzzle, and
+ * Google saw 41 duplicate titles, which suppresses the lot of them.
+ *
+ * Unknown slugs return bare metadata rather than throwing — the page 404s a
+ * moment later, and a metadata crash would turn a clean 404 into a 500.
+ */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const product = getProductBySlug(slug);
+  if (!product) return { title: "Product not found" };
+
+  const base = getAppUrl();
+  const url = `${base}/shop/${product.slug}`;
+  const image = product.imageUrl?.startsWith("http")
+    ? product.imageUrl
+    : `${base}${product.imageUrl || ""}`;
+
+  // Descriptions are written for a person deciding whether to click, so the
+  // product's own copy comes first and the shop's promise second.
+  const description = (product.description || "").trim().slice(0, 180) ||
+    `${product.name} — hand-made wooden puzzle, made to order in the UAE.`;
+
+  return {
+    title: `${product.name} — AED ${product.price} | Lebon Grace`,
+    description,
+    alternates: { canonical: url },
+    // An unlisted product is deliberately invisible: already absent from the
+    // listings and the sitemap. Without this it would still be indexable, and
+    // the internal test item would end up in Google.
+    ...(product.unlisted ? { robots: { index: false, follow: false } } : {}),
+    openGraph: {
+      title: `${product.name} — AED ${product.price}`,
+      description,
+      url,
+      type: "website",
+      images: image ? [{ url: image, alt: product.name }] : [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${product.name} — AED ${product.price}`,
+      description,
+      images: image ? [image] : [],
+    },
+  };
+}
 
 /**
  * Server wrapper whose only job is the HTTP status.
@@ -40,9 +97,48 @@ export default async function ProductPage({
 }) {
   const { slug } = await params;
 
-  if (!getProductBySlug(slug)) {
+  const product = getProductBySlug(slug);
+  if (!product) {
     notFound();
   }
 
-  return <ProductDetailClient />;
+  const base = getAppUrl();
+  const image = product.imageUrl?.startsWith("http")
+    ? product.imageUrl
+    : `${base}${product.imageUrl || ""}`;
+
+  // schema.org/Product, so Google can show price and availability directly in
+  // results and an AI agent reading the page can answer "what does it cost"
+  // without parsing the layout.
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.description,
+    image: image ? [image] : undefined,
+    sku: product.slug,
+    brand: { "@type": "Brand", name: "Lebon Grace" },
+    offers: {
+      "@type": "Offer",
+      url: `${base}/shop/${product.slug}`,
+      priceCurrency: "AED",
+      price: String(product.price),
+      availability: "https://schema.org/InStock",
+      // Made to order, so this is a promise about lead time, not stock.
+      itemCondition: "https://schema.org/NewCondition",
+    },
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        // Next requires this for JSON-LD. The payload is our own catalogue
+        // data, not user input, and JSON.stringify escapes the closing tag
+        // sequence that would otherwise let a description break out.
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\u003c") }}
+      />
+      <ProductDetailClient />
+    </>
+  );
 }
