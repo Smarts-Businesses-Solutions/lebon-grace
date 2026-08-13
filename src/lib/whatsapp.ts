@@ -35,15 +35,24 @@ function formatPrice(amount: number): string {
 }
 
 function getStatusMessage(order: WhatsAppOrder): string {
+  // These messages quoted a payment split — "Paid now" and "Pay on delivery" —
+  // from the 50% deposit and cash-on-delivery model that no longer exists.
+  // Stripe collects the full amount, so the second line was always AED 0.00 and
+  // read as money still owed. The checkout panel, the /track summary and the
+  // admin each lost theirs earlier today; this was the last of it, and the only
+  // copy that arrives on the customer's phone.
   switch (order.status) {
     case "confirmation":
-      return `✅ Order Confirmed!\n\nHi ${order.customer_name}, your Lebon Grace order #${order.id.slice(0, 8)} has been confirmed.\n\n💰 Payment:\n• Paid now: ${formatPrice(order.deposit_amount)}\n• Pay on delivery: ${formatPrice(order.cod_amount)}\n\n📦 Delivery: ${order.delivery_method === "pickup" ? "Pickup" : "Delivery"}\n\nWe'll update you when your order ships!`;
+      return `✅ Order Confirmed!\n\nHi ${order.customer_name}, your Lebon Grace order #${order.id.slice(0, 8)} has been confirmed.\n\n💰 Paid in full: ${formatPrice(order.total)}\n\n📦 Delivery: ${order.delivery_method === "pickup" ? "Pickup" : "Delivery"}\n\nWe'll update you when your order ships!`;
     case "processing":
       return `📦 Order Update\n\nHi ${order.customer_name}, your order #${order.id.slice(0, 8)} is being prepared and will ship soon!`;
     case "shipped":
       return `🚚 Order Shipped!\n\nHi ${order.customer_name}, your order #${order.id.slice(0, 8)} is on its way!${order.tracking_number ? `\n\nTracking: ${order.tracking_number}` : ""}`;
     case "out_for_delivery":
-      return `🛵 Arriving Today!\n\nHi ${order.customer_name}, your order #${order.id.slice(0, 8)} is out for delivery.${order.cod_amount > 0 ? `\n\n💵 Please have ${formatPrice(order.cod_amount)} ready for the courier.` : ""}`;
+      // No "have cash ready" line: cod_amount is always 0 now, so the branch
+      // was dead — but it would have asked a customer who already paid in full
+      // to hand money to a courier.
+      return `🛵 Arriving Today!\n\nHi ${order.customer_name}, your order #${order.id.slice(0, 8)} is out for delivery.`;
     case "delivered":
       return `✅ Delivered!\n\nHi ${order.customer_name}, your order #${order.id.slice(0, 8)} has been delivered. We hope you love it!\n\nThank you for shopping with Lebon Grace 💛`;
     case "cancelled":

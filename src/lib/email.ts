@@ -231,10 +231,10 @@ const TEMPLATES: Record<
     subject: (id) => `Your order #${id} arrives today!`,
     title: "Arriving Today!",
     color: "#EA580C",
-    message: (o) =>
-      `Your order is out for delivery. ${
-        o.cod_amount > 0 ? `Please have ${formatPrice(o.cod_amount)} ready for the courier.` : ""
-      }`.trim(),
+    // No "have cash ready" line. cod_amount is always 0 since Stripe began
+    // collecting the full amount, so the branch was dead — but if it ever fired
+    // it would ask a customer who has already paid to hand money to a courier.
+    message: () => "Your order is out for delivery.",
   },
   delivered: {
     subject: (id) => `Thank you! Your order #${id} is delivered ✅`,
