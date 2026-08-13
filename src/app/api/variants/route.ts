@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { products } from "@/lib/products";
+import { products, getProductBySlug } from "@/lib/products";
 import { getVariantGroup } from "@/lib/variants";
 import { productVariants } from "@/lib/store";
 
@@ -69,7 +69,8 @@ export async function GET(request: NextRequest) {
     }
 
     // MDF products: surface explicit variant matrices from local store (Finish x Size)
-    const product = products.find((p) => p.slug === slug);
+    // Same reason as checkout: an unlisted product must still resolve.
+    const product = getProductBySlug(slug);
     if (product?.cjPid?.startsWith("MDF")) {
       const sb = await fetchLocalVariants(slug);
       if (sb) return NextResponse.json(sb);

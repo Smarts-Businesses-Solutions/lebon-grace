@@ -14,12 +14,26 @@ import { NextRequest } from "next/server";
 
 // Catalogue the route validates against. Kept tiny and explicit so a test
 // failure points at the rule that broke, not at a fixture that drifted.
-vi.mock("@/lib/products", () => ({
-  products: [
+// The route looks products up with getProductBySlug, not products.find, so that
+// an UNLISTED product (the internal AED 2 test item) is still sellable — it is
+// deliberately absent from `products`, which is the browsable set.
+//
+// Everything lives INSIDE the factory: vi.mock is hoisted above the file's
+// top-level declarations, so referring to one from here is a ReferenceError.
+//
+// The unlisted entry is the point of the mock: findable by slug, never in
+// `products`.
+vi.mock("@/lib/products", () => {
+  const CATALOGUE = [
     { slug: "abc-jigsaw-board", name: "ABC Jigsaw Board", price: 15, imageUrl: "/images/lasercut/abc-jigsaw-board-0.png" },
     { slug: "phone-case-clearance", name: "Phone Case Clearance", price: 5, imageUrl: "/images/clearance/phone-case-clearance-0.jpg" },
-  ],
-}));
+  ];
+  const UNLISTED = { slug: "internal-test-item", name: "Internal Test Item", price: 2, imageUrl: "/images/products/placeholder.svg", unlisted: true };
+  return {
+    products: CATALOGUE,
+    getProductBySlug: (slug: string) => [...CATALOGUE, UNLISTED].find((p) => p.slug === slug),
+  };
+});
 
 // Rate limiting is not under test; let every request through.
 vi.mock("@/lib/rate-limit", () => ({ rateLimit: () => null }));
@@ -245,5 +259,47 @@ describe("the delivery fee is computed by the server, not supplied by the caller
     const names = sentLineItems().map((l: { price_data: { product_data: { name: string } } }) =>
       l.price_data.product_data.name);
     expect(names).not.toContain("Shipping Fee");
+  });
+});
+
+describe("POST /api/checkout — the unlisted test product", () => {
+  /**
+   * The internal AED 2 item exists so the money path can be exercised on the
+   * live shop after every deploy. It is deliberately absent from `products`, so
+   * the checkout lookup HAS to go through getProductBySlug — the earlier
+   * `products.find` would have answered "Unknown product" and refused the sale.
+   *
+   * That is the regression this pins: unlisted must mean invisible, never
+   * unsellable.
+   */
+  it("can be bought, even though it is not in the browsable catalogue", async () => {
+    const res = await POST(post({
+      items: [{ slug: "internal-test-item", name: "Internal Test Item", price: 2, quantity: 1 }],
+      subtotal: 2, shipping: 0, deliveryMethod: "pickup",
+    }));
+
+    expect(res.status, "an unlisted product must still be sellable").not.toBe(400);
+    // 2 AED in fils, taken from the catalogue rather than the client.
+    expect(sentLineItems()[0].price_data.unit_amount).toBe(200);
+  });
+
+  it("charges the catalogue price for it, not a client-supplied one", async () => {
+    // The test item is the most attractive thing in the shop to forge a price
+    // on, precisely because it is cheap and unlisted.
+    await POST(post({
+      items: [{ slug: "internal-test-item", price: 0.01, quantity: 1 }],
+      subtotal: 0.01, shipping: 0, deliveryMethod: "pickup",
+    }));
+    expect(sentLineItems()[0].price_data.unit_amount).toBe(200);
+  });
+
+  it("still refuses a slug that is in no catalogue at all", async () => {
+    // PRECONDITION for the two above: proves the lookup did not simply start
+    // accepting everything.
+    const res = await POST(post({
+      items: [{ slug: "not-a-real-product", price: 2, quantity: 1 }],
+      subtotal: 2, shipping: 0, deliveryMethod: "pickup",
+    }));
+    expect(res.status).toBe(400);
   });
 });

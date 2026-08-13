@@ -34,7 +34,10 @@ import { NextRequest } from "next/server";
  */
 vi.mock("@/lib/store", () => ({ productVariants: { getBySlug: vi.fn(async () => []) } }));
 vi.mock("@/lib/variants", () => ({ getVariantGroup: vi.fn(() => null) }));
-vi.mock("@/lib/products", () => ({ products: [] }));
+// getProductBySlug as well as products: the route resolves by slug so that an
+// unlisted product still works. An empty catalogue is right for this suite —
+// it asserts no outbound request is made — but the export must exist.
+vi.mock("@/lib/products", () => ({ products: [], getProductBySlug: () => undefined }));
 
 import { GET } from "./route";
 

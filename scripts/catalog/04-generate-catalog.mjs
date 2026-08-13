@@ -40,7 +40,10 @@ const counts = {};
 // costs bundle size for nothing. `hidden` remains in the type because a product
 // can still be hidden individually without being retired.
 const visible = rows.filter((r) => !r.hidden);
-for (const r of visible) counts[r.category] = (counts[r.category] || 0) + 1;
+// Unlisted products ARE emitted (they must be purchasable by direct URL) but
+// must not inflate a category count — a shopper clicking "Clearance (3)" and
+// finding two items would be looking at a bug they cannot see.
+for (const r of visible.filter((r) => !r.unlisted)) counts[r.category] = (counts[r.category] || 0) + 1;
 
 const ICONS = { "MDF Cutouts": "🪵", "DIY Kits": "🎨", "Kids Toys": "🧸" };
 
@@ -67,7 +70,7 @@ const productLines = visible.map((r) => {
     description: "${esc(r.description)}",
     details: { ${detailPairs} },
     imagePlaceholder: { bg: "${esc(ph.bg)}", initials: "${esc(ph.initials)}" },
-    imageUrl: "${esc(r.image_url)}"${r.cj_pid ? `, cjPid: "${esc(r.cj_pid)}"` : ""}${r.cj_price ? `, cjPrice: "${esc(r.cj_price)}"` : ""}${r.hidden ? ", hidden: true" : ""} },`;
+    imageUrl: "${esc(r.image_url)}"${r.cj_pid ? `, cjPid: "${esc(r.cj_pid)}"` : ""}${r.cj_price ? `, cjPrice: "${esc(r.cj_price)}"` : ""}${r.hidden ? ", hidden: true" : ""}${r.unlisted ? ", unlisted: true" : ""} },`;
 }).join("\n");
 
 const categoryLines = Object.entries(counts)
@@ -95,13 +98,38 @@ export interface Product {
   imagePlaceholder: { bg: string; initials: string; };
   imageUrl: string; cjPid?: string; cjPrice?: string;
   hidden?: boolean;
+  /** Purchasable by direct URL, but absent from every listing. See migration 0011. */
+  unlisted?: boolean;
 }
 
-export const products: Product[] = [
+/**
+ * Every emitted product, including unlisted ones. Deliberately NOT exported:
+ * anything that lists, searches or maps over the catalogue should get the safe
+ * set, so a new surface cannot leak an unlisted product by forgetting a filter.
+ */
+const allProducts: Product[] = [
 ${productLines}
 ]
 
-export function getProductBySlug(slug: string): Product | undefined { return products.find((p) => p.slug === slug && !p.hidden); }
+/**
+ * What a customer may browse. Excludes unlisted products.
+ *
+ * This is the export used ~99 times across the app — listings, search, the
+ * sitemap, the homepage tiles — so making IT the filtered set means every one
+ * of those is correct by default. The alternative, filtering at each call site,
+ * is one forgotten filter away from putting the internal test item on the
+ * shop page.
+ */
+export const products: Product[] = allProducts.filter((p) => !p.unlisted);
+
+/**
+ * Looks up ONE product by slug, across everything including unlisted.
+ *
+ * This is the only route to an unlisted product, which is exactly what makes
+ * "purchasable by direct URL but never listed" work: the product page and the
+ * checkout price lookup both come through here.
+ */
+export function getProductBySlug(slug: string): Product | undefined { return allProducts.find((p) => p.slug === slug && !p.hidden); }
 export function getProductsByCategory(category: string): Product[] {
   if (category === "All") return products.filter((p) => !p.hidden);
   return products.filter((p) => p.category === category && !p.hidden);

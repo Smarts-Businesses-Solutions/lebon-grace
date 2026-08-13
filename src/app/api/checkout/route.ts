@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { BRAND } from "@/lib/brand";
 import Stripe from "stripe";
 import { stripe } from "@/lib/stripe";
-import { products } from "@/lib/products";
+import { getProductBySlug } from "@/lib/products";
 import { rateLimit } from "@/lib/rate-limit";
 import { deliveryFeeFor } from "@/lib/delivery";
 import { getAppUrl } from "@/lib/app-url";
@@ -89,7 +89,11 @@ export async function POST(request: NextRequest) {
     if (!item.slug) {
       return NextResponse.json({ error: "Each item must identify a product" }, { status: 400 });
     }
-    const catalogProduct = products.find((p) => p.slug === item.slug);
+    // getProductBySlug, not products.find: `products` is the LISTED set, so an
+    // unlisted item (the internal test product) would not be found here and the
+    // order would be refused as "not in the catalogue". This lookup is the price
+    // authority — it must see everything sellable, not everything browsable.
+    const catalogProduct = getProductBySlug(item.slug);
     if (!catalogProduct) {
       return NextResponse.json({ error: `Unknown product: ${item.slug}` }, { status: 400 });
     }

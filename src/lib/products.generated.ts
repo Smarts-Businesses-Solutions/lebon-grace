@@ -1,7 +1,7 @@
 // AUTO-GENERATED FROM POSTGRES — DO NOT EDIT BY HAND.
 // Source of truth: the `products` table in the self-hosted Postgres.
 // Regenerate:  node scripts/catalog/04-generate-catalog.mjs
-// Generated:   2026-08-08T19:06:50.292Z  (41 products)
+// Generated:   2026-08-13T06:35:57.704Z  (42 products)
 
 export interface Product {
   slug: string; name: string; variant: string; price: number;
@@ -18,9 +18,21 @@ export interface Product {
   imagePlaceholder: { bg: string; initials: string; };
   imageUrl: string; cjPid?: string; cjPrice?: string;
   hidden?: boolean;
+  /** Purchasable by direct URL, but absent from every listing. See migration 0011. */
+  unlisted?: boolean;
 }
 
-export const products: Product[] = [
+/**
+ * Every emitted product, including unlisted ones. Deliberately NOT exported:
+ * anything that lists, searches or maps over the catalogue should get the safe
+ * set, so a new surface cannot leak an unlisted product by forgetting a filter.
+ */
+const allProducts: Product[] = [
+  { slug: "internal-test-item", name: "Internal Test Item", variant: "Good Value", price: 2, category: "Clearance", stock: 999,
+    description: "Internal use only. Used to verify that payment, the Stripe webhook, order creation, e-mail and the admin queue all still work on the live site. Not a real product; please do not order.",
+    details: { made: "n/a", material: "n/a", dimensions: "100mm x 100mm" },
+    imagePlaceholder: { bg: "#C9A96E", initials: "IN" },
+    imageUrl: "/images/products/placeholder.svg", unlisted: true },
   { slug: "abc-jigsaw-board", name: "ABC Jigsaw Board", variant: "Good Value", price: 15, category: "Alphabet & Literacy", stock: 999,
     description: "The whole alphabet, one piece at a time.\n\nA full A to Z jigsaw board where every letter interlocks with the next. Repetition that never feels like drilling.",
     details: { age: "3-6", made: "Made to order in 2 to 3 working days", images: ["/images/lasercut/abc-jigsaw-board-0.png", "/images/lasercut/abc-jigsaw-board-1.png", "/images/lasercut/abc-jigsaw-board-2.png"], material: "3mm MDF, sanded by hand", dimensions: "196mm x 149mm", personalisation: "Add a name free of charge, just ask at checkout" },
@@ -83,7 +95,7 @@ export const products: Product[] = [
     imageUrl: "/images/lasercut/counting-hands-board-2-0.jpg" },
   { slug: "duck-shape-board", name: "Duck Shape Board", variant: "Good Value", price: 15, category: "Animals & Nature", stock: 999,
     description: "One duck. A handful of pieces. A very proud toddler.\n\nA simple, generous puzzle for the very beginning. Few enough pieces to finish, satisfying enough to do again.",
-    details: { age: "1-3", made: "Made to order in 2 to 3 working days", images: ["/images/lasercut/duck-shape-board-0.jpg", "/images/lasercut/duck-shape-board-1.jpg", "/images/lasercut/duck-shape-board-2.jpg"], material: "3mm MDF, sanded by hand", personalisation: "Add a name free of charge, just ask at checkout" },
+    details: { age: "1-3", made: "Made to order in 2 to 3 working days", images: ["/images/lasercut/duck-shape-board-0.jpg", "/images/lasercut/duck-shape-board-1.jpg", "/images/lasercut/duck-shape-board-2.jpg"], material: "3mm MDF, sanded by hand", dimensions: "130mm x 130mm", personalisation: "Add a name free of charge, just ask at checkout" },
     imagePlaceholder: { bg: "#C9A96E", initials: "DU" },
     imageUrl: "/images/lasercut/duck-shape-board-0.jpg" },
   { slug: "elephant-number-puzzle", name: "Elephant Number Puzzle", variant: "Good Value", price: 15, category: "Numbers & Counting", stock: 999,
@@ -228,7 +240,25 @@ export const products: Product[] = [
     imageUrl: "/images/lasercut/watermelon-maths-game-0.png" },
 ]
 
-export function getProductBySlug(slug: string): Product | undefined { return products.find((p) => p.slug === slug && !p.hidden); }
+/**
+ * What a customer may browse. Excludes unlisted products.
+ *
+ * This is the export used ~99 times across the app — listings, search, the
+ * sitemap, the homepage tiles — so making IT the filtered set means every one
+ * of those is correct by default. The alternative, filtering at each call site,
+ * is one forgotten filter away from putting the internal test item on the
+ * shop page.
+ */
+export const products: Product[] = allProducts.filter((p) => !p.unlisted);
+
+/**
+ * Looks up ONE product by slug, across everything including unlisted.
+ *
+ * This is the only route to an unlisted product, which is exactly what makes
+ * "purchasable by direct URL but never listed" work: the product page and the
+ * checkout price lookup both come through here.
+ */
+export function getProductBySlug(slug: string): Product | undefined { return allProducts.find((p) => p.slug === slug && !p.hidden); }
 export function getProductsByCategory(category: string): Product[] {
   if (category === "All") return products.filter((p) => !p.hidden);
   return products.filter((p) => p.category === category && !p.hidden);
