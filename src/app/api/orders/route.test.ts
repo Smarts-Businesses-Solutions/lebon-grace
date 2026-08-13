@@ -15,7 +15,7 @@ import { NextRequest } from "next/server";
 const m = vi.hoisted(() => ({
   getById: vi.fn(async (_id: string) => ({ id: "o1", status: "processing" }) as Record<string, unknown> | null),
   update: vi.fn(async (_id: string, _u: Record<string, unknown>) => ({ id: "o1", status: "shipped" }) as Record<string, unknown> | null),
-  getAll: vi.fn(async () => []),
+  getAll: vi.fn(async () => [] as Record<string, unknown>[]),
   getBySessionId: vi.fn(async () => null),
   getByEmailPhone: vi.fn(async () => []),
   getByTracking: vi.fn(async () => null),
@@ -26,6 +26,7 @@ const m = vi.hoisted(() => ({
   notifyWhatsApp: vi.fn(async (_order: Record<string, unknown>) => undefined),
   requireAdmin: vi.fn(() => true),
   rateLimit: vi.fn(() => null),
+  itemsGetAll: vi.fn(async () => [] as Record<string, unknown>[]),
 }));
 
 vi.mock("@/lib/store", () => ({
@@ -34,6 +35,7 @@ vi.mock("@/lib/store", () => ({
     getBySessionId: m.getBySessionId, getByEmailPhone: m.getByEmailPhone,
     getByTracking: m.getByTracking, insert: m.insert,
   },
+  orderItems: { getAll: m.itemsGetAll },
 }));
 vi.mock("@/lib/email", () => ({ sendOrderEmail: m.sendOrderEmail }));
 vi.mock("@/lib/whatsapp", () => ({ notifyWhatsApp: m.notifyWhatsApp }));
@@ -171,5 +173,56 @@ describe("PUT /api/orders — the status has to be a real one", () => {
   it("allows an update that does not touch the status at all", async () => {
     const res = await PUT(put({ id: "o1", tracking_number: "ABC123" }));
     expect(res.status).toBe(200);
+  });
+});
+
+describe("GET /api/orders — what is actually in the order", () => {
+  /**
+   * The orders table showed totals and a status dropdown and nothing else.
+   * To find out what a customer had actually bought — which piece, what name
+   * to engrave — an operator had to read the confirmation e-mail or the
+   * cutting queue, because clicking an order did nothing.
+   *
+   * That is the complaint the research names directly: makers "open order
+   * after order just to see what to make". The engraving is the whole product
+   * here, so it cannot live only in a queue that empties.
+   *
+   * Items ride along with the admin listing rather than a per-order fetch: the
+   * dashboard already pulls every item once and groups in memory, and a click
+   * that costs a round trip discourages the looking.
+   */
+  it("includes each order's items for an admin", async () => {
+    m.requireAdmin.mockReturnValue(true);
+    m.getAll.mockResolvedValue([{ id: "ord_1", customer_name: "Eva", total: 2, status: "deposit_paid" }]);
+    m.itemsGetAll.mockResolvedValue([
+      { order_id: "ord_1", product_name: "Internal Test Item", quantity: 1, price: 2, personalisation: "Eva" },
+      { order_id: "ord_other", product_name: "Not this one", quantity: 9, price: 99 },
+    ]);
+
+    const res = await GET(new NextRequest("https://shop.lebon-grace.com/api/orders"));
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body[0].items, "no items on the order").toHaveLength(1);
+    expect(body[0].items[0].product_name).toBe("Internal Test Item");
+    // The engraving is the reason to look at all.
+    expect(body[0].items[0].personalisation).toBe("Eva");
+  });
+
+  it("does not leak another order's items into this one", async () => {
+    m.requireAdmin.mockReturnValue(true);
+    m.getAll.mockResolvedValue([{ id: "ord_1", customer_name: "Eva", total: 2, status: "deposit_paid" }]);
+    m.itemsGetAll.mockResolvedValue([{ order_id: "ord_other", product_name: "Someone else's", quantity: 1, price: 5 }]);
+
+    const body = await (await GET(new NextRequest("https://shop.lebon-grace.com/api/orders"))).json();
+    expect(body[0].items).toEqual([]);
+  });
+
+  it("still refuses an unauthenticated caller", async () => {
+    // Precondition: adding items must not have opened the listing up. It
+    // returns every customer's name, phone and address.
+    m.requireAdmin.mockReturnValue(false);
+    const res = await GET(new NextRequest("https://shop.lebon-grace.com/api/orders"));
+    expect(res.status).toBe(401);
   });
 });

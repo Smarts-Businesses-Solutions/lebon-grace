@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, Fragment } from "react";
 import ProductImage from "@/components/ProductImage";
 import Link from "next/link";
 import OperationsDashboard from "@/components/OperationsDashboard";
@@ -60,7 +60,11 @@ const colorFor = (status: string): { bg: string; text: string } =>
   (STATUS_COLORS as Record<string, { bg: string; text: string }>)[status] ?? STATUS_COLORS.deposit_paid;
 
 interface Product { slug: string; name: string; price: number; category: string; stock: number; imageUrl: string; cjPid?: string; cjPrice?: string; description?: string; hidden?: boolean; unlisted?: boolean; }
+interface OrderItem { product_name: string; quantity: number; price: number; personalisation?: string | null; }
 interface Order { id: string; stripe_session_id?: string; customer_name: string; customer_email?: string; customer_phone: string; total: number;
+  items?: OrderItem[];
+  delivery_address?: string;
+  emirate?: string;
   // deposit_amount and cod_amount still EXIST as columns and still hold data
   // from the deposit/COD era, but nothing reads them: Stripe collects the full
   // amount. Left out of the type so they cannot quietly come back into the UI.
@@ -78,6 +82,7 @@ export default function AdminPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [showRetired, setShowRetired] = useState(false);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [openOrderId, setOpenOrderId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState({ text: "", type: "info" });
@@ -422,23 +427,80 @@ export default function AdminPage() {
                       <tr><td colSpan={9} className="px-5 py-8 text-center text-ink-soft">No orders found</td></tr>
                     ) : filteredOrders.map((o) => {
                       const sc = colorFor(o.status);
-                      return (<tr key={o.id} className="border-b border-rule/40 hover:bg-paper/50">
-                        <td className="px-5 py-3 font-mono text-xs text-ink-soft">{String(o.id).slice(0, 8)}</td>
+                      const open = openOrderId === o.id;
+                      return (<Fragment key={o.id}>
+                      <tr
+                        className="border-b border-rule/40 hover:bg-paper/50 cursor-pointer"
+                        // The whole row opens it. The status <select> and the
+                        // WhatsApp link stop propagation below, so changing a
+                        // status does not also toggle the panel.
+                        onClick={() => setOpenOrderId(open ? null : o.id)}
+                      >
+                        <td className="px-5 py-3 font-mono text-xs text-ink-soft">
+                          <span className="mr-1 inline-block w-2 text-ink-soft">{open ? "▾" : "▸"}</span>
+                          {String(o.id).slice(0, 8)}
+                        </td>
                         <td className="px-5 py-3"><p className="font-medium text-ink">{o.customer_name}</p><p className="text-ink-soft text-xs">{o.customer_phone}</p></td>
                         <td className="px-5 py-3 font-semibold text-ink">AED {o.total}</td>
                         <td className="px-5 py-3"><span className={`px-2 py-0.5 rounded text-xs font-medium ${o.delivery_method === 'pickup' ? 'bg-blue-50 text-blue-700' : 'bg-paper-deep text-ink-soft'}`}>{o.delivery_method === 'pickup' ? 'Pickup' : 'Delivery'}</span></td>
-                        <td className="px-5 py-3"><select aria-label="Order status" value={o.status} onChange={(e) => updateOrderStatus(o.id, e.target.value)} disabled={updatingOrderId === o.id}
+                        <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}><select aria-label="Order status" value={o.status} onChange={(e) => updateOrderStatus(o.id, e.target.value)} disabled={updatingOrderId === o.id}
                           className={`px-2 py-1 rounded-lg text-xs font-medium border border-rule outline-none ${sc.bg} ${sc.text}`}>
                           {ORDER_STATUSES.map((s) => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>)}
                         </select></td>
                         <td className="px-5 py-3 text-ink-soft text-xs">{o.created_at ? new Date(o.created_at).toLocaleDateString("en-AE", { year: "numeric", month: "short", day: "numeric" }) : "-"}</td>
-                        <td className="px-5 py-3">
+                        <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}>
                           <a href={`https://wa.me/${(o.customer_phone || "").replace(/\D/g, "").replace(/^0/, "971")}?text=${encodeURIComponent(`Hi ${o.customer_name}! Your Lebon Grace order #${String(o.id).slice(0, 8)} — status: ${o.status.replace(/_/g, " ")}. Total: AED ${o.total}, paid in full.`)}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 px-2 py-1 bg-[#25D366]/10 text-[#25D366] rounded-lg text-xs font-medium hover:bg-[#25D366]/20 transition-colors">
                             <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.941 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.67-.167-.67-.167h-.57c-.197 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.273-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.904-9.884 2.605 0 5.06 1.023 6.9 2.863a9.835 9.835 0 012.863 6.914c-.003 5.45-4.437 9.884-9.89 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.924c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.926 0-.026 0-.055 0-.083A11.942 11.942 0 0021.85 5.737"/></svg>
                             Message
                           </a>
                         </td>
-                      </tr>);
+                      </tr>
+                      {open && (
+                        <tr className="border-b border-rule/40 bg-paper/40">
+                          <td colSpan={7} className="px-5 py-4">
+                            <div className="grid gap-4 sm:grid-cols-3 text-xs">
+                              <div className="sm:col-span-2">
+                                <p className="font-semibold text-ink mb-2">What to make</p>
+                                {(o.items?.length ?? 0) === 0 ? (
+                                  // Not the same as "no items": it means the
+                                  // webhook saved an order with nothing to cut,
+                                  // which is the B-18 alarm and needs saying.
+                                  <p className="text-red-700">No items recorded — check this order before cutting.</p>
+                                ) : (
+                                  <ul className="space-y-1.5">
+                                    {o.items!.map((it, n) => (
+                                      <li key={n} className="flex flex-wrap items-baseline gap-2">
+                                        <span className="text-ink font-medium">{it.quantity} x {it.product_name}</span>
+                                        <span className="text-ink-soft">AED {it.price}</span>
+                                        {it.personalisation && (
+                                          <span className="px-2 py-0.5 rounded bg-ink text-bone font-semibold tracking-wide">
+                                            ENGRAVE: {it.personalisation}
+                                          </span>
+                                        )}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                )}
+                              </div>
+                              <div>
+                                <p className="font-semibold text-ink mb-2">Where it goes</p>
+                                <p className="text-ink-soft">
+                                  {o.delivery_method === "pickup"
+                                    ? "Collection from the workshop"
+                                    : [o.delivery_address, o.emirate].filter(Boolean).join(", ") || "No address recorded"}
+                                </p>
+                                {o.customer_email && <p className="text-ink-soft mt-2">{o.customer_email}</p>}
+                                {o.tracking_number && (
+                                  <p className="text-ink-soft mt-2">
+                                    {o.courier_name || "Courier"}: {o.tracking_number}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                      </Fragment>);
                     })}
                   </tbody>
                 </table>

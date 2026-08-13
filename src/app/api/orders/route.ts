@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { orders as orderStore } from "@/lib/store";
+import { orders as orderStore, orderItems} from "@/lib/store";
 import { sendOrderEmail } from "@/lib/email";
 import { notifyWhatsApp } from "@/lib/whatsapp";
 import { requireAdmin, adminActor } from "@/lib/admin-auth";
@@ -55,7 +55,37 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const all = await orderStore.getAll();
-  return NextResponse.json(all);
+
+  // Each order carries its contents. Without this the admin table showed a
+  // total and a status and nothing else, so finding out WHICH piece a customer
+  // bought — and what name to engrave — meant opening the confirmation e-mail.
+  // The engraving is the product here; it cannot live only in a cutting queue
+  // that empties as work is done.
+  //
+  // One grouped fetch rather than a call per order: the dashboard already reads
+  // every item once and groups in memory, and a click that costs a round trip
+  // discourages looking.
+  let items: Awaited<ReturnType<typeof orderItems.getAll>> = [];
+  try {
+    items = await orderItems.getAll();
+  } catch (err) {
+    // A missing items table must not take the orders list down — the list is
+    // how the shop is run.
+    console.error("[orders] could not read order items:", err);
+  }
+
+  const byOrder = new Map<string, typeof items>();
+  for (const it of items) {
+    const key = String((it as { order_id?: string }).order_id || "");
+    if (!key) continue;
+    const bucket = byOrder.get(key);
+    if (bucket) bucket.push(it);
+    else byOrder.set(key, [it]);
+  }
+
+  return NextResponse.json(
+    all.map((o) => ({ ...o, items: byOrder.get(String(o.id)) || [] }))
+  );
 }
 
 // PUT: Update order status (admin only)
