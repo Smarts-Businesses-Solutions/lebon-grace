@@ -59,8 +59,12 @@ const STATUS_COLORS = {
 const colorFor = (status: string): { bg: string; text: string } =>
   (STATUS_COLORS as Record<string, { bg: string; text: string }>)[status] ?? STATUS_COLORS.deposit_paid;
 
-interface Product { slug: string; name: string; price: number; category: string; stock: number; imageUrl: string; cjPid?: string; cjPrice?: string; description?: string; }
-interface Order { id: string; stripe_session_id?: string; customer_name: string; customer_email?: string; customer_phone: string; total: number; deposit_amount: number; cod_amount: number; status: string; delivery_method?: string; tracking_number?: string; courier_name?: string; created_at: string; }
+interface Product { slug: string; name: string; price: number; category: string; stock: number; imageUrl: string; cjPid?: string; cjPrice?: string; description?: string; hidden?: boolean; unlisted?: boolean; }
+interface Order { id: string; stripe_session_id?: string; customer_name: string; customer_email?: string; customer_phone: string; total: number;
+  // deposit_amount and cod_amount still EXIST as columns and still hold data
+  // from the deposit/COD era, but nothing reads them: Stripe collects the full
+  // amount. Left out of the type so they cannot quietly come back into the UI.
+  status: string; delivery_method?: string; tracking_number?: string; courier_name?: string; created_at: string; }
 type TabType = "dashboard" | "products" | "orders" | "analytics";
 
 export default function AdminPage() {
@@ -72,6 +76,7 @@ export default function AdminPage() {
   const [namedLogins, setNamedLogins] = useState(false);
   const [authenticated, setAuthenticated] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
+  const [showRetired, setShowRetired] = useState(false);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -194,14 +199,29 @@ export default function AdminPage() {
     setUpdatingOrderId(null);
   };
 
+  /**
+   * The admin listed all 611 rows, 569 of them retired. Category counts and the
+   * price distribution were computed over that, so Analytics reported "Fashion
+   * & Accessories 102" for products nobody can buy — none of them puzzles.
+   *
+   * Sellable is the default view. Retired stock is still reachable, but it has
+   * to be asked for.
+   */
+  const sellableProducts = useMemo(
+    () => products.filter((p) => !p.hidden && !p.unlisted),
+    [products]
+  );
+  const shownProducts = showRetired ? products : sellableProducts;
+  const retiredCount = products.length - sellableProducts.length;
+
   const catCounts: Record<string, number> = useMemo(() => {
-    const c: Record<string, number> = {}; products.forEach((p) => { c[p.category] = (c[p.category] || 0) + 1; }); return c;
-  }, [products]);
-  const filteredProducts = useMemo(() => products.filter((p) => {
+    const c: Record<string, number> = {}; shownProducts.forEach((p) => { c[p.category] = (c[p.category] || 0) + 1; }); return c;
+  }, [shownProducts]);
+  const filteredProducts = useMemo(() => shownProducts.filter((p) => {
     const mc = productFilter === "All" || p.category === productFilter;
     const ms = !productSearch || p.name.toLowerCase().includes(productSearch.toLowerCase());
     return mc && ms;
-  }), [products, productFilter, productSearch]);
+  }), [shownProducts, productFilter, productSearch]);
   const filteredOrders = useMemo(() => orders.filter((o) => {
     const ms = orderStatusFilter === "All" || o.status === orderStatusFilter;
     const msearch = !orderSearch || (o.customer_name || "").toLowerCase().includes(orderSearch.toLowerCase()) || (o.customer_phone || "").includes(orderSearch);
@@ -212,8 +232,8 @@ export default function AdminPage() {
   }, [orders]);
   const priceRanges = useMemo(() => {
     const r = [{ l: "AED 0-25", m: 0, M: 25 }, { l: "AED 25-50", m: 25, M: 50 }, { l: "AED 50-100", m: 50, M: 100 }, { l: "AED 100-200", m: 100, M: 200 }, { l: "AED 200+", m: 200, M: 9999 }];
-    return r.map((x) => ({ ...x, count: products.filter((p) => p.price >= x.m && p.price < x.M).length }));
-  }, [products]);
+    return r.map((x) => ({ ...x, count: shownProducts.filter((p) => p.price >= x.m && p.price < x.M).length }));
+  }, [shownProducts]);
 
   // LOGIN
   if (!authenticated) {
@@ -305,6 +325,21 @@ export default function AdminPage() {
               </div>
               <input type="text" value={productSearch} onChange={(e) => setProductSearch(e.target.value)} placeholder="Search products..." className="px-4 py-2 border border-rule rounded-xl text-sm w-full sm:w-64 focus:border-sand-dark outline-none" />
             </div>
+            <div className="mb-3 flex items-center gap-3 text-xs text-ink-soft">
+              <span>
+                Showing <strong className="text-ink">{filteredProducts.length}</strong>{" "}
+                {showRetired ? "of all products" : "sellable products"}
+              </span>
+              {retiredCount > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setShowRetired((v) => !v)}
+                  className="underline underline-offset-2 hover:text-ink transition-colors"
+                >
+                  {showRetired ? "Hide" : `Show ${retiredCount} retired`}
+                </button>
+              )}
+            </div>
             <div className="bg-bone rounded-xl border border-rule shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -377,8 +412,6 @@ export default function AdminPage() {
                     <th className="text-left px-5 py-3 font-semibold text-ink-soft text-xs uppercase">Order</th>
                     <th className="text-left px-5 py-3 font-semibold text-ink-soft text-xs uppercase">Customer</th>
                     <th className="text-left px-5 py-3 font-semibold text-ink-soft text-xs uppercase">Total</th>
-                    <th className="text-left px-5 py-3 font-semibold text-ink-soft text-xs uppercase">Deposit</th>
-                    <th className="text-left px-5 py-3 font-semibold text-ink-soft text-xs uppercase">COD</th>
                     <th className="text-left px-5 py-3 font-semibold text-ink-soft text-xs uppercase">Method</th>
                     <th className="text-left px-5 py-3 font-semibold text-ink-soft text-xs uppercase">Status</th>
                     <th className="text-left px-5 py-3 font-semibold text-ink-soft text-xs uppercase">Date</th>
@@ -393,8 +426,6 @@ export default function AdminPage() {
                         <td className="px-5 py-3 font-mono text-xs text-ink-soft">{String(o.id).slice(0, 8)}</td>
                         <td className="px-5 py-3"><p className="font-medium text-ink">{o.customer_name}</p><p className="text-ink-soft text-xs">{o.customer_phone}</p></td>
                         <td className="px-5 py-3 font-semibold text-ink">AED {o.total}</td>
-                        <td className="px-5 py-3 text-ink font-medium">AED {o.deposit_amount}</td>
-                        <td className="px-5 py-3 text-sand font-medium">AED {o.cod_amount}</td>
                         <td className="px-5 py-3"><span className={`px-2 py-0.5 rounded text-xs font-medium ${o.delivery_method === 'pickup' ? 'bg-blue-50 text-blue-700' : 'bg-paper-deep text-ink-soft'}`}>{o.delivery_method === 'pickup' ? 'Pickup' : 'Delivery'}</span></td>
                         <td className="px-5 py-3"><select aria-label="Order status" value={o.status} onChange={(e) => updateOrderStatus(o.id, e.target.value)} disabled={updatingOrderId === o.id}
                           className={`px-2 py-1 rounded-lg text-xs font-medium border border-rule outline-none ${sc.bg} ${sc.text}`}>
@@ -402,7 +433,7 @@ export default function AdminPage() {
                         </select></td>
                         <td className="px-5 py-3 text-ink-soft text-xs">{o.created_at ? new Date(o.created_at).toLocaleDateString("en-AE", { year: "numeric", month: "short", day: "numeric" }) : "-"}</td>
                         <td className="px-5 py-3">
-                          <a href={`https://wa.me/${(o.customer_phone || "").replace(/\D/g, "").replace(/^0/, "971")}?text=${encodeURIComponent(`Hi ${o.customer_name}! Your Lebon Grace order #${String(o.id).slice(0, 8)} — status: ${o.status.replace(/_/g, " ")}. Total: AED ${o.total} (Paid: AED ${o.deposit_amount}, COD: AED ${o.cod_amount}).`)}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 px-2 py-1 bg-[#25D366]/10 text-[#25D366] rounded-lg text-xs font-medium hover:bg-[#25D366]/20 transition-colors">
+                          <a href={`https://wa.me/${(o.customer_phone || "").replace(/\D/g, "").replace(/^0/, "971")}?text=${encodeURIComponent(`Hi ${o.customer_name}! Your Lebon Grace order #${String(o.id).slice(0, 8)} — status: ${o.status.replace(/_/g, " ")}. Total: AED ${o.total}, paid in full.`)}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 px-2 py-1 bg-[#25D366]/10 text-[#25D366] rounded-lg text-xs font-medium hover:bg-[#25D366]/20 transition-colors">
                             <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.941 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.67-.167-.67-.167h-.57c-.197 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.273-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.904-9.884 2.605 0 5.06 1.023 6.9 2.863a9.835 9.835 0 012.863 6.914c-.003 5.45-4.437 9.884-9.89 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.924c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.926 0-.026 0-.055 0-.083A11.942 11.942 0 0021.85 5.737"/></svg>
                             Message
                           </a>

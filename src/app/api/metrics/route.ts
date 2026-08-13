@@ -42,17 +42,10 @@ export async function GET(request: NextRequest) {
 
     // ─── Financial Metrics ───
     const totalRevenue = allOrders.reduce((s, o) => s + Number(o.total || 0), 0);
-    const totalDeposits = allOrders.reduce((s, o) => s + Number(o.deposit_amount || 0), 0);
     const deliveredStatuses = ["delivered", "completed"];
     const pendingStatuses = ["deposit_paid", "processing", "shipped", "out_for_delivery"];
 
-    const codPending = allOrders
-      .filter((o) => pendingStatuses.includes(o.status))
-      .reduce((s, o) => s + Number(o.cod_amount || 0), 0);
 
-    const codCollected = allOrders
-      .filter((o) => deliveredStatuses.includes(o.status))
-      .reduce((s, o) => s + Number(o.cod_amount || 0), 0);
 
     const avgOrderValue = allOrders.length > 0 ? Math.round(totalRevenue / allOrders.length) : 0;
 
@@ -103,18 +96,6 @@ export async function GET(request: NextRequest) {
     }).length;
     const deliveryOrders = allOrders.length - pickupOrders;
 
-    // ─── COD Metrics ───
-    const codTotal = allOrders.reduce((s, o) => s + Number(o.cod_amount || 0), 0);
-    const codCollectionRate = codTotal > 0 ? Math.round((codCollected / codTotal) * 100) : 0;
-    const codOutstanding = allOrders
-      .filter((o) => o.status === "delivered")
-      .map((o) => ({
-        id: String(o.id).slice(0, 8),
-        customer: o.customer_name,
-        amount: Number(o.cod_amount || 0),
-        days: Math.floor((now.getTime() - createdAt(o.updated_at || o.created_at).getTime()) / (24 * 60 * 60 * 1000)),
-      }))
-      .filter((o) => o.amount > 0);
 
     // ─── Customer Metrics ───
     const customerMap = new Map<string, { name: string; phone: string; orders: number; total: number; lastOrder: string }>();
@@ -233,11 +214,16 @@ export async function GET(request: NextRequest) {
     if (ordersAwaiting > 0) {
       alerts.push({ type: "warning", message: `${ordersAwaiting} order${ordersAwaiting > 1 ? "s" : ""} awaiting CJ processing` });
     }
-    if (codOutstanding.length > 0) {
-      const totalCOD = codOutstanding.reduce((s, o) => s + o.amount, 0);
-      if (totalCOD > 500) {
-        alerts.push({ type: "danger", message: `AED ${totalCOD} COD outstanding — collections needed` });
-      }
+    // The COD-collections alert that stood here is gone with the model. What an
+    // operator of a made-to-order workshop actually needs warning about is a
+    // piece that has been waiting too long to be cut.
+    const productionQueue = buildProductionQueue(allOrders, items);
+    const stale = productionQueue.filter((q) => q.ageDays >= 3);
+    if (stale.length > 0) {
+      alerts.push({
+        type: "danger",
+        message: `${stale.length} order${stale.length > 1 ? "s" : ""} waiting 3+ days to be cut`,
+      });
     }
     if (lowStockProducts.length > 0 && lowStockProducts[0].stock <= 3) {
       alerts.push({ type: "warning", message: `${lowStockProducts.filter((p) => p.stock <= 3).length} products critically low stock` });
@@ -252,9 +238,6 @@ export async function GET(request: NextRequest) {
         revenueWeek,
         revenueMonth,
         revenueTotal: totalRevenue,
-        depositsCollected: totalDeposits,
-        codPending,
-        codCollected,
         avgOrderValue,
         ordersToday,
         ordersWeek,
@@ -264,7 +247,7 @@ export async function GET(request: NextRequest) {
       pipeline: statusCounts,
       // What to cut today, in what order (A-15). Built from the orders and
       // items already fetched above, so it costs no extra query.
-      queue: buildProductionQueue(allOrders, items),
+      queue: productionQueue,
       fulfillment: {
         avgDays: avgFulfillmentDays,
         awaiting: ordersAwaiting,
@@ -272,12 +255,6 @@ export async function GET(request: NextRequest) {
         deliverySuccessRate,
         pickupOrders,
         deliveryOrders,
-      },
-      cod: {
-        collectionRate: codCollectionRate,
-        outstandingAmount: codPending,
-        outstandingCount: codOutstanding.length,
-        outstanding: codOutstanding.slice(0, 5),
       },
       customers: {
         total: totalCustomers,

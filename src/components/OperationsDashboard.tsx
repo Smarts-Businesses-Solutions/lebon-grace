@@ -6,7 +6,7 @@ import type { QueueEntry } from "@/lib/production-queue";
 interface MetricsData {
   financial: {
     revenueToday: number; revenueWeek: number; revenueMonth: number; revenueTotal: number;
-    depositsCollected: number; codPending: number; codCollected: number; avgOrderValue: number;
+    avgOrderValue: number;
     ordersToday: number; ordersWeek: number; ordersMonth: number; ordersTotal: number;
   };
   pipeline: Record<string, { count: number; total: number }>;
@@ -274,7 +274,7 @@ export default function OperationsDashboard() {
     );
   }
 
-  const { financial: fin, pipeline, queue, fulfillment: fulf, cod, customers: cust, products: prod, charts, alerts } = data;
+  const { financial: fin, pipeline, queue, fulfillment: fulf,  customers: cust, products: prod, charts, alerts } = data;
 
   // Pipeline data for visual
   const pipelineMax = Math.max(...PIPELINE_STAGES.map((s) => pipeline[s.key]?.count || 0), 1);
@@ -313,9 +313,21 @@ export default function OperationsDashboard() {
       {/* ─── KPI Cards ─── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-3">
         <KpiCard icon="💰" label="Revenue (Month)" value={fmt(fin.revenueMonth)} sub={`${fin.ordersMonth} orders`} />
-        <KpiCard icon="💳" label="Deposits Collected" value={fmt(fin.depositsCollected)} color="text-sand-dark" />
-        <KpiCard icon="🟡" label="COD Pending" value={fmt(fin.codPending)} sub={`${cod.outstandingCount} orders`} color="text-sand" />
-        <KpiCard icon="✅" label="COD Collected" value={fmt(fin.codCollected)} sub={`${cod.collectionRate}% rate`} color="text-sand-dark" />
+        {/*
+          Three tiles stood here — Deposits Collected, COD Pending, COD
+          Collected — from the 50% deposit and cash-on-delivery model that no
+          longer exists. Stripe takes the full amount, so "deposits" was a
+          restatement of revenue and both COD figures were permanently zero.
+          Replaced by the one number a made-to-order workshop opens the page
+          for: how many pieces are waiting to be cut, and is anything late.
+        */}
+        <KpiCard
+          icon="🪚"
+          label="To Cut"
+          value={String(queue.length)}
+          sub={queue.length ? `oldest ${Math.max(...queue.map((q) => q.ageDays))}d` : "nothing waiting"}
+          color={queue.some((q) => q.ageDays >= 3) ? "text-red-700" : undefined}
+        />
         <KpiCard icon="📊" label="Avg Order Value" value={fmt(fin.avgOrderValue)} sub={`${fin.ordersTotal} total`} />
         <KpiCard icon="📈" label="Today" value={String(fin.ordersToday)} sub={fmt(fin.revenueToday)} />
       </div>
@@ -418,28 +430,12 @@ export default function OperationsDashboard() {
           </div>
         </div>
 
-        {/* COD Outstanding */}
-        <div className="bg-bone rounded-xl border border-rule p-5">
-          <h3 className="text-sm font-semibold text-ink mb-3">💵 COD Outstanding</h3>
-          {cod.outstanding.length > 0 ? (
-            <div className="space-y-2">
-              {cod.outstanding.map((o, i) => (
-                <div key={i} className="flex items-center justify-between px-3 py-2 bg-paper rounded-lg">
-                  <div>
-                    <span className="text-xs font-medium text-ink-soft">#{o.id}</span>
-                    <span className="text-[10px] text-ink-soft ml-2">{o.customer}</span>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-xs font-bold text-sand">{fmt(o.amount)}</span>
-                    <span className="text-[10px] text-ink-soft ml-1">{o.days}d ago</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-xs text-ink-soft py-4 text-center">No outstanding COD</p>
-          )}
-        </div>
+        {/*
+          The "COD Outstanding" panel that stood here tracked money owed on
+          delivery. Stripe now collects the full amount at checkout, so nothing
+          is ever outstanding and it rendered an empty box forever — an operator
+          reading it would reasonably wonder what it was waiting for.
+        */}
       </div>
 
       {/* ─── Bottom Row ─── */}
