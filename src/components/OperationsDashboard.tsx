@@ -12,7 +12,7 @@ interface MetricsData {
   pipeline: Record<string, { count: number; total: number }>;
   queue: QueueEntry[];
   fulfillment: {
-    avgDays: number; awaiting: number; inTransit: number; deliverySuccessRate: number;
+    avgDays: number; awaiting: number; inTransit: number; deliverySuccessRate: number; deliveredCount: number;
     pickupOrders: number; deliveryOrders: number;
   };
   cod: {
@@ -194,6 +194,17 @@ function KpiCard({ icon, label, value, sub, color }: { icon: string; label: stri
  * load. On a shop with one order that is most of the dashboard, and "broken"
  * and "quiet" are very different messages to open your morning with.
  */
+/**
+ * A percentage, or an em dash when there is nothing to compute it from.
+ *
+ * "0%" and "no data yet" are different claims and the screen was making the
+ * first while meaning the second — Delivery Success 0% on a shop where nothing
+ * has been delivered yet, Repeat Rate 0% with two customers.
+ */
+function rate(pct: number, basis: number): string {
+  return basis > 0 ? `${pct}%` : "—";
+}
+
 function NoData({ children }: { children: React.ReactNode }) {
   return (
     <div className="h-32 flex items-center justify-center">
@@ -451,7 +462,7 @@ export default function OperationsDashboard() {
           <h3 className="text-sm font-semibold text-ink mb-3">📦 Fulfillment</h3>
           <div className="space-y-3">
             <div className="flex justify-between"><span className="text-xs text-ink-soft">Avg Delivery Time</span><span className="text-sm font-bold">{fulf.avgDays} days</span></div>
-            <div className="flex justify-between"><span className="text-xs text-ink-soft">Success Rate</span><span className="text-sm font-bold text-ink">{fulf.deliverySuccessRate}%</span></div>
+            <div className="flex justify-between"><span className="text-xs text-ink-soft">Success Rate</span><span className="text-sm font-bold text-ink">{rate(fulf.deliverySuccessRate, fulf.deliveredCount)}</span></div>
             <div className="flex justify-between"><span className="text-xs text-ink-soft">Pickup Orders</span><span className="text-sm font-bold">{fulf.pickupOrders}</span></div>
             <div className="flex justify-between"><span className="text-xs text-ink-soft">Delivery Orders</span><span className="text-sm font-bold">{fulf.deliveryOrders}</span></div>
           </div>
@@ -540,9 +551,9 @@ export default function OperationsDashboard() {
       {/* ─── Customer Stats ─── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <KpiCard icon="👥" label="Total Customers" value={String(cust.total)} />
-        <KpiCard icon="🔄" label="Repeat Customers" value={String(cust.repeatCount)} sub={`${cust.repeatRate}% rate`} />
-        <KpiCard icon="📊" label="Repeat Rate" value={`${cust.repeatRate}%`} />
-        <KpiCard icon="🚚" label="Delivery Success" value={`${fulf.deliverySuccessRate}%`} />
+        <KpiCard icon="🔄" label="Repeat Customers" value={String(cust.repeatCount)} sub={rate(cust.repeatRate, cust.total) + " rate"} />
+        <KpiCard icon="📊" label="Repeat Rate" value={rate(cust.repeatRate, cust.total)} sub={cust.total ? `${cust.total} customers` : "no customers yet"} />
+        <KpiCard icon="🚚" label="Delivery Success" value={rate(fulf.deliverySuccessRate, fulf.deliveredCount)} sub={fulf.deliveredCount ? `${fulf.deliveredCount} delivered` : "none delivered yet"} />
       </div>
     </div>
   );

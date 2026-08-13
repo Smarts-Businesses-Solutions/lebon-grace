@@ -253,6 +253,10 @@ export async function GET(request: NextRequest) {
         awaiting: ordersAwaiting,
         inTransit: ordersInTransit,
         deliverySuccessRate,
+        // The COUNT, not just the rate. 0% is arithmetically true when nothing
+        // has been delivered yet, and reads as "every delivery failed" — which
+        // on a made-to-order shop with a 2-3 day lead time is exactly backwards.
+        deliveredCount: deliveredOrders.length,
         pickupOrders,
         deliveryOrders,
       },

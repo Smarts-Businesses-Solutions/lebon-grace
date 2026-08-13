@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Fraunces, Karla } from "next/font/google";
 import { CartProvider } from "@/lib/cart-context";
+import StorefrontChrome from "@/components/StorefrontChrome";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import WhatsAppButton from "@/components/WhatsAppButton";
@@ -90,9 +91,9 @@ export default function RootLayout({
     <html lang="en" className={`${display.variable} ${text.variable}`}>
       <body className="min-h-screen flex flex-col bg-offwhite text-dark antialiased">
           <CartProvider>
-            <Header />
+            <StorefrontChrome><Header /></StorefrontChrome>
             <main className="flex-1">{children}</main>
-            <Footer />
+            <StorefrontChrome><Footer /></StorefrontChrome>
             <WhatsAppButton />
           </CartProvider>
         <Analytics />
