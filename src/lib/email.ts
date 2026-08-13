@@ -2,6 +2,7 @@ import { Resend } from "resend";
 import { getAppUrl } from "./app-url";
 import { CONTACT } from "./contact";
 import { operatorEmails } from "./admin-auth";
+import { makeUnsubscribeToken } from "./unsubscribe-token";
 import { generateWhatsAppLink } from "./whatsapp";
 
 /**
@@ -109,6 +110,34 @@ export function fromAddress(): string {
  * directly — so those two kept reporting refusals as successes. Any new sender
  * goes through here; nothing should call `mailer().emails.send` itself.
  */
+/**
+ * RFC 8058 one-click unsubscribe headers, for MARKETING mail only.
+ *
+ * Deliberately not applied to order confirmations or operator alerts: you
+ * cannot unsubscribe from a receipt, and offering it on transactional mail
+ * teaches recipients that the button does nothing.
+ *
+ * Both headers are required together. `List-Unsubscribe` alone is the old
+ * mailto/HTTP convention; adding `List-Unsubscribe-Post` is what tells Gmail
+ * and Yahoo the URL will honour a bare POST, which is what makes the native
+ * "Unsubscribe" button appear beside the sender name. Without it the recipient
+ * reaches for "report spam" instead, and complaints are what actually damage a
+ * sending domain.
+ *
+ * Returns nothing when no token can be made (no secret configured), rather
+ * than a broken link — a header pointing at a URL that cannot work is worse
+ * than no header.
+ */
+export function unsubscribeHeaders(recipient: string): Record<string, string> {
+  const token = makeUnsubscribeToken(recipient);
+  if (!token) return {};
+  const url = `${getAppUrl()}/api/newsletter/unsubscribe?token=${encodeURIComponent(token)}`;
+  return {
+    "List-Unsubscribe": `<${url}>, <mailto:${CONTACT.email}?subject=unsubscribe>`,
+    "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+  };
+}
+
 export async function deliver(label: string, payload: Parameters<Resend["emails"]["send"]>[0]): Promise<boolean> {
   try {
     const { error } = await mailer().emails.send(payload);

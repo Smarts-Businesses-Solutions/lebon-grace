@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fromAddress, deliver } from "@/lib/email";
+import { fromAddress, deliver, unsubscribeHeaders } from "@/lib/email";
 import { rateLimit } from "@/lib/rate-limit";
 import { getProductBySlug } from "@/lib/products";
 import { isDeliverableEmail } from "@/lib/email-address";
@@ -144,6 +144,9 @@ export async function POST(request: NextRequest) {
   const sent = await deliver("cart-recovery", {
     from: fromAddress(),
     to: [email],
+    // Marketing-class mail, so it carries one-click unsubscribe. Order
+    // confirmations deliberately do not.
+    headers: unsubscribeHeaders(email),
     subject: "You left items in your cart! 🛒 — Lebon Grace",
     html,
   });
