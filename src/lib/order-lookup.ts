@@ -38,3 +38,28 @@ export function orderRefMatches(id: string, ref: string): boolean {
   const a = String(id).toLowerCase();
   return a === ref || a.startsWith(ref);
 }
+
+/**
+ * The uuid range a partial reference covers, or null if it is not a prefix.
+ *
+ * The first attempt at short-reference lookup used `ilike("id", "ref%")`. That
+ * is wrong against a uuid COLUMN — Postgres has no ilike for uuid and answers
+ * `operator does not exist: uuid ~~* unknown`. PostgREST surfaces that as an
+ * error, which the caller read as "no rows", so the fix passed its unit tests
+ * and still 404'd on the live site.
+ *
+ * uuid comparison is bytewise, so a hex prefix is a contiguous range. Padding
+ * with zeros gives the lowest member and with fs the highest. No cast, and the
+ * primary key index still applies.
+ */
+export function uuidPrefixRange(ref: string): { low: string; high: string } | null {
+  const hex = String(ref || "").toLowerCase().replace(/-/g, "");
+  // 32 is a complete uuid: that is an exact lookup, not a range.
+  if (!hex || hex.length >= 32 || !/^[0-9a-f]+$/.test(hex)) return null;
+
+  const shape = (pad: string) => {
+    const full = hex + pad.repeat(32 - hex.length);
+    return `${full.slice(0, 8)}-${full.slice(8, 12)}-${full.slice(12, 16)}-${full.slice(16, 20)}-${full.slice(20)}`;
+  };
+  return { low: shape("0"), high: shape("f") };
+}

@@ -18,7 +18,7 @@
 import { randomUUID } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { phoneMatches } from "./phone";
-import { normaliseOrderRef, orderRefMatches } from "./order-lookup";
+import { normaliseOrderRef, orderRefMatches, uuidPrefixRange } from "./order-lookup";
 
 const SUPABASE_URL =
   process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
@@ -260,12 +260,18 @@ export const orders = {
       return phoneMatches(exact.customer_phone || "", phone) ? exact : null;
     }
 
-    // Short reference: match on the prefix, then let the PHONE decide. The
-    // phone is the credential here; the reference only narrows the search.
+    // Short reference: a uuid RANGE, not ilike. `id` is a uuid column and
+    // Postgres has no ilike for uuid — it errors, PostgREST reports the error,
+    // and this read it as "no rows". uuid comparison is bytewise, so a hex
+    // prefix is a contiguous range, which needs no cast and uses the index.
+    const range = uuidPrefixRange(ref);
+    if (!range) return null;
+
     const { data, error } = await db()
       .from("orders")
       .select("*")
-      .ilike("id", `${ref}%`)
+      .gte("id", range.low)
+      .lte("id", range.high)
       .limit(20);
     if (error || !data?.length) return null;
 
