@@ -328,12 +328,20 @@ export default function CheckoutPage() {
               <div className="flex justify-between"><span className="text-warm-gray">{deliveryMethod === "pickup" ? "Pickup (Free)" : "Shipping"}</span><span className={shipping === 0 ? "text-[#5F7355] font-medium" : ""}>{shipping === 0 ? "Free" : formatPrice(shipping)}</span></div>
               <div className="flex justify-between font-medium border-t border-border pt-2"><span>Total</span><span>{formatPrice(total)}</span></div>
             </div>
+            {/*
+              The "Payment Split" panel that stood here was left over from the
+              50% deposit + cash-on-delivery model, which no longer exists —
+              Stripe collects the full amount. It read "Now (card): AED 2 | On
+              delivery: AED 0", which invites the shopper to wonder what the
+              second number means and whether they owe more later. Removed
+              rather than reworded: there is no split to explain.
+            */}
             <div className="mt-4 p-3 bg-offwhite rounded-sm">
-              <p className="text-xs text-charcoal font-medium mb-1">Payment Split</p>
-              <p className="text-xs text-warm-gray">Now (card): {formatPrice(depositNow)} | On delivery: {formatPrice(payOnDelivery)}</p>
-              {deliveryMethod === "pickup" && (
-                <p className="text-xs text-[#5F7355] mt-1">Free pickup, no shipping fee.</p>
-              )}
+              <p className="text-xs text-charcoal">
+                {deliveryMethod === "pickup"
+                  ? "Paid in full today. Free collection from our workshop — no delivery fee."
+                  : "Paid in full today. Nothing to pay on delivery."}
+              </p>
             </div>
           </div>
         </div>

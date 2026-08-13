@@ -65,6 +65,7 @@ type TabType = "dashboard" | "products" | "orders" | "analytics";
 
 export default function AdminPage() {
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   // Whether the server has named operators configured (AD-02). Until it does,
   // showing an e-mail field would offer a way in that cannot work.
@@ -230,8 +231,28 @@ export default function AdminPage() {
             <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Your e-mail" autoComplete="username"
               className="w-full px-4 py-3 border border-rule rounded-xl text-sm mb-3 focus:border-sand-dark focus:ring-2 focus:ring-sand-dark/20 outline-none transition-all" autoFocus />
           )}
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={namedLogins ? "Your password" : "Enter admin password"} autoComplete="current-password"
-            className="w-full px-4 py-3 border border-rule rounded-xl text-sm mb-4 focus:border-sand-dark focus:ring-2 focus:ring-sand-dark/20 outline-none transition-all" autoFocus={!namedLogins} />
+          {/*
+            Reveal toggle. A 24-character generated password typed blind is the
+            difference between signing in and a support message — and the first
+            login attempt on this shop failed on a mistyped e-mail nobody could
+            see either.
+          */}
+          <div className="relative mb-4">
+            <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder={namedLogins ? "Your password" : "Enter admin password"} autoComplete="current-password"
+              className="w-full px-4 py-3 pr-20 border border-rule rounded-xl text-sm focus:border-sand-dark focus:ring-2 focus:ring-sand-dark/20 outline-none transition-all" autoFocus={!namedLogins} />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              // Outside the tab order: keyboard users move e-mail -> password ->
+              // Sign In, and a control between them is an obstacle, not a help.
+              tabIndex={-1}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              aria-pressed={showPassword}
+              className="absolute inset-y-0 right-0 px-4 text-xs font-medium text-ink-soft hover:text-ink transition-colors"
+            >
+              {showPassword ? "Hide" : "Show"}
+            </button>
+          </div>
           {message.text && <p className="text-red-700 text-sm mb-3">{message.text}</p>}
           <button type="submit" className="w-full py-3 bg-ink text-bone rounded-xl text-sm font-semibold hover:bg-ink-soft transition-colors">Sign In</button>
           <p className="text-center text-ink-soft text-xs mt-6"><Link href="/" className="text-ink underline underline-offset-2 hover:text-sand-dark">← Back to store</Link></p>

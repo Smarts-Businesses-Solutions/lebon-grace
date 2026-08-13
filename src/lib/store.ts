@@ -18,6 +18,7 @@
 import { randomUUID } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { phoneMatches } from "./phone";
+import { normaliseOrderRef, orderRefMatches } from "./order-lookup";
 
 const SUPABASE_URL =
   process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
@@ -248,10 +249,30 @@ export const orders = {
   },
 
   async getByTracking(id: string, phone: string): Promise<OrderRow | null> {
-    const order = await this.getById(id);
-    if (!order) return null;
-    if (!phoneMatches(order.customer_phone || "", phone)) return null;
-    return order;
+    // The customer holds the PRINTED reference — "#c6568cbb" — not the uuid.
+    // An exact match on that finds nothing, which is why the first real order
+    // on the live shop could not be tracked with its own order number.
+    const ref = normaliseOrderRef(id);
+    if (!ref) return null;
+
+    const exact = await this.getById(ref);
+    if (exact) {
+      return phoneMatches(exact.customer_phone || "", phone) ? exact : null;
+    }
+
+    // Short reference: match on the prefix, then let the PHONE decide. The
+    // phone is the credential here; the reference only narrows the search.
+    const { data, error } = await db()
+      .from("orders")
+      .select("*")
+      .ilike("id", `${ref}%`)
+      .limit(20);
+    if (error || !data?.length) return null;
+
+    const match = data.find(
+      (o) => orderRefMatches(String(o.id), ref) && phoneMatches(o.customer_phone || "", phone)
+    );
+    return (match as OrderRow) || null;
   },
 
   async insert(order: Partial<OrderRow>): Promise<OrderRow> {
