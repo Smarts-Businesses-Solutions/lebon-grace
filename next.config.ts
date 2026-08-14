@@ -75,6 +75,51 @@ const nextConfig: NextConfig = {
     ];
   },
 
+  /**
+   * Short campaign links: /go/:channel -> the homepage, UTM-tagged.
+   *
+   * Umami has a UTM report and a referrer report, but the referrer is useless
+   * for exactly the traffic the launch is aiming at. Links opened inside the
+   * TikTok, Instagram and Facebook in-app browsers arrive with no Referer or a
+   * generic app one, and this site sends `strict-origin-when-cross-origin`
+   * anyway. UTM parameters travel in the URL, so they survive all of that.
+   *
+   * The indirection exists so the captions stay clean. Pasting
+   * `?utm_source=tiktok&utm_medium=social&utm_campaign=launch-2026` into a post
+   * reads like a marketing funnel, which is the opposite of how these films are
+   * written. `shop.lebon-grace.com/go/tt` reads like a link.
+   *
+   * TEMPORARY, NOT PERMANENT. A 308 is cached by the browser indefinitely, so a
+   * later campaign could never reuse `/go/yt` for anyone who clicked the first
+   * one. These must stay 307.
+   *
+   * `/go/` is a namespace, not a bare path, so a channel code can never collide
+   * with a future product slug.
+   */
+  async redirects() {
+    const CAMPAIGN = "launch-2026";
+    // channel code -> [utm_source, utm_content]
+    // utm_content separates two placements on the same platform; the main
+    // YouTube upload and the Short are different posts of different films.
+    const CHANNELS: Record<string, [string, string]> = {
+      yt: ["youtube", "main-upload"],
+      yts: ["youtube", "shorts"],
+      li: ["linkedin", "post"],
+      x: ["x", "post"],
+      tt: ["tiktok", "bio"],
+      ig: ["instagram", "bio"],
+      fb: ["facebook", "post"],
+    };
+
+    return Object.entries(CHANNELS).map(([code, [source, content]]) => ({
+      source: `/go/${code}`,
+      destination:
+        `/?utm_source=${source}&utm_medium=social` +
+        `&utm_campaign=${CAMPAIGN}&utm_content=${content}`,
+      permanent: false,
+    }));
+  },
+
   // Proxy the Umami tracker through this domain.
   //
   // Umami listens on loopback and on the internal docker network only, so it has

@@ -36,7 +36,7 @@ export type Making =
       /** File under public/stock/. */
       src: string;
       frames: number;
-      /** Small factual caption, lower-left. Omitted where the shot should run. */
+      /** Small factual caption, lower-right. Every shot carries one. */
       label?: string;
       /** Gentle drift so a 4s clip does not feel locked off. */
       drift?: "in" | "out";
@@ -72,8 +72,8 @@ export const MAKING: Making[] = [
   { kind: "clip",  src: "stock/order.mp4", frames: 120, label: "Order received", drift: "in" },
   { kind: "clip",  src: "stock/sheet.mp4", frames: 105, label: "3mm MDF · one sheet", drift: "out" },
 
-  // The machine, working. No caption — this is the shot people watch.
-  { kind: "clip",  src: "stock/cut.mp4",   frames: 135, drift: "in" },
+  // The machine, working. The shot people watch.
+  { kind: "clip",  src: "stock/cut.mp4",   frames: 135, label: "Nothing is kept in stock", drift: "in" },
 
   // The name, being engraved. Generated on LTX-2.3 Fast, because this shot does
   // not exist in free stock: 104 candidates were searched and every one was
@@ -88,7 +88,7 @@ export const MAKING: Making[] = [
   // to text and why more than one take was budgeted.
   { kind: "clip", src: "stock/name.mp4", frames: 165, label: "Engraving · free", drift: "in" },
 
-  { kind: "clip",  src: "stock/lift.mp4",  frames: 105, drift: "out" },
+  { kind: "clip",  src: "stock/lift.mp4",  frames: 105, label: "Cut to order", drift: "out" },
   { kind: "clip",  src: "stock/sand.mp4",  frames: 135, label: "Sanded by hand", drift: "in" },
 
   { kind: "plate", src: "shots/alphabet-learning-board-0.png", frames: 120, label: "AED 15" },
@@ -103,14 +103,15 @@ export const MAKING: Making[] = [
 
   // The plain white version, and a child colouring one in.
   //
-  // NO CAPTION on either beat, deliberately. Every product's photo set
-  // includes this white colour-in variant, so it is already on the listing —
-  // but no copy anywhere on the site describes it, names it, or says whether
-  // crayons are included. Captioning it would put a claim in the film that the
-  // shop does not make, which is the one thing this film is built not to do.
-  // Add the caption once the site says it.
-  { kind: "plate", src: "shots/abc-jigsaw-board-1.png", frames: 120 },
-  { kind: "clip",  src: "stock/colour.mp4", frames: 135, drift: "out" },
+  // These two carry DELIVERY facts rather than anything about colouring, and
+  // that is deliberate. Every product's photo set includes this white colour-in
+  // variant, so it is already on the listing — but no copy anywhere on the site
+  // describes it, names it, or says whether crayons are included. A caption
+  // like "colour it in" would put a claim in the film the shop does not make.
+  // Swap these two for something about the colour-in version once the site
+  // describes it.
+  { kind: "plate", src: "shots/abc-jigsaw-board-1.png", frames: 120, label: "Free collection" },
+  { kind: "clip",  src: "stock/colour.mp4", frames: 135, label: "UAE delivery · AED 20", drift: "out" },
 
   // "in the United Arab Emirates", not "in Dubai". The site says "Dubai
   // workshop" while the company is registered in Sharjah; naming the country

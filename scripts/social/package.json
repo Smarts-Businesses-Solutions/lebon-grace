@@ -1,0 +1,15 @@
+{
+  "name": "lebon-grace-social",
+  "private": true,
+  "type": "module",
+  "description": "Launch flywheel: preview posts, host media on R2, publish via Post for Me. Kept out of the shop's own package.json so a posting script cannot pull a dependency into the deployed app.",
+  "scripts": {
+    "preview": "node flywheel.mjs",
+    "accounts": "node flywheel.mjs accounts",
+    "upload": "node r2-upload.mjs",
+    "upload:dry": "node r2-upload.mjs --dry"
+  },
+  "dependencies": {
+    "aws4fetch": "^1.0.20"
+  }
+}

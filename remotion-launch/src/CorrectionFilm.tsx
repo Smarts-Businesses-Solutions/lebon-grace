@@ -104,6 +104,44 @@ const Band: React.FC<{ pad: number; bottom: number; children: React.ReactNode }>
   </div>
 );
 
+/**
+ * A plain fact, on a slip of brand paper, for the shots that carry no strike.
+ *
+ * Seven of the twelve shots had no type at all. That was defensible while the
+ * strikes were the only voice, but it left long stretches with nothing on
+ * screen. These fill them without competing: Karla rather than Fraunces, so a
+ * caption never reads as a fifth correction.
+ *
+ * Lower-RIGHT and full size, matching The Making. The two films sit next to
+ * each other in a feed and a caption that jumps corner to corner between them
+ * reads as a mistake.
+ */
+const Caption: React.FC<{
+  text: string; frames: number; size: number;
+  bottom: number; right: number; maxWidth: number; minWidth: number;
+}> = ({ text, frames, size, bottom, right, maxWidth, minWidth }) => {
+  const frame = useCurrentFrame();
+  // No fade. Any ramp leaves opacity at 0 on frame 0, so every cut point
+  // showed a bare frame. The picture hard-cuts here, so the type does too.
+  const o = 1;
+  const rise = 0;
+
+  return (
+    <div style={{
+      position: "absolute", right, bottom,
+      opacity: o, transform: `translateY(${rise}px)`,
+      background: PAPER, color: INK,
+      fontFamily: "Karla, sans-serif", fontSize: size,
+      lineHeight: 1.34, letterSpacing: size * 0.02,
+      padding: `${size * 0.8}px ${size * 1.15}px`,
+      minWidth, maxWidth,
+      boxShadow: "0 2px 22px rgba(35,32,28,0.20)",
+    }}>
+      {text}
+    </div>
+  );
+};
+
 const Clip: React.FC<{ shot: Extract<Correction, { kind: "clip" }> }> = ({ shot }) => {
   const frame = useCurrentFrame();
   const p = interpolate(frame, [0, shot.frames], [0, 1], {
@@ -209,6 +247,18 @@ export const CorrectionFilm: React.FC<{ vertical?: boolean }> = ({ vertical = fa
   const pad = Math.round(width * (vertical ? 0.07 : 0.05));
   /** Clear of the TikTok / Shorts UI on the vertical cut. See Band. */
   const bandBottom = vertical ? Math.round(height * 0.17) : 0;
+  /** Same clearance for the plain captions on non-strike shots. */
+  const captionBottom = vertical ? Math.round(height * 0.20) : pad;
+  /**
+   * Right-hand placement, inset clear of the vertical platform UI.
+   *
+   * TikTok and Reels stack like / comment / share down the right edge, roughly
+   * the outer 15%. Flush-right would put the caption underneath them. Matches
+   * MakingFilm exactly so the two films agree.
+   */
+  const captionRight = vertical ? Math.round(width * 0.20) : pad;
+  const captionMaxWidth = Math.round(width * (vertical ? 0.62 : 0.42));
+  const captionMinWidth = Math.round(width * (vertical ? 0.34 : 0.16));
   // Smaller than the wordmark it shares a frame with — these lines run to seven
   // words and must not wrap on the vertical cut.
   const size = Math.round(width * (vertical ? 0.048 : 0.030));
@@ -237,6 +287,11 @@ export const CorrectionFilm: React.FC<{ vertical?: boolean }> = ({ vertical = fa
                 <Band pad={pad} bottom={bandBottom}>
                   <Strike {...shot.strike} size={size} />
                 </Band>
+              )}
+              {!isEnd && !shot.strike && shot.label && (
+                <Caption text={shot.label} frames={shot.frames} size={size}
+                         bottom={captionBottom} right={captionRight}
+                         maxWidth={captionMaxWidth} minWidth={captionMinWidth} />
               )}
             </AbsoluteFill>
           </Sequence>

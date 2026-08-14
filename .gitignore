@@ -103,3 +103,14 @@ remotion-launch/public/shots/
 # Generated video takes, paid and local. ~45MB, and the two takes actually used
 # are already prepped into remotion-launch/public/stock/, which IS tracked.
 /.ltx-takes/
+
+# Social flywheel workspace. Same reason as remotion-launch: the /node_modules
+# rule above is anchored to the repo root and does not reach a nested one.
+scripts/social/node_modules/
+
+# The review page is rebuilt from UPLOAD-KITS.md on every `flywheel.mjs` run, so
+# a committed copy could only ever be a stale second opinion about what is
+# scheduled to post. media-urls.json and posted.json ARE tracked: the first is
+# the contract the publish path reads, and the second is what stops a re-run
+# double-posting, which is worth surviving a fresh clone.
+scripts/social/preview.html

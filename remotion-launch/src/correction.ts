@@ -30,6 +30,8 @@ export type Correction =
       frames: number;
       /** The statement beat: a line, struck through, replaced. */
       strike?: { before: string; after: string };
+      /** A plain fact, for shots that carry no strike. Never both. */
+      label?: string;
       drift?: "in" | "out";
     }
   | {
@@ -37,6 +39,7 @@ export type Correction =
       src: string;
       frames: number;
       strike?: { before: string; after: string };
+      label?: string;
       /** The closing line, set plainly with no cancellation. */
       line?: string;
       zoom?: number;
@@ -69,8 +72,8 @@ export const CORRECTION: Correction[] = [
   // Both generated on LTX-2.3 Fast at 1080p — the two shots free stock could
   // not provide. `cut` previously used a wood router standing in for a laser;
   // `name` previously used a static macro of our own product photograph.
-  { kind: "clip", src: "stock/cut.mp4", frames: 90, drift: "in" },
-  { kind: "clip", src: "stock/name.mp4", frames: 90, drift: "in" },
+  { kind: "clip", src: "stock/cut.mp4", frames: 90, label: "3mm MDF", drift: "in" },
+  { kind: "clip", src: "stock/name.mp4", frames: 90, label: "AED 15", drift: "in" },
 
   // ── 3. what "same day" actually means ─────────────────────────────────────
   // `inspect`, not `lift`: this shot is now 8s and the lift clip is only 7.0s
@@ -79,21 +82,21 @@ export const CORRECTION: Correction[] = [
   { kind: "clip", src: "stock/inspect.mp4", frames: 240, drift: "out",
     strike: { before: "We ship it the same day.", after: "We start cutting it." } },
 
-  { kind: "clip", src: "stock/sand.mp4", frames: 90, drift: "in" },
+  { kind: "clip", src: "stock/sand.mp4", frames: 90, label: "Sanded by hand", drift: "in" },
 
   // ── 4. the free thing ─────────────────────────────────────────────────────
   { kind: "plate", src: "shots/alphabet-learning-board-0.png", frames: 240,
     strike: { before: "The engraving costs extra.", after: "It doesn't." } },
 
-  { kind: "clip", src: "stock/pack.mp4", frames: 90, drift: "in" },
+  { kind: "clip", src: "stock/pack.mp4", frames: 90, label: "Made to order in the United Arab Emirates", drift: "in" },
 
   // ── 5. what it is actually for ────────────────────────────────────────────
   // No type and no voice over these three. The film has argued four times by
   // now; the child using the thing is the evidence, and evidence does not need
   // a caption.
-  { kind: "clip", src: "stock/play.mp4", frames: 120, drift: "in" },
-  { kind: "plate", src: "shots/abc-jigsaw-board-1.png", frames: 90 },
-  { kind: "clip", src: "stock/colour.mp4", frames: 120, drift: "out" },
+  { kind: "clip", src: "stock/play.mp4", frames: 120, label: "Ages 3–6", drift: "in" },
+  { kind: "plate", src: "shots/abc-jigsaw-board-1.png", frames: 90, label: "Free collection" },
+  { kind: "clip", src: "stock/colour.mp4", frames: 120, label: "UAE delivery · AED 20", drift: "out" },
 
   // ── 6. the honest one ─────────────────────────────────────────────────────
   { kind: "clip", src: "stock/sheet.mp4", frames: 240, drift: "out",

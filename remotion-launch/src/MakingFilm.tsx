@@ -54,33 +54,39 @@ const GRADE = "saturate(0.88) contrast(0.94) brightness(1.03) sepia(0.10)";
  */
 
 /**
- * The caption: ink on a small slip of brand paper, lower-left.
+ * The caption: ink on a slip of brand paper, lower-RIGHT.
  *
  * Type straight onto footage was unreadable across six clips of wildly
  * different luminance — white text vanished on the pale sanding shot, ink
  * vanished on the dark cutting shot. A paper slip is legible over anything and
  * ties the footage back to the brand instead of floating on top of it.
+ *
+ * `right` rather than `left`, and larger than it was: the slip now carries a
+ * minimum width so short captions ("AED 15") still read as a deliberate block
+ * rather than a stray label, and wraps at a sensible measure so the longest one
+ * ("Made to order in the United Arab Emirates") does not run edge to edge.
  */
 const Caption: React.FC<{
-  text: string; frames: number; size: number; pad: number; bottom: number;
-}> = ({ text, frames, size, pad, bottom }) => {
+  text: string; frames: number; size: number; pad: number;
+  bottom: number; right: number; maxWidth: number; minWidth: number;
+}> = ({ text, frames, size, pad, bottom, right, maxWidth, minWidth }) => {
   const frame = useCurrentFrame();
-  const o = interpolate(frame, [10, 28, frames - 16, frames - 4], [0, 1, 1, 0], {
-    extrapolateLeft: "clamp", extrapolateRight: "clamp",
-  });
-  const rise = interpolate(frame, [10, 28], [10, 0], {
-    extrapolateLeft: "clamp", extrapolateRight: "clamp",
-  });
+  // No fade. Any ramp leaves opacity at 0 on frame 0, so every cut point
+  // showed a bare frame. The picture hard-cuts here, so the type does too.
+  const o = 1;
+  const rise = 0;
 
   return (
     <div style={{
-      position: "absolute", left: pad, bottom,
+      position: "absolute", right, bottom,
       opacity: o, transform: `translateY(${rise}px)`,
       background: PAPER, color: INK,
       fontFamily: "Karla, sans-serif", fontSize: size,
+      lineHeight: 1.34,
       letterSpacing: size * 0.02,
-      padding: `${size * 0.55}px ${size * 0.9}px`,
-      boxShadow: "0 2px 18px rgba(35,32,28,0.18)",
+      padding: `${size * 0.8}px ${size * 1.15}px`,
+      minWidth, maxWidth,
+      boxShadow: "0 2px 22px rgba(35,32,28,0.20)",
     }}>
       {text}
     </div>
@@ -205,7 +211,20 @@ export const MakingFilm: React.FC<{ vertical?: boolean }> = ({ vertical = false 
   // Everything scales off frame width so the vertical cut is a genuine
   // re-layout rather than a centre-crop that would push the caption off-frame.
   const pad = Math.round(width * (vertical ? 0.07 : 0.05));
-  const size = Math.round(width * (vertical ? 0.036 : 0.022));
+  const size = Math.round(width * (vertical ? 0.044 : 0.030));
+
+  /**
+   * The caption sits on the RIGHT, and on the vertical cut it is inset well
+   * clear of the edge.
+   *
+   * TikTok and Reels stack their like / comment / share buttons down the right
+   * edge, roughly the outer 15% of the frame. A caption flush right would sit
+   * underneath them — the same mistake as the bottom edge, on the other axis.
+   * 20% clears the column with margin.
+   */
+  const captionRight = vertical ? Math.round(width * 0.20) : pad;
+  const captionMaxWidth = Math.round(width * (vertical ? 0.62 : 0.42));
+  const captionMinWidth = Math.round(width * (vertical ? 0.34 : 0.16));
 
   // VERTICAL CAPTIONS SIT HIGHER, and that is not a taste decision. TikTok and
   // YouTube Shorts paint their own UI over the bottom of the frame — username,
@@ -236,7 +255,8 @@ export const MakingFilm: React.FC<{ vertical?: boolean }> = ({ vertical = false 
                 ? <EndCard size={size} line={shot.label ?? ""} />
                 : shot.label && (
                     <Caption text={shot.label} frames={shot.frames} size={size}
-                             pad={pad} bottom={captionBottom} />
+                             pad={pad} bottom={captionBottom} right={captionRight}
+                             maxWidth={captionMaxWidth} minWidth={captionMinWidth} />
                   )}
             </AbsoluteFill>
           </Sequence>
