@@ -915,26 +915,53 @@ easy to get wrong: every `NEXT_PUBLIC_*` value is inlined into the browser bundl
 at **build** time, so the image must be built with them passed as `BUILD_ENV` or
 the shop silently loses Stripe, Sentry and Umami in the browser.
 
-### 17.8 One thing left, and why it is stuck
+### 17.8 The phone number, and two traps in Coolify
 
-The phone number is not live. In Coolify, a **hardcoded** value in a compose file
-reaches the container but is invisible to the environment system. Only `${VAR}`
-placeholders become editable variables. So:
+In Coolify, a **hardcoded** value in a compose file reaches the container but is
+invisible to the environment system. Only `${VAR}` placeholders become editable
+variables. Everything else follows from that:
 
 - `PATCH /services/{uuid}/envs` returns 404 — the key is not managed
 - a `POST` creates a variable, and `docker inspect` proves it never reaches the
   container, because the compose's literal shadows it
-- `GET /services/{uuid}` does not return `docker_compose_raw` at all
 - editing the file on disk is reverted, because Coolify regenerates it
+- `GET /services/{uuid}` **does not return `docker_compose_raw` at all**, even
+  though `PATCH` accepts it
 
-The fix is two lines in the Coolify UI for service `lixqbqbkz39l0bnz9xv2227t`:
+That last asymmetry is a trap. You can write the compose through the API but not
+read it, so you would be sending a document you reconstructed from somewhere
+else. I nearly did, using the generated file on cx53 as the source. **That would
+have corrupted the service**, because the two are not the same document:
 
 ```yaml
-      CONTACT_WHATSAPP: ${CONTACT_WHATSAPP}
-      CONTACT_PHONE_DISPLAY: ${CONTACT_PHONE_DISPLAY}
+# the RAW source, what Coolify stores        # the GENERATED file on disk
+- CONTACT_WHATSAPP=971588286630              CONTACT_WHATSAPP: '971588286630'
 ```
 
-The managed variables already hold the new number, so they resolve on redeploy.
+List syntax versus mapping syntax. Writing the second over the first changes the
+structure of the file, not just the values. **If you cannot read the current
+value, you cannot safely write the next one** — there is no backup and no undo.
+
+The way through was the Coolify UI, driven through a browser that already held
+a logged-in session. The UI can read the raw compose, which is exactly the
+capability the API withholds.
+
+**And then a second trap.** The first save reported "Saving new docker compose…"
+and persisted nothing. Alongside it were two errors about a *description* field.
+The service description contained a **semicolon**, which Coolify's validator
+rejects, and the validation is form-wide: one invalid field silently blocks the
+whole save, including the compose. That semicolon had been quietly failing every
+save on this service. Changing it to a comma unblocked everything.
+
+The lesson is not about semicolons. **A success toast is not persistence.**
+Reload and read the value back — that is the only thing that proves a save.
+
+The final state, live and verified:
+
+```yaml
+      - CONTACT_WHATSAPP=${CONTACT_WHATSAPP}
+      - 'CONTACT_PHONE_DISPLAY=${CONTACT_PHONE_DISPLAY}'
+```
 
 ### 17.9 What I would do differently, plainly
 
