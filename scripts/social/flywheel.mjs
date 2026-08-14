@@ -77,7 +77,13 @@ const blocksUnder = (md, heading) => {
   if (start < 0) throw new Error(`kit has no section "${heading}"`);
   const nextH1 = md.indexOf("\n# ", start + 1);
   const slice = md.slice(start, nextH1 < 0 ? undefined : nextH1);
-  return [...slice.matchAll(/```[a-z]*\n([\s\S]*?)```/g)].map((m) => m[1].trim());
+  /*
+   * `\r?\n`, not `\n`. Git normalises this file to CRLF on Windows checkouts,
+   * so a fence is followed by \r\n and the stricter pattern matched NOTHING --
+   * the preview died with "no block 0 under # YouTube" on a file that was
+   * perfectly intact. It would have failed the same way on any fresh clone.
+   */
+  return [...slice.matchAll(/```[a-z]*\r?\n([\s\S]*?)```/g)].map((m) => m[1].trim());
 };
 
 const md = fs.readFileSync(KIT, "utf8");
