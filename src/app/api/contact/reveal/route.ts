@@ -16,11 +16,16 @@ export async function GET(request: NextRequest) {
   const limited = rateLimit(request, { key: "contact-reveal", limit: 20, windowMs: 60 * 60 * 1000 });
   if (limited) return limited;
 
+  // Omit what is not configured rather than returning nulls. A caller reading
+  // `whatsapp` gets either a usable link or nothing, never the string "null"
+  // pasted into an href.
+  const wa = whatsappUrl("Hi, I have a question about Lebon Grace.");
+
   return NextResponse.json(
     {
-      phone: CONTACT.phoneDisplay,
+      ...(CONTACT.phoneDisplay ? { phone: CONTACT.phoneDisplay } : {}),
       email: CONTACT.email,
-      whatsapp: whatsappUrl("Hi, I have a question about Lebon Grace."),
+      ...(wa ? { whatsapp: wa } : {}),
     },
     { headers: { "X-Robots-Tag": "noindex, nofollow", "Cache-Control": "no-store" } }
   );

@@ -4,6 +4,7 @@ import { rateLimit } from "@/lib/rate-limit";
 import { getProductBySlug } from "@/lib/products";
 import { isDeliverableEmail } from "@/lib/email-address";
 import { mayRecover, recordRecoverySend } from "@/lib/cart-recovery-guard";
+import { whatsappUrl } from "@/lib/contact";
 
 interface CartItem {
   product: { name: string; price: number; slug: string };
@@ -101,6 +102,12 @@ export async function POST(request: NextRequest) {
    * markup, which shipped the old wording to every customer inside a comment —
    * and tripped the very test asserting the wording was gone.
    */
+  // Built from the shared contact module rather than a literal. This template
+  // previously carried its own copy of the number, which is how a phone change
+  // gets missed in exactly one place nobody looks at. Null when unconfigured,
+  // and the offer is dropped rather than rendering a dead link.
+  const wa = whatsappUrl("Hi, I have a question about my Lebon Grace cart.");
+
   const html = `<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"></head>
@@ -126,7 +133,7 @@ export async function POST(request: NextRequest) {
       <a href="https://shop.lebon-grace.com/cart" style="display:inline-block;padding:14px 32px;background:#16A34A;color:white;text-decoration:none;border-radius:8px;font-size:14px;font-weight:600;">Complete Your Order</a>
     </div>
     <p style="font-size:12px;color:#999;text-align:center;margin-top:24px;">
-      Questions? Reply to this email or <a href="https://wa.me/971588286630" style="color:#25D366;">WhatsApp us</a>.
+      Questions? Reply to this email${wa ? ` or <a href="${wa}" style="color:#25D366;">WhatsApp us</a>` : ""}.
     </p>
   </div>
   <div style="background:#2D2D2D;padding:24px 32px;text-align:center;">

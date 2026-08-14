@@ -6,12 +6,14 @@ import { useState } from "react";
  * Floating WhatsApp button.
  *
  * This sits in the root layout, so whatever it renders appears on every page of
- * the site. The previous version built the number from
- * ["971","58","828","6630"] with a comment saying this avoided scraping. It did
- * not: the array is joined during render, so the finished HTML carried
- * href="https://wa.me/971588286630" on every single page. Splitting a literal
- * only hides it from someone reading the source file, not from anyone reading
- * the response.
+ * the site. The previous version built the number from a four-part array with a
+ * comment saying this avoided scraping. It did not: the array is joined during
+ * render, so the finished HTML carried a live wa.me href on every single page.
+ * Splitting a literal only hides it from someone reading the source file, not
+ * from anyone reading the response.
+ *
+ * The old number is not repeated here either. This repo is public, and a retired
+ * number in a comment is still a real number in indexed source.
  *
  * The link is now fetched from /api/contact/reveal on click, so the number is
  * in neither the HTML nor the bundle.
