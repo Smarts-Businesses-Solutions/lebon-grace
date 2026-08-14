@@ -1,0 +1,20 @@
+{
+  "youtube": {
+    "id": "sp_HRVVMyN97SN4Nuoehx9xF",
+    "at": "2026-08-14T16:25:22.725Z",
+    "live": true,
+    "url": "https://pub-14f8a3174ebe4c719f444570dd4d1b7c.r2.dev/launch/correction-master.mp4"
+  },
+  "tiktok": {
+    "id": "sp_c2okiFE8mJ9edxgBZK",
+    "at": "2026-08-14T16:25:23.684Z",
+    "live": true,
+    "url": "https://pub-14f8a3174ebe4c719f444570dd4d1b7c.r2.dev/launch/making-vertical.mp4"
+  },
+  "x": {
+    "id": "sp_4x2bPOZMrLHZslw4i7Zo",
+    "at": "2026-08-14T16:25:24.357Z",
+    "live": true,
+    "url": "https://pub-14f8a3174ebe4c719f444570dd4d1b7c.r2.dev/launch/making-master.mp4"
+  }
+}

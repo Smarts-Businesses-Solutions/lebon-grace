@@ -134,6 +134,25 @@ export default function CartPage() {
               {deliveryMethod === "pickup" && (
                 <p className="text-sage text-xs mt-2">Free pickup, no shipping fee.</p>
               )}
+              {/*
+                International buyers had no path from here.
+                Both options above are UAE-only, so someone outside the country
+                reached this point, saw nothing that applied to them, and left.
+                We DO ship internationally on request, but it was documented in
+                one place only: the FAQ, which nobody reads mid-checkout.
+                The gap became visible when a launch post promised international
+                shipping and the cart still implied UAE or nothing.
+              */}
+              <p className="text-ink-muted text-xs mt-3">
+                Outside the UAE?{" "}
+                {/* Plain /faq, not /faq#shipping. The FAQ renders no anchor
+                    ids, so a fragment would silently land at the top of the
+                    page while looking like it jumps to the answer. */}
+                <Link href="/faq" className="underline hover:text-ink">
+                  Ask us for a shipping quote
+                </Link>{" "}
+                before you order.
+              </p>
             </div>
 
             <div className="space-y-3 text-sm">
