@@ -83,3 +83,23 @@ playwright-results.json
 # too — the template it comes from is the version-controlled artefact.
 ops/staging/.env.staging
 ops/staging/kong.yml
+
+# Launch film workspace. The film's sources are worth tracking — src/,
+# public/shots/, public/stock/, public/fonts/ — but the renders are not: out/
+# alone is 271MB of regenerable mp4 and PNG stills. The root /node_modules rule
+# above is anchored to the repo root, so it does not cover this nested one.
+remotion-launch/node_modules/
+remotion-launch/out/
+
+# Superseded launch-film renders. ~755MB of earlier cuts kept locally for
+# reference; the current outputs live in remotion-launch/out/ (also ignored).
+remotion-launch/old/
+
+# Product photography copied into the film. These are the UNWATERMARKED
+# originals, and originals/ already tracks them — this is a 225MB duplicate.
+# Repopulate by copying from originals/images/ (see remotion-launch/README.md).
+remotion-launch/public/shots/
+
+# Generated video takes, paid and local. ~45MB, and the two takes actually used
+# are already prepped into remotion-launch/public/stock/, which IS tracked.
+/.ltx-takes/

@@ -1,7 +1,7 @@
 // AUTO-GENERATED FROM POSTGRES — DO NOT EDIT BY HAND.
 // Source of truth: the `products` table in the self-hosted Postgres.
 // Regenerate:  node scripts/catalog/04-generate-catalog.mjs
-// Generated:   2026-08-13T06:35:57.704Z  (42 products)
+// Generated:   2026-08-14T10:55:04.938Z  (42 products)
 
 export interface Product {
   slug: string; name: string; variant: string; price: number;
@@ -114,7 +114,7 @@ const allProducts: Product[] = [
     imagePlaceholder: { bg: "#C9A96E", initials: "FA" },
     imageUrl: "/images/lasercut/farmyard-animal-board-0.jpg" },
   { slug: "first-animals-peg-board", name: "First Animals Peg Board", variant: "Good Value", price: 15, category: "Animals & Nature", stock: 999,
-    description: "Chunky pegs made for hands that are still learning to grip.\n\nEach animal lifts out by a wooden peg sized for a toddler pincer grip. The first puzzle most children ever finish on their own.",
+    description: "Chunky pegs made for hands that are still learning to grip.\n\nEach animal lifts out by a raw MDF peg sized for a toddler pincer grip. The first puzzle most children ever finish on their own.",
     details: { age: "1-3", made: "Made to order in 2 to 3 working days", images: ["/images/lasercut/first-animals-peg-board-0.jpg", "/images/lasercut/first-animals-peg-board-1.jpg", "/images/lasercut/first-animals-peg-board-2.jpg"], material: "3mm MDF, sanded by hand", dimensions: "183mm x 132mm", personalisation: "Add a name free of charge, just ask at checkout" },
     imagePlaceholder: { bg: "#C9A96E", initials: "FI" },
     imageUrl: "/images/lasercut/first-animals-peg-board-0.jpg" },
@@ -159,12 +159,12 @@ const allProducts: Product[] = [
     imagePlaceholder: { bg: "#C9A96E", initials: "RO" },
     imageUrl: "/images/lasercut/rocket-number-puzzle-0.png" },
   { slug: "sea-creatures-peg-board", name: "Sea Creatures Peg Board", variant: "Good Value", price: 15, category: "Animals & Nature", stock: 999,
-    description: "Fish, crab, octopus, turtle. All out by the peg.\n\nA rock-pool board with wooden pegs on every creature. Naming, matching and gripping, all in one.",
+    description: "Fish, crab, octopus, turtle. All out by the peg.\n\nA rock-pool board with raw MDF pegs on every creature. Naming, matching and gripping, all in one.",
     details: { age: "1-3", made: "Made to order in 2 to 3 working days", images: ["/images/lasercut/sea-creatures-peg-board-0.jpg", "/images/lasercut/sea-creatures-peg-board-1.jpg", "/images/lasercut/sea-creatures-peg-board-2.jpg"], material: "3mm MDF, sanded by hand", dimensions: "128mm x 117mm", personalisation: "Add a name free of charge, just ask at checkout" },
     imagePlaceholder: { bg: "#C9A96E", initials: "SE" },
     imageUrl: "/images/lasercut/sea-creatures-peg-board-0.jpg" },
   { slug: "shape-peg-board", name: "Shape Peg Board", variant: "Good Value", price: 15, category: "Shapes & Montessori", stock: 999,
-    description: "The very first shapes, on very easy pegs.\n\nBasic shapes with chunky wooden pegs. Where a toddler learns that things have a right way round.",
+    description: "The very first shapes, on very easy pegs.\n\nBasic shapes with chunky raw MDF pegs. Where a toddler learns that things have a right way round.",
     details: { age: "1-3", made: "Made to order in 2 to 3 working days", images: ["/images/lasercut/shape-peg-board-0.png", "/images/lasercut/shape-peg-board-1.png", "/images/lasercut/shape-peg-board-2.png"], material: "3mm MDF, sanded by hand", dimensions: "45mm x 135mm", personalisation: "Add a name free of charge, just ask at checkout" },
     imagePlaceholder: { bg: "#C9A96E", initials: "SH" },
     imageUrl: "/images/lasercut/shape-peg-board-0.png" },

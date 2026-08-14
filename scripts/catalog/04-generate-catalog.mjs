@@ -17,15 +17,30 @@
  *
  * Run:  node scripts/catalog/04-generate-catalog.mjs
  */
-import { readFileSync, writeFileSync } from "fs";
+import { existsSync, readFileSync, writeFileSync } from "fs";
 
-const env = Object.fromEntries(
-  readFileSync(".env.local", "utf8").split(/\r?\n/)
-    .filter((l) => /^[A-Za-z_]+=/.test(l))
-    .map((l) => [l.slice(0, l.indexOf("=")), l.slice(l.indexOf("=") + 1).trim()])
-);
-const SB = env.NEXT_PUBLIC_SUPABASE_URL;
-const KEY = env.SUPABASE_SERVICE_ROLE_KEY;
+/**
+ * Credentials from supabase.local, falling back to .env.local.
+ *
+ * This used to read .env.local only, and that file is no longer present in the
+ * checkout — so the generator threw ENOENT before reaching Postgres, which is a
+ * bad failure for the one script that keeps the catalogue in sync. The live
+ * credentials are kept in the shared secrets file as LG_SELFHOSTED_*.
+ */
+const parse = (p) =>
+  Object.fromEntries(
+    readFileSync(p, "utf8").split(/\r?\n/)
+      .filter((l) => /^[A-Za-z_]+=/.test(l) && !l.trimStart().startsWith("#"))
+      .map((l) => [l.slice(0, l.indexOf("=")), l.slice(l.indexOf("=") + 1).trim()])
+  );
+
+const SECRETS = "C:/Users/user/Desktop/aprojects/supabase.local";
+const env = { ...(existsSync(SECRETS) ? parse(SECRETS) : {}),
+              ...(existsSync(".env.local") ? parse(".env.local") : {}) };
+
+const SB = env.LG_SELFHOSTED_SUPABASE_URL || env.NEXT_PUBLIC_SUPABASE_URL;
+const KEY = env.LG_SELFHOSTED_SERVICE_ROLE_KEY || env.SUPABASE_SERVICE_ROLE_KEY;
+if (!SB || !KEY) { console.error("no Supabase URL/service-role key found"); process.exit(1); }
 const H = { apikey: KEY, Authorization: "Bearer " + KEY };
 
 const res = await fetch(`${SB}/rest/v1/products?select=*&order=price.asc,slug.asc&limit=5000`, { headers: H });

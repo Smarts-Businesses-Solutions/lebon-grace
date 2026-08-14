@@ -1,0 +1,392 @@
+[
+ {
+  "file": "shots/abc-jigsaw-board-0.png",
+  "slug": "abc-jigsaw-board",
+  "idx": 0
+ },
+ {
+  "file": "shots/abc-jigsaw-board-1.png",
+  "slug": "abc-jigsaw-board",
+  "idx": 1
+ },
+ {
+  "file": "shots/abc-jigsaw-board-2.png",
+  "slug": "abc-jigsaw-board",
+  "idx": 2
+ },
+ {
+  "file": "shots/alphabet-car-puzzle-0.png",
+  "slug": "alphabet-car-puzzle",
+  "idx": 0
+ },
+ {
+  "file": "shots/alphabet-car-puzzle-1.png",
+  "slug": "alphabet-car-puzzle",
+  "idx": 1
+ },
+ {
+  "file": "shots/alphabet-car-puzzle-2.png",
+  "slug": "alphabet-car-puzzle",
+  "idx": 2
+ },
+ {
+  "file": "shots/alphabet-fish-puzzle-0.png",
+  "slug": "alphabet-fish-puzzle",
+  "idx": 0
+ },
+ {
+  "file": "shots/alphabet-fish-puzzle-1.png",
+  "slug": "alphabet-fish-puzzle",
+  "idx": 1
+ },
+ {
+  "file": "shots/alphabet-fish-puzzle-2.png",
+  "slug": "alphabet-fish-puzzle",
+  "idx": 2
+ },
+ {
+  "file": "shots/alphabet-learning-board-0.png",
+  "slug": "alphabet-learning-board",
+  "idx": 0
+ },
+ {
+  "file": "shots/alphabet-learning-board-1.png",
+  "slug": "alphabet-learning-board",
+  "idx": 1
+ },
+ {
+  "file": "shots/alphabet-learning-board-2.png",
+  "slug": "alphabet-learning-board",
+  "idx": 2
+ },
+ {
+  "file": "shots/alphabet-snail-puzzle-0.png",
+  "slug": "alphabet-snail-puzzle",
+  "idx": 0
+ },
+ {
+  "file": "shots/alphabet-snail-puzzle-1.png",
+  "slug": "alphabet-snail-puzzle",
+  "idx": 1
+ },
+ {
+  "file": "shots/alphabet-snail-puzzle-2.png",
+  "slug": "alphabet-snail-puzzle",
+  "idx": 2
+ },
+ {
+  "file": "shots/bear-alphabet-puzzle-0.png",
+  "slug": "bear-alphabet-puzzle",
+  "idx": 0
+ },
+ {
+  "file": "shots/bear-alphabet-puzzle-1.png",
+  "slug": "bear-alphabet-puzzle",
+  "idx": 1
+ },
+ {
+  "file": "shots/bear-alphabet-puzzle-2.png",
+  "slug": "bear-alphabet-puzzle",
+  "idx": 2
+ },
+ {
+  "file": "shots/cement-mixer-shape-puzzle-0.png",
+  "slug": "cement-mixer-shape-puzzle",
+  "idx": 0
+ },
+ {
+  "file": "shots/cement-mixer-shape-puzzle-1.png",
+  "slug": "cement-mixer-shape-puzzle",
+  "idx": 1
+ },
+ {
+  "file": "shots/cement-mixer-shape-puzzle-2.png",
+  "slug": "cement-mixer-shape-puzzle",
+  "idx": 2
+ },
+ {
+  "file": "shots/colour-me-dinosaur-alphabet-puzzle-0.png",
+  "slug": "colour-me-dinosaur-alphabet-puzzle",
+  "idx": 0
+ },
+ {
+  "file": "shots/count-and-match-number-board-0.png",
+  "slug": "count-and-match-number-board",
+  "idx": 0
+ },
+ {
+  "file": "shots/count-and-match-number-board-1.png",
+  "slug": "count-and-match-number-board",
+  "idx": 1
+ },
+ {
+  "file": "shots/count-and-match-number-board-2.png",
+  "slug": "count-and-match-number-board",
+  "idx": 2
+ },
+ {
+  "file": "shots/elephant-number-puzzle-0.png",
+  "slug": "elephant-number-puzzle",
+  "idx": 0
+ },
+ {
+  "file": "shots/elephant-number-puzzle-1.png",
+  "slug": "elephant-number-puzzle",
+  "idx": 1
+ },
+ {
+  "file": "shots/excavator-puzzle-0.png",
+  "slug": "excavator-puzzle",
+  "idx": 0
+ },
+ {
+  "file": "shots/excavator-puzzle-1.png",
+  "slug": "excavator-puzzle",
+  "idx": 1
+ },
+ {
+  "file": "shots/excavator-puzzle-2.png",
+  "slug": "excavator-puzzle",
+  "idx": 2
+ },
+ {
+  "file": "shots/giraffe-number-puzzle-0.png",
+  "slug": "giraffe-number-puzzle",
+  "idx": 0
+ },
+ {
+  "file": "shots/giraffe-number-puzzle-1.png",
+  "slug": "giraffe-number-puzzle",
+  "idx": 1
+ },
+ {
+  "file": "shots/giraffe-number-puzzle-2.png",
+  "slug": "giraffe-number-puzzle",
+  "idx": 2
+ },
+ {
+  "file": "shots/heart-tangram-nine-pieces-0.png",
+  "slug": "heart-tangram-nine-pieces",
+  "idx": 0
+ },
+ {
+  "file": "shots/heart-tangram-nine-pieces-1.png",
+  "slug": "heart-tangram-nine-pieces",
+  "idx": 1
+ },
+ {
+  "file": "shots/heart-tangram-nine-pieces-2.png",
+  "slug": "heart-tangram-nine-pieces",
+  "idx": 2
+ },
+ {
+  "file": "shots/montessori-3d-layer-puzzle-0.png",
+  "slug": "montessori-3d-layer-puzzle",
+  "idx": 0
+ },
+ {
+  "file": "shots/montessori-3d-layer-puzzle-1.png",
+  "slug": "montessori-3d-layer-puzzle",
+  "idx": 1
+ },
+ {
+  "file": "shots/montessori-3d-layer-puzzle-2.png",
+  "slug": "montessori-3d-layer-puzzle",
+  "idx": 2
+ },
+ {
+  "file": "shots/owl-number-tower-puzzle-0.png",
+  "slug": "owl-number-tower-puzzle",
+  "idx": 0
+ },
+ {
+  "file": "shots/owl-number-tower-puzzle-1.png",
+  "slug": "owl-number-tower-puzzle",
+  "idx": 1
+ },
+ {
+  "file": "shots/owl-number-tower-puzzle-2.png",
+  "slug": "owl-number-tower-puzzle",
+  "idx": 2
+ },
+ {
+  "file": "shots/rocket-number-puzzle-0.png",
+  "slug": "rocket-number-puzzle",
+  "idx": 0
+ },
+ {
+  "file": "shots/shape-peg-board-0.png",
+  "slug": "shape-peg-board",
+  "idx": 0
+ },
+ {
+  "file": "shots/shape-peg-board-1.png",
+  "slug": "shape-peg-board",
+  "idx": 1
+ },
+ {
+  "file": "shots/shape-peg-board-2.png",
+  "slug": "shape-peg-board",
+  "idx": 2
+ },
+ {
+  "file": "shots/solar-system-peg-puzzle-0.png",
+  "slug": "solar-system-peg-puzzle",
+  "idx": 0
+ },
+ {
+  "file": "shots/stacking-animal-friends-3d-0.png",
+  "slug": "stacking-animal-friends-3d",
+  "idx": 0
+ },
+ {
+  "file": "shots/stacking-animal-friends-3d-1.png",
+  "slug": "stacking-animal-friends-3d",
+  "idx": 1
+ },
+ {
+  "file": "shots/stacking-animal-friends-3d-2.png",
+  "slug": "stacking-animal-friends-3d",
+  "idx": 2
+ },
+ {
+  "file": "shots/teddy-bear-layer-board-0.png",
+  "slug": "teddy-bear-layer-board",
+  "idx": 0
+ },
+ {
+  "file": "shots/teddy-bear-layer-board-1.png",
+  "slug": "teddy-bear-layer-board",
+  "idx": 1
+ },
+ {
+  "file": "shots/teddy-bear-layer-board-2.png",
+  "slug": "teddy-bear-layer-board",
+  "idx": 2
+ },
+ {
+  "file": "shots/toddler-alphabet-board-0.png",
+  "slug": "toddler-alphabet-board",
+  "idx": 0
+ },
+ {
+  "file": "shots/toddler-alphabet-board-1.png",
+  "slug": "toddler-alphabet-board",
+  "idx": 1
+ },
+ {
+  "file": "shots/toddler-alphabet-board-2.png",
+  "slug": "toddler-alphabet-board",
+  "idx": 2
+ },
+ {
+  "file": "shots/tractor-shape-puzzle-0.png",
+  "slug": "tractor-shape-puzzle",
+  "idx": 0
+ },
+ {
+  "file": "shots/tractor-shape-puzzle-1.png",
+  "slug": "tractor-shape-puzzle",
+  "idx": 1
+ },
+ {
+  "file": "shots/tractor-shape-puzzle-2.png",
+  "slug": "tractor-shape-puzzle",
+  "idx": 2
+ },
+ {
+  "file": "shots/truck-peg-puzzle-1-0.png",
+  "slug": "truck-peg-puzzle-1",
+  "idx": 0
+ },
+ {
+  "file": "shots/truck-peg-puzzle-1-1.png",
+  "slug": "truck-peg-puzzle-1",
+  "idx": 1
+ },
+ {
+  "file": "shots/truck-peg-puzzle-1-2.png",
+  "slug": "truck-peg-puzzle-1",
+  "idx": 2
+ },
+ {
+  "file": "shots/truck-peg-puzzle-2-0.png",
+  "slug": "truck-peg-puzzle-2",
+  "idx": 0
+ },
+ {
+  "file": "shots/truck-peg-puzzle-2-1.png",
+  "slug": "truck-peg-puzzle-2",
+  "idx": 1
+ },
+ {
+  "file": "shots/truck-peg-puzzle-2-2.png",
+  "slug": "truck-peg-puzzle-2",
+  "idx": 2
+ },
+ {
+  "file": "shots/truck-peg-puzzle-3-0.png",
+  "slug": "truck-peg-puzzle-3",
+  "idx": 0
+ },
+ {
+  "file": "shots/truck-peg-puzzle-3-1.png",
+  "slug": "truck-peg-puzzle-3",
+  "idx": 1
+ },
+ {
+  "file": "shots/truck-peg-puzzle-4-0.png",
+  "slug": "truck-peg-puzzle-4",
+  "idx": 0
+ },
+ {
+  "file": "shots/truck-peg-puzzle-4-1.png",
+  "slug": "truck-peg-puzzle-4",
+  "idx": 1
+ },
+ {
+  "file": "shots/truck-peg-puzzle-4-2.png",
+  "slug": "truck-peg-puzzle-4",
+  "idx": 2
+ },
+ {
+  "file": "shots/truck-peg-puzzle-5-0.png",
+  "slug": "truck-peg-puzzle-5",
+  "idx": 0
+ },
+ {
+  "file": "shots/truck-peg-puzzle-5-1.png",
+  "slug": "truck-peg-puzzle-5",
+  "idx": 1
+ },
+ {
+  "file": "shots/vehicles-peg-board-0.png",
+  "slug": "vehicles-peg-board",
+  "idx": 0
+ },
+ {
+  "file": "shots/vehicles-peg-board-1.png",
+  "slug": "vehicles-peg-board",
+  "idx": 1
+ },
+ {
+  "file": "shots/vehicles-peg-board-2.png",
+  "slug": "vehicles-peg-board",
+  "idx": 2
+ },
+ {
+  "file": "shots/watermelon-maths-game-0.png",
+  "slug": "watermelon-maths-game",
+  "idx": 0
+ },
+ {
+  "file": "shots/watermelon-maths-game-1.png",
+  "slug": "watermelon-maths-game",
+  "idx": 1
+ },
+ {
+  "file": "shots/watermelon-maths-game-2.png",
+  "slug": "watermelon-maths-game",
+  "idx": 2
+ }
+]

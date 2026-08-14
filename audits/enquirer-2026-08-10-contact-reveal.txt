@@ -1,0 +1,10 @@
+HTTP/1.1 200 OK
+Cache-Control: no-store
+Content-Type: application/json
+Date: Mon, 10 Aug 2026 11:54:34 GMT
+Server: Caddy
+Vary: rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch
+X-Robots-Tag: noindex, nofollow
+Transfer-Encoding: chunked
+
+{"phone":"+971 58 828 6630","email":"care@lebon-grace.com","whatsapp":"https://wa.me/971588286630?text=Hi%2C%20I%20have%20a%20question%20about%20Lebon%20Grace."}
