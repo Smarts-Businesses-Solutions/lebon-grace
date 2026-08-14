@@ -6,8 +6,8 @@
 
 ## 1. TL;DR
 
-A small e-commerce shop that sells hand-made laser-cut wooden puzzles, made to
-order in Dubai, to UAE consumers, taking **live card payments**. Next.js 16 in a
+A small e-commerce shop that sells hand-made laser-cut natural raw MDF puzzles,
+made to order in the United Arab Emirates, to UAE consumers, taking **live card payments**. Next.js 16 in a
 container on a Hetzner box, Postgres behind it, Stripe for money, Resend for
 email.
 
@@ -32,7 +32,7 @@ reliably and tells the workshop what to cut. Both halves have to be right: a
 payment that succeeds but produces no work order is just as broken as one that
 fails.
 
-**The user.** Someone in the UAE buying a AED 15 personalised wooden puzzle for
+**The user.** Someone in the UAE buying a AED 15 personalised raw MDF puzzle for
 a child, usually on a phone, usually once. Not a returning power user.
 
 **What success looks like.** They pay, they get an email, the piece appears in
