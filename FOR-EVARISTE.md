@@ -720,7 +720,250 @@ a precondition proving a real product IS there.
 - The admin's cosmetic layer — typography, spacing, palette — is deliberately
   untouched until you have used the corrected version.
 
-## 17. Glossary
+## 17. The launch, and the day we found out deploys were broken — 2026-08-14
+
+This section covers one session: getting the launch films postable, adding
+campaign tracking, changing the phone number, and discovering along the way that
+the shop had not been able to deploy for a day and a half. Read the last part
+even if you skip the rest. It is the most important thing in this document.
+
+### 17.1 Why a link needs a code
+
+The films were finished and the upload kits told you to paste
+`https://shop.lebon-grace.com` into every post. Post that, and you learn nothing.
+Someone arrives; you have no idea whether from TikTok, LinkedIn or a friend.
+
+The instinct is "the referrer will tell us". It will not. When someone taps a
+link inside the TikTok, Instagram or Facebook app, the page opens in that app's
+own browser, which usually sends no referrer at all or a generic one. On top of
+that this site sends `Referrer-Policy: strict-origin-when-cross-origin`, which
+trims what little there is. Referrer data for exactly the traffic we care about
+is close to worthless.
+
+**UTM parameters** solve it because they travel *in the URL* rather than in a
+header a browser can withhold. Umami has a UTM report built in.
+
+But you do not want to paste this into a caption:
+
+```
+https://shop.lebon-grace.com/?utm_source=tiktok&utm_medium=social&utm_campaign=launch-2026&utm_content=bio
+```
+
+That reads like a marketing funnel, which is the opposite of how these films are
+written. So we added short codes that redirect:
+
+```
+shop.lebon-grace.com/go/tt   ->   /?utm_source=tiktok&utm_medium=social&...
+```
+
+Seven of them, in `next.config.ts`. Two details worth understanding:
+
+- **They are 307, not 308.** A 308 is *permanent*, and browsers cache permanent
+  redirects more or less forever. Reuse `/go/yt` for a campaign next year and
+  anyone who clicked the first one would still land on the old parameters. A
+  temporary redirect costs nothing and keeps the codes reusable.
+- **`/go/` is a namespace.** Bare `/yt` would one day collide with a product
+  slug. `/go/bogus` returns 404, which is what you want: an unknown code should
+  fail loudly, not silently redirect somewhere.
+
+### 17.2 Two files that both claim to be the kit
+
+`UPLOAD-KITS.md` and `upload-kits.html` are maintained by hand, and they had
+already drifted **in both directions**: Instagram and Facebook were once written
+into the HTML and never back-ported to the markdown, then the `/go/` links went
+into the markdown and never reached the HTML — which is the file you actually
+read when posting. You noticed before I did.
+
+The fix is not "be more careful". It is `scripts/social/check-kits.mjs`, which
+fails if a posted link has no code, if the two files disagree, or if a code has
+no matching redirect in `next.config.ts`. That last check matters most: a code
+with no redirect 404s, and the click vanishes with no trace anywhere.
+
+### 17.3 Why the videos went to their own R2 bucket
+
+Post for Me takes media as `{ url }`. There is no upload endpoint, so the films
+must be publicly fetchable before anything can post.
+
+`R2_BUCKET` in `supabase.local` points at `mirrortales-trailers` — another
+project's bucket, and also the home of the `restic-cx53` backup repo. Putting
+launch video there would mix three unrelated things into one blast radius: a
+lifecycle rule, a quota or a mistaken purge aimed at any one would hit the other
+two. So `lebon-grace-media` was created, and the flywheel reads its own
+`LEBON_GRACE_R2_*` variables.
+
+**Uploading and being publicly fetchable are different problems**, and
+`r2-upload.mjs` treats them separately. It stores the bytes, verifies them with a
+signed `HEAD` comparing byte length against the source file, then verifies public
+reachability *anonymously* — exactly as Post for Me will. It writes its manifest
+only when every URL is proven fetchable, because a partial manifest would let the
+flywheel post some assets and silently skip others.
+
+A lesson that generalises: **a 200 from a PUT only proves the storage accepted
+the bytes.** It says nothing about whether anyone else can read them.
+
+### 17.4 The chapter trap
+
+Printing the publish payloads before sending caught something a code review would
+not. The YouTube description ended with:
+
+```
+0:00 This puzzle is in stock
+0:14 We ship it the same day
+0:25 The engraving costs extra
+0:47 A machine made this
+```
+
+Those are the four struck-through claims from The Correction. In the film they
+are crossed out. But YouTube builds a **chapter rail** from any timestamp list
+starting at `0:00`, and chapter titles render as plain text with no strikethrough.
+The chapter rail under your launch video would have asserted that you ship
+same-day, charge for engraving, and that a machine made the puzzles — beneath a
+film whose entire purpose is denying exactly that.
+
+Removed. The habit worth keeping: **render the thing before you send it.**
+
+### 17.5 The phone number, and why it left the source code
+
+`src/lib/contact.ts` already had a good design: server-side only, never imported
+by a client component, handed out through a rate-limited `/api/contact/reveal`.
+Its comments correctly explained that this defeats the cheap harvesting — regex
+over static HTML, `mailto:` scrapers, crawlers that never run JavaScript.
+
+What it missed: **this repository is public on GitHub.** The number sat as a
+default in that file, in indexed searchable source, and GitHub code search is
+itself a harvesting channel. Protecting the response while publishing the repo
+protects nothing.
+
+The number now comes only from the environment. Three literals were removed and
+all three looked harmless in review:
+
+1. the default in `contact.ts`,
+2. a hardcoded `wa.me` link in the cart-recovery email, which is precisely the
+   one place a phone change gets missed,
+3. the *retired* number left in a comment. A dead number in a comment is still a
+   real number in public source.
+
+A test now walks `src/` and fails on any `971`-prefixed number in non-test files,
+comments included. I proved it fails by planting one, because **a guard that has
+only ever seen clean code has not been tested.**
+
+Unset degrades rather than breaks: phone and WhatsApp are simply not offered,
+email still is, and the reveal endpoint *omits* the keys rather than returning
+nulls that would render as `href="null"`.
+
+### 17.6 The important part: deploys had been silently broken
+
+The shop had been serving commit `ea52944` for 22 hours. Two commits sat
+unshipped. Nobody knew, because `npm run build` and `tsc` both passed locally
+every single time.
+
+The error only appears inside the container:
+
+```
+remotion-launch/src/Root.tsx: error TS2307: Cannot find module 'remotion'
+```
+
+`remotion-launch/` is a **separate npm project** with its own `package.json` and
+its own `node_modules` — and that `node_modules` is gitignored. Its sources
+import `remotion`, which the shop has never depended on. The root `tsconfig.json`
+included it, so `next build` type-checked it. On your machine the film
+workspace's `node_modules` is sitting right there and everything resolves. In the
+image it does not exist, so the build dies.
+
+**Green locally, broken in production, nothing in between.** That is the worst
+failure signature there is.
+
+Worse: this was the *second* time. `ops/qa` was excluded for exactly this reason
+back in August, and the Dockerfile still carries the note. So the fix is not just
+the exclusion — `src/lib/sibling-projects.test.ts` now walks the repo for
+directories with their own `package.json` and fails if the root tsconfig does not
+exclude them. Proved by un-excluding `remotion-launch`; it names the offender.
+
+**The transferable rule: if a directory has its own `package.json`, it has its
+own dependencies, and the root tsconfig must not type-check it.**
+
+### 17.7 The bigger surprise: I was deploying to the wrong machine
+
+Three deploys "succeeded" and changed nothing. The real path:
+
+```
+customer
+  -> Caddy on an AWS VPS in ap-south-1 (3.111.1.0)   [TLS terminates here]
+  -> 127.0.0.1:8080
+  -> SSH reverse tunnel originating FROM cx53
+  -> container alias lebon-grace-app:3000
+  -> Coolify SERVICE lixqbqbkz39l0bnz9xv2227t, image lebon-grace:cx53
+```
+
+The Coolify **application** called `lebon-grace-git` is a different resource that
+serves nothing public. Deploying it does exactly nothing to the shop.
+
+Both written sources were wrong. `ops/selfhost/PROJECT-CONTEXT.md` describes this
+app as deploying via the Coolify UI on cx53, and the edge Caddyfile's own comment
+still says the origin is your workstation — it was, once, and the tunnel now
+comes from cx53 instead.
+
+How it was actually found, and this is the method worth copying: stop reading
+documentation and follow the packets. `nslookup` the public hostname. Read the
+Caddyfile. Look at what is *listening* on the port it proxies to. Trace the SSH
+tunnel back to its origin. Find which container answers to the network alias.
+
+**Documentation describes intent. The running system is the truth.**
+
+The real deploy is now recorded in `supabase.local`, including the part that is
+easy to get wrong: every `NEXT_PUBLIC_*` value is inlined into the browser bundle
+at **build** time, so the image must be built with them passed as `BUILD_ENV` or
+the shop silently loses Stripe, Sentry and Umami in the browser.
+
+### 17.8 One thing left, and why it is stuck
+
+The phone number is not live. In Coolify, a **hardcoded** value in a compose file
+reaches the container but is invisible to the environment system. Only `${VAR}`
+placeholders become editable variables. So:
+
+- `PATCH /services/{uuid}/envs` returns 404 — the key is not managed
+- a `POST` creates a variable, and `docker inspect` proves it never reaches the
+  container, because the compose's literal shadows it
+- `GET /services/{uuid}` does not return `docker_compose_raw` at all
+- editing the file on disk is reverted, because Coolify regenerates it
+
+The fix is two lines in the Coolify UI for service `lixqbqbkz39l0bnz9xv2227t`:
+
+```yaml
+      CONTACT_WHATSAPP: ${CONTACT_WHATSAPP}
+      CONTACT_PHONE_DISPLAY: ${CONTACT_PHONE_DISPLAY}
+```
+
+The managed variables already hold the new number, so they resolve on redeploy.
+
+### 17.9 What I would do differently, plainly
+
+**The links shipped before the redirects did.** The `/go/` codes went into the
+kits, you posted to LinkedIn, and every click from that post 404'd until the
+deploy was fixed. The ordering should have been: deploy the redirects, verify
+them in production, *then* put them in the kits. A link is a promise that
+something exists at the other end, and I made that promise early.
+
+The general rule, worth more than the incident: **anything published externally
+must depend only on what is already live.** Not what is committed. Not what is
+merged. What is live, and verified live.
+
+### 17.10 Habits from this session
+
+- **Prove a guard can fail.** Every check added here was tested by planting a
+  violation. A test that has only seen clean code proves nothing.
+- **Verify from outside.** The R2 uploads were confirmed by a separate client
+  fetching the public URLs, and a nonexistent key was checked to 404 — otherwise
+  a bucket answering 200 to everything would look like success.
+- **A green deploy status is not a deployed change.** Coolify reported
+  "finished" while the old container was still serving. Check the running image,
+  then check the behaviour.
+- **Verify memory against the system.** A saved note said to deploy with
+  `build-apps.sh`. Its own header says it does not target production, so I
+  discarded it — and it turned out to be closer to right than the official doc.
+  Neither was authoritative. The running system was.
+
+## 18. Glossary
 
 | Term | Plain words |
 |---|---|
@@ -736,3 +979,10 @@ a precondition proving a real product IS there.
 | **Salt** | Random text mixed into each password before hashing, so two people with the same password get different hashes. |
 | **`ADMIN_USERS`** | The environment variable holding each operator's e-mail and password hash. No passwords in it — only hashes. |
 | **Attributable** | An action the audit trail can name a person for. A shared password produces unattributable actions. |
+| **UTM parameters** | `?utm_source=...` tags carried in the URL. They survive in-app browsers that strip the referrer, which is why tracking uses them. |
+| **`/go/` code** | A short link like `/go/li` that redirects to the homepage carrying UTM tags, so captions stay clean and clicks stay attributable. |
+| **307 vs 308** | Both redirect. 308 is *permanent* and browsers cache it indefinitely, so a code could never be reused. Campaign links must be 307. |
+| **Sibling project** | A directory inside this repo with its own `package.json` and `node_modules`, like `remotion-launch/`. The root tsconfig must exclude it or the production build fails while passing locally. |
+| **`BUILD_ENV`** | The blob of `NEXT_PUBLIC_*` values passed at image build time. They are inlined into the browser bundle, so building without them silently breaks Stripe, Sentry and Umami in the browser. |
+| **Public Development URL** | R2's `pub-<id>.r2.dev` hostname. Off by default: a bucket can hold your files and still answer 401 to everyone. |
+| **Compose placeholder** | `VAR: ${VAR}` in a Coolify compose file. A hardcoded value reaches the container but cannot be edited; only the placeholder form becomes a managed variable. |
