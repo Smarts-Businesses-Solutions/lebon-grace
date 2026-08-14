@@ -37,6 +37,24 @@
     "playwright-report",
     "playwright.config.ts",
     "tests/**",
-    "ops/qa/**"
+    "ops/qa/**",
+    "ops/*.mjs",
+    "scripts/social/**",
+
+    // The launch film workspace. It is a SEPARATE npm project with its own
+    // package.json and its own node_modules, and remotion-launch/node_modules is
+    // gitignored. Its sources import `remotion`, which the shop's package.json
+    // has never depended on.
+    //
+    // Left in, `next build` type-checks these files, cannot resolve `remotion`,
+    // and dies with TS2307. That passes locally, because the film workspace's
+    // node_modules is sitting right there, and fails in the container, where it
+    // is not. It silently broke production deploys from the commit that added
+    // the films until this exclusion landed.
+    //
+    // Same shape as the ops/qa exclusion above: a sibling project inside the
+    // repo whose dependencies are not the app's dependencies. If you add another
+    // one, exclude it here at the same time.
+    "remotion-launch/**"
   ]
 }

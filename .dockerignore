@@ -51,3 +51,19 @@ npm-debug.log*
 test-screenshots
 screenshots
 _pw_shots
+
+# The launch film workspace: 32 MB of stock video, audio beds and film sources
+# that the shop never serves. It is a separate npm project and its build output
+# is uploaded to R2, not shipped in this image.
+#
+# tsconfig.json also excludes it, and that exclusion is the load-bearing one:
+# without it `next build` type-checks these files, fails to resolve `remotion`,
+# and the deploy dies. This entry only keeps the context small.
+remotion-launch
+
+# Launch flywheel tooling. Runs from a checkout against the Post for Me and R2
+# APIs; nothing in the image imports it.
+scripts/social
+
+# QA evidence archives.
+audits
