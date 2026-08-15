@@ -130,22 +130,30 @@ https://shop.lebon-grace.com/go/li
 
 **Post** (the film attached)
 
+**NO LINK IN THIS POST.** A link in the body of an X post costs 40 to 70 percent
+of its distribution, and for non-Premium accounts recent measurements show
+near-zero median engagement. The launch post went out with the link in the body
+and drew a single view. The link goes in the reply below, where it costs the
+post nothing.
+
 ```
 We don't keep these in stock.
 
 Every puzzle is cut after you order it. The name is free. AED 15.
 
 Ready in 2 to 3 working days, anywhere in the UAE.
-
-shop.lebon-grace.com/go/x
 ```
 
-**Reply to your own post**, carries the detail without cluttering the hook:
+**Reply to your own post.** This carries the detail and the link. Replies are
+weighted around 27 times a like on X, so a self-reply also feeds the post rather
+than diluting it.
 
 ```
 3mm MDF, sanded by hand, made for ages 3 to 6.
 
 Free collection, or AED 20 delivery anywhere in the UAE. Free over AED 150.
+
+shop.lebon-grace.com/go/x
 ```
 
 ---
