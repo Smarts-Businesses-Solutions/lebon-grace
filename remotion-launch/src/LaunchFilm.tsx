@@ -155,13 +155,22 @@ export const LaunchFilm: React.FC<{ vertical?: boolean }> = ({ vertical = false 
   const photoH = vertical ? Math.round(height * 0.62) : Math.round(height * 0.66);
   const size = vertical ? 62 : 58;
 
-  let at = 0;
+  // Shot offsets are computed BEFORE the render tree, and computed PURELY.
+  // The original accumulated a running total inside the JSX .map(), which is
+  // wrong under React's double-render -- the second pass keeps adding to an
+  // already-advanced total, so every shot lands at the wrong frame. The React
+  // Compiler lint rejects any such reassignment during render ("Cannot
+  // reassign variable after render completes"), including inside a helper
+  // closure, so this reassigns nothing at all. SHOTS is a handful of shots, so
+  // the quadratic sum costs nothing and stays obviously correct.
+  const starts = SHOTS.map((_shot, i) =>
+    SHOTS.slice(0, i).reduce((total, s) => total + s.frames, 0),
+  );
   return (
     <AbsoluteFill style={{ background: PAPER }}>
       <Fonts />
       {SHOTS.map((shot, i) => {
-        const from = at;
-        at += shot.frames;
+        const from = starts[i];
         const isLast = i === SHOTS.length - 1;
         return (
           <Sequence key={i} from={from} durationInFrames={shot.frames}>

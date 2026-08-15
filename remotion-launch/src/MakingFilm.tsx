@@ -233,15 +233,24 @@ export const MakingFilm: React.FC<{ vertical?: boolean }> = ({ vertical = false 
   // platforms. 20% clears it with margin.
   const captionBottom = vertical ? Math.round(height * 0.20) : pad;
 
-  let at = 0;
+  // Shot offsets are computed BEFORE the render tree, and computed PURELY.
+  // The original accumulated a running total inside the JSX .map(), which is
+  // wrong under React's double-render -- the second pass keeps adding to an
+  // already-advanced total, so every shot lands at the wrong frame. The React
+  // Compiler lint rejects any such reassignment during render ("Cannot
+  // reassign variable after render completes"), including inside a helper
+  // closure, so this reassigns nothing at all. MAKING is a handful of shots, so
+  // the quadratic sum costs nothing and stays obviously correct.
+  const starts = MAKING.map((_shot, i) =>
+    MAKING.slice(0, i).reduce((total, s) => total + s.frames, 0),
+  );
   return (
     <AbsoluteFill style={{ background: PAPER }}>
       <Fonts />
       <RoomTone total={MAKING_FRAMES} />
       <VoiceTrack film="making" />
       {MAKING.map((shot, i) => {
-        const from = at;
-        at += shot.frames;
+        const from = starts[i];
         const bed = shot.kind === "clip" ? bedFor(shot.src) : null;
         return (
           <Sequence key={i} from={from} durationInFrames={shot.frames}>

@@ -263,15 +263,24 @@ export const CorrectionFilm: React.FC<{ vertical?: boolean }> = ({ vertical = fa
   // words and must not wrap on the vertical cut.
   const size = Math.round(width * (vertical ? 0.048 : 0.030));
 
-  let at = 0;
+  // Shot offsets are computed BEFORE the render tree, and computed PURELY.
+  // The original accumulated a running total inside the JSX .map(), which is
+  // wrong under React's double-render -- the second pass keeps adding to an
+  // already-advanced total, so every shot lands at the wrong frame. The React
+  // Compiler lint rejects any such reassignment during render ("Cannot
+  // reassign variable after render completes"), including inside a helper
+  // closure, so this reassigns nothing at all. CORRECTION is a handful of shots, so
+  // the quadratic sum costs nothing and stays obviously correct.
+  const starts = CORRECTION.map((_shot, i) =>
+    CORRECTION.slice(0, i).reduce((total, s) => total + s.frames, 0),
+  );
   return (
     <AbsoluteFill style={{ background: PAPER }}>
       <Fonts />
       <RoomTone total={CORRECTION_FRAMES} />
       <VoiceTrack film="correction" />
       {CORRECTION.map((shot, i) => {
-        const from = at;
-        at += shot.frames;
+        const from = starts[i];
         const isEnd = shot.kind === "plate" && shot.end;
         const bed = shot.kind === "clip" ? bedFor(shot.src) : null;
         return (
