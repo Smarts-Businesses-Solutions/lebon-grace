@@ -52,13 +52,13 @@ about the *product*, deliberately. Keep the posts the same.
 **Title** (under 70 chars)
 
 ```
-We don't keep these in stock. We cut each one after you order it.
+Your child's name engraved free. That is why we cut each one after you order.
 ```
 
 **Description**
 
 ```
-Every puzzle is cut, sanded and finished after the order comes in. We hold no stock.
+Every puzzle carries your child's name, engraved free. That is why we cut each one after the order comes in, and hold no stock.
 
 AED 15, every piece in the shop.
 Name engraved free.
@@ -107,7 +107,7 @@ https://shop.lebon-grace.com/go/yts
 Post the film with this as the body. No hashtag wall, two, at the end.
 
 ```
-Nothing in our shop is in stock.
+Every puzzle we make carries a child's name, engraved free.
 
 Every puzzle is cut after the order arrives. That means no same day dispatch. It also means the piece was made for one child, this week, and the name on it cost nothing extra.
 
@@ -137,7 +137,7 @@ and drew a single view. The link goes in the reply below, where it costs the
 post nothing.
 
 ```
-We don't keep these in stock.
+Your child's name on it, engraved free.
 
 Every puzzle is cut after you order it. The name is free. AED 15.
 
@@ -163,7 +163,7 @@ shop.lebon-grace.com/go/x
 **Caption** (front-load it. TikTok truncates)
 
 ```
-Nothing is made until you ask for it. Every puzzle is cut to order, the name is engraved free, and every piece is AED 15. Ages 3 to 6, ready in 2 to 3 days. Made in the UAE 🪵
+Your child's name on it, engraved free. Every puzzle is cut to order, and every piece is AED 15. Ages 3 to 6, ready in 2 to 3 days. Made in the UAE 🪵
 ```
 
 **Hashtags**
@@ -186,7 +186,7 @@ Upload `out/making-vertical.mp4` as a Reel.
 **Caption** (the first line is all most people read)
 
 ```
-Nothing is made until you ask for it.
+Your child's name on it, engraved free.
 
 Every puzzle is cut, engraved, sanded and packed after the order comes in. We hold no stock.
 
@@ -217,7 +217,7 @@ builders. Land the product at the end.
 Upload `out/correction-master.mp4`.
 
 ```
-We don't keep these in stock, and that is on purpose.
+Every puzzle carries your child's name, engraved free.
 
 Every puzzle is cut after the order arrives. That means no same day dispatch. It also means the piece was made for one child, this week, and putting a name on it costs nothing extra.
 
