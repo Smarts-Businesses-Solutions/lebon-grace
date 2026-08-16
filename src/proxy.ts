@@ -44,6 +44,14 @@ import { ADMIN_COOKIE } from "@/lib/admin-auth";
  * should be able to answer without reading the handler.
  */
 const PUBLIC_API = new Set([
+  // Build provenance. Returns { sha, service, timestamp } and nothing else, so a
+  // deploy checker or the monitor can ask which commit is live WITHOUT shell
+  // access to cx53. Left unregistered it 404s here, which is how the 2026-08-16
+  // provenance deploy ended up verifiable only via `docker inspect`. A commit sha
+  // grants nothing: the repo is private and the value is already in the image
+  // label anyone with the host can read.
+  "/api/health/version",
+
   // The way IN. Must be anonymous or nobody can ever authenticate.
   "/api/admin/login",
 
