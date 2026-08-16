@@ -75,6 +75,18 @@ FROM node:22-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1
 RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
+# Build provenance. ARG is PER-STAGE, so this must be declared again here even
+# if the builder stage already had one -- declare it only there and the value
+# exists at build time and vanishes at runtime, which is exactly how an image
+# becomes unidentifiable. Both forms are emitted deliberately:
+#   ENV   -- readable from inside the container, so the app can serve it
+#   LABEL -- readable via `docker inspect` without starting anything
+# Defaults to "unknown" so a build that forgets to pass it still succeeds and
+# says so, rather than failing or silently claiming a wrong commit.
+ARG GIT_COMMIT_SHA=unknown
+ENV GIT_COMMIT_SHA=$GIT_COMMIT_SHA
+LABEL org.opencontainers.image.revision=$GIT_COMMIT_SHA
+
 
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./

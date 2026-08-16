@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lebon Grace production topology</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,400&family=Karla:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f7f3ec; --paper-2:#fffdf9;
+    --ink:#23201c; --muted:#5a5248; --soft:#8a8074;
+    --rule:#e2d9cb; --accent:#c9a96e; --ok:#4a7c59; --warn:#a4553f;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font:400 16px/1.6 Karla,system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1240px;margin:0 auto;padding:56px 28px 80px}
+  .eyebrow{
+    font:500 11px/1 Karla; letter-spacing:.30em; text-transform:uppercase;
+    color:var(--accent); margin:0 0 20px;
+  }
+  h1{font:300 44px/1.1 Fraunces,Georgia,serif;margin:0 0 14px;letter-spacing:-.015em}
+  .sub{color:var(--muted);max-width:64ch;margin:0 0 40px}
+  svg{width:100%;height:auto;display:block}
+  .cards{display:grid;grid-template-columns:1.15fr 1fr .9fr;gap:20px;margin:44px 0 0}
+  .card{background:var(--paper-2);border:1px solid var(--rule);border-radius:6px;padding:1.25rem}
+  .card .eyebrow{margin:0 0 10px;color:var(--soft);letter-spacing:.18em}
+  .card h3{font:600 15px/1.3 Karla;margin:0 0 10px;display:flex;align-items:center;gap:9px}
+  .dot{width:7px;height:7px;border-radius:50%;flex:none}
+  .dot.accent{background:var(--accent)}.dot.warn{background:var(--warn)}.dot.ok{background:var(--ok)}
+  .card ul{margin:0;padding-left:18px;color:var(--muted);font-size:14px;line-height:1.65}
+  footer{
+    border-top:1px solid var(--rule);margin-top:48px;padding-top:20px;
+    font:400 12px Karla;color:var(--soft);letter-spacing:.04em;
+  }
+  @media(max-width:900px){.cards{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="eyebrow">Lebon Grace &middot; Verified 2026-08-14</p>
+  <h1>How a request actually reaches the shop</h1>
+  <p class="sub">TLS terminates in Mumbai. The application runs in Frankfurt. The
+    tunnel between them is opened from the inside out, which is why nothing needs
+    a public port on the Hetzner box.</p>
+
+<svg viewBox="0 0 1200 640" role="img" aria-labelledby="topology-title topology-desc"
+     xmlns="http://www.w3.org/2000/svg">
+  <title id="topology-title">Lebon Grace production request topology</title>
+  <desc id="topology-desc">A customer request reaches Caddy on an AWS box in Mumbai where TLS terminates, passes through an SSH reverse tunnel opened outward from the Hetzner cx53 host, and arrives at the Next.js application container, which talks to a self-hosted Postgres, Umami analytics, Stripe and Resend.</desc>
+
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#5a5248"/>
+    </marker>
+    <marker id="arrow-start" markerWidth="8" markerHeight="6" refX="1" refY="3" orient="auto-start-reverse">
+      <polygon points="0 0, 8 3, 0 6" fill="#4a7c59"/>
+    </marker>
+    <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#c9a96e"/>
+    </marker>
+    <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#4a7c59"/>
+    </marker>
+  </defs>
+
+  <rect width="100%" height="100%" fill="#f7f3ec"/>
+
+  <!-- ── zones (painted first, behind everything) ───────────────────────── -->
+  <rect x="216" y="176" width="216" height="176" rx="8"
+        fill="rgba(35,32,28,0.03)" stroke="rgba(35,32,28,0.30)" stroke-width="1" stroke-dasharray="4,4"/>
+  <text x="232" y="200" fill="#8a8074" font-size="8" font-family="'Karla',sans-serif"
+        letter-spacing="0.14em">AWS EC2 &middot; AP-SOUTH-1</text>
+
+  <rect x="488" y="112" width="416" height="344" rx="8"
+        fill="rgba(35,32,28,0.03)" stroke="rgba(35,32,28,0.30)" stroke-width="1" stroke-dasharray="4,4"/>
+  <text x="504" y="136" fill="#8a8074" font-size="8" font-family="'Karla',sans-serif"
+        letter-spacing="0.14em">HETZNER CX53 &middot; 116.203.242.215 &middot; ~128 CONTAINERS</text>
+
+  <!-- ── arrows (before boxes, so nodes paint over the line ends) ───────── -->
+  <!-- customer to caddy -->
+  <line x1="176" y1="264" x2="232" y2="264" stroke="#5a5248" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <!-- caddy to app: the request -->
+  <line x1="408" y1="256" x2="512" y2="256" stroke="#c9a96e" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+  <!-- app side to caddy: the tunnel is opened from here, outward -->
+  <line x1="520" y1="296" x2="416" y2="296" stroke="#5a5248" stroke-width="1"
+        stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+  <!-- app to postgres -->
+  <line x1="568" y1="312" x2="568" y2="360" stroke="#5a5248" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <!-- app to umami, elbow -->
+  <path d="M 680 312 L 680 332 Q 680 340 688 340 L 796 340 Q 804 340 804 348 L 804 360"
+        fill="none" stroke="#5a5248" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <!-- app to stripe, bidirectional: session out, webhook back -->
+  <path d="M 728 248 L 848 248 Q 856 248 856 240 L 856 192 Q 856 184 864 184 L 952 184"
+        fill="none" stroke="#4a7c59" stroke-width="1.2"
+        marker-end="url(#arrow-link)" marker-start="url(#arrow-start)"/>
+  <!-- app to resend -->
+  <path d="M 728 288 L 872 288 Q 880 288 880 296 L 880 296 Q 880 304 888 304 L 952 304"
+        fill="none" stroke="#4a7c59" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+
+  <!-- ── arrow labels: masked, with a visible gap above the stroke ──────── -->
+  <rect x="180" y="240" width="48" height="12" rx="2" fill="#f7f3ec"/>
+  <text x="204" y="249" fill="#8a8074" font-size="8" font-family="'Karla',sans-serif"
+        text-anchor="middle" letter-spacing="0.06em">HTTPS</text>
+
+  <rect x="428" y="232" width="64" height="12" rx="2" fill="#f7f3ec"/>
+  <text x="460" y="241" fill="#8a8074" font-size="8" font-family="'Karla',sans-serif"
+        text-anchor="middle" letter-spacing="0.06em">:8080</text>
+
+  <rect x="424" y="308" width="96" height="12" rx="2" fill="#f7f3ec"/>
+  <text x="472" y="317" fill="#8a8074" font-size="8" font-family="'Karla',sans-serif"
+        text-anchor="middle" letter-spacing="0.06em">TUNNEL DIALS OUT</text>
+
+  <rect x="580" y="328" width="36" height="12" rx="2" fill="#f7f3ec"/>
+  <text x="598" y="337" fill="#8a8074" font-size="8" font-family="'Karla',sans-serif"
+        text-anchor="middle" letter-spacing="0.06em">SQL</text>
+
+  <rect x="700" y="316" width="60" height="12" rx="2" fill="#f7f3ec"/>
+  <text x="730" y="325" fill="#8a8074" font-size="8" font-family="'Karla',sans-serif"
+        text-anchor="middle" letter-spacing="0.06em">/STATS</text>
+
+  <rect x="760" y="224" width="88" height="12" rx="2" fill="#f7f3ec"/>
+  <text x="804" y="233" fill="#4a7c59" font-size="8" font-family="'Karla',sans-serif"
+        text-anchor="middle" letter-spacing="0.06em">SESSION / HOOK</text>
+
+  <rect x="768" y="264" width="52" height="12" rx="2" fill="#f7f3ec"/>
+  <text x="794" y="273" fill="#4a7c59" font-size="8" font-family="'Karla',sans-serif"
+        text-anchor="middle" letter-spacing="0.06em">EMAIL</text>
+
+  <!-- ── nodes ─────────────────────────────────────────────────────────── -->
+  <!-- customer -->
+  <rect x="32" y="232" width="144" height="64" rx="6" fill="#f7f3ec"/>
+  <rect x="32" y="232" width="144" height="64" rx="6"
+        fill="rgba(90,82,72,0.10)" stroke="#8a8074" stroke-width="1"/>
+  <text x="104" y="262" fill="#23201c" font-size="12" font-weight="600"
+        font-family="'Karla',sans-serif" text-anchor="middle">Customer</text>
+  <text x="104" y="280" fill="#5a5248" font-size="9"
+        font-family="'Karla',sans-serif" text-anchor="middle">shop.lebon-grace.com</text>
+
+  <!-- caddy -->
+  <rect x="240" y="232" width="168" height="64" rx="6" fill="#f7f3ec"/>
+  <rect x="240" y="232" width="168" height="64" rx="6"
+        fill="#ffffff" stroke="#23201c" stroke-width="1"/>
+  <rect x="248" y="238" width="44" height="12" rx="2" fill="transparent"
+        stroke="rgba(35,32,28,0.40)" stroke-width="0.8"/>
+  <text x="270" y="247" fill="rgba(35,32,28,0.80)" font-size="7"
+        font-family="'Karla',sans-serif" text-anchor="middle" letter-spacing="0.08em">EDGE</text>
+  <text x="324" y="272" fill="#23201c" font-size="12" font-weight="600"
+        font-family="'Karla',sans-serif" text-anchor="middle">Caddy &middot; TLS ends here</text>
+  <text x="324" y="288" fill="#5a5248" font-size="9"
+        font-family="'Karla',sans-serif" text-anchor="middle">3.111.1.0 &middot; no app data</text>
+
+  <!-- app container: the one focal node -->
+  <rect x="520" y="232" width="208" height="80" rx="6" fill="#f7f3ec"/>
+  <rect x="520" y="232" width="208" height="80" rx="6"
+        fill="rgba(201,169,110,0.14)" stroke="#c9a96e" stroke-width="1.4"/>
+  <rect x="528" y="240" width="60" height="12" rx="2" fill="transparent"
+        stroke="rgba(201,169,110,0.60)" stroke-width="0.8"/>
+  <text x="558" y="249" fill="#8a6f36" font-size="7"
+        font-family="'Karla',sans-serif" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+  <text x="624" y="276" fill="#23201c" font-size="12" font-weight="600"
+        font-family="'Karla',sans-serif" text-anchor="middle">Next.js 16 standalone</text>
+  <text x="624" y="292" fill="#5a5248" font-size="9"
+        font-family="'Karla',sans-serif" text-anchor="middle">lebon-grace-app:3000</text>
+  <text x="624" y="304" fill="#8a8074" font-size="8"
+        font-family="'Karla',sans-serif" text-anchor="middle">lixqbqbkz39l0bnz9xv2227t</text>
+
+  <!-- postgres -->
+  <rect x="520" y="360" width="176" height="64" rx="6" fill="#f7f3ec"/>
+  <rect x="520" y="360" width="176" height="64" rx="6"
+        fill="rgba(35,32,28,0.05)" stroke="#5a5248" stroke-width="1"/>
+  <text x="608" y="388" fill="#23201c" font-size="12" font-weight="600"
+        font-family="'Karla',sans-serif" text-anchor="middle">Supabase Postgres</text>
+  <text x="608" y="406" fill="#5a5248" font-size="9"
+        font-family="'Karla',sans-serif" text-anchor="middle">catalogue &middot; orders &middot; reviews</text>
+
+  <!-- umami -->
+  <rect x="728" y="360" width="152" height="64" rx="6" fill="#f7f3ec"/>
+  <rect x="728" y="360" width="152" height="64" rx="6"
+        fill="rgba(35,32,28,0.05)" stroke="#5a5248" stroke-width="1"/>
+  <text x="804" y="388" fill="#23201c" font-size="12" font-weight="600"
+        font-family="'Karla',sans-serif" text-anchor="middle">Umami</text>
+  <text x="804" y="406" fill="#5a5248" font-size="9"
+        font-family="'Karla',sans-serif" text-anchor="middle">first-party, internal</text>
+
+  <!-- stripe -->
+  <rect x="952" y="152" width="176" height="64" rx="6" fill="#f7f3ec"/>
+  <rect x="952" y="152" width="176" height="64" rx="6"
+        fill="rgba(35,32,28,0.03)" stroke="rgba(35,32,28,0.30)" stroke-width="1"/>
+  <text x="1040" y="180" fill="#23201c" font-size="12" font-weight="600"
+        font-family="'Karla',sans-serif" text-anchor="middle">Stripe</text>
+  <text x="1040" y="198" fill="#a4553f" font-size="9"
+        font-family="'Karla',sans-serif" text-anchor="middle">LIVE keys</text>
+
+  <!-- resend -->
+  <rect x="952" y="272" width="176" height="64" rx="6" fill="#f7f3ec"/>
+  <rect x="952" y="272" width="176" height="64" rx="6"
+        fill="rgba(35,32,28,0.03)" stroke="rgba(35,32,28,0.30)" stroke-width="1"/>
+  <text x="1040" y="300" fill="#23201c" font-size="12" font-weight="600"
+        font-family="'Karla',sans-serif" text-anchor="middle">Resend</text>
+  <text x="1040" y="318" fill="#5a5248" font-size="9"
+        font-family="'Karla',sans-serif" text-anchor="middle">order email</text>
+
+  <!-- ── the trap, held off to one side ────────────────────────────────── -->
+  <rect x="32" y="472" width="616" height="76" rx="6"
+        fill="rgba(164,85,63,0.05)" stroke="rgba(164,85,63,0.50)" stroke-width="1" stroke-dasharray="4,4"/>
+  <text x="48" y="494" fill="#a4553f" font-size="8" font-family="'Karla',sans-serif"
+        letter-spacing="0.16em">NOT THIS ONE</text>
+  <text x="48" y="514" fill="#23201c" font-size="12" font-style="italic"
+        font-family="'Fraunces',Georgia,serif">Coolify APPLICATION lebon-grace-git serves nothing public.</text>
+  <text x="48" y="534" fill="#5a5248" font-size="10" font-family="'Karla',sans-serif">Deploying it does not change the live shop. PROJECT-CONTEXT.md and the edge Caddyfile both describe this wrongly.</text>
+
+  <!-- ── legend strip ──────────────────────────────────────────────────── -->
+  <line x1="32" y1="576" x2="1168" y2="576" stroke="rgba(35,32,28,0.10)" stroke-width="0.8"/>
+  <text x="32" y="600" fill="#5a5248" font-size="8" font-family="'Karla',sans-serif"
+        letter-spacing="0.14em">LEGEND</text>
+
+  <line x1="112" y1="596" x2="144" y2="596" stroke="#c9a96e" stroke-width="1.4"/>
+  <text x="152" y="600" fill="#5a5248" font-size="9" font-family="'Karla',sans-serif">the request path</text>
+
+  <line x1="272" y1="596" x2="304" y2="596" stroke="#5a5248" stroke-width="1" stroke-dasharray="5,4"/>
+  <text x="312" y="600" fill="#5a5248" font-size="9" font-family="'Karla',sans-serif">tunnel, opened outward from cx53</text>
+
+  <line x1="560" y1="596" x2="592" y2="596" stroke="#4a7c59" stroke-width="1.2"/>
+  <text x="600" y="600" fill="#5a5248" font-size="9" font-family="'Karla',sans-serif">third party over the internet</text>
+
+  <rect x="768" y="590" width="12" height="12" rx="2"
+        fill="rgba(35,32,28,0.03)" stroke="rgba(35,32,28,0.30)" stroke-width="1" stroke-dasharray="4,4"/>
+  <text x="788" y="600" fill="#5a5248" font-size="9" font-family="'Karla',sans-serif">host boundary</text>
+</svg>
+
+  <div class="cards">
+    <div class="card">
+      <p class="eyebrow">Why it is built this way</p>
+      <h3><span class="dot accent"></span>The tunnel dials out</h3>
+      <ul>
+        <li>cx53 opens the SSH connection to the AWS box, not the other way round.</li>
+        <li>So the Hetzner host needs no public port and no inbound rule for the shop.</li>
+        <li>The cost is a dependency: if the tunnel drops, Caddy answers 503.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <p class="eyebrow">Deploying</p>
+      <h3><span class="dot warn"></span>Two resources, one name</h3>
+      <ul>
+        <li>Production is the Coolify <strong>service</strong>, running a prebuilt image.</li>
+        <li>The Coolify <strong>application</strong> of a similar name builds from git and serves nothing.</li>
+        <li>Every <code>NEXT_PUBLIC_*</code> is baked in at build time, not at run time.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <p class="eyebrow">Adjacent, not shown</p>
+      <h3><span class="dot ok"></span>R2 media</h3>
+      <ul>
+        <li>Launch films live in a Cloudflare R2 bucket, served straight to the social platforms.</li>
+        <li>Uploaded by <code>scripts/social</code>, outside the request path entirely.</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer>Verified against the running system on 2026-08-14 by tracing DNS, the Caddyfile, the listening socket, the tunnel process and the container network alias. Not from documentation, which was wrong.</footer>
+
+</div>
+</body>
+</html>
