@@ -895,6 +895,12 @@ customer
   -> Coolify SERVICE lixqbqbkz39l0bnz9xv2227t, image lebon-grace:cx53
 ```
 
+**There is a drawn version of this**, which is easier to hold in your head than
+the arrows above: [`docs/architecture-production-topology.html`](docs/architecture-production-topology.html).
+Open it in a browser. It is a single self-contained file, no build step. The
+detail worth looking at is the dashed arrow pointing *backwards*: the tunnel is
+opened from cx53 outward, which is why the Hetzner box needs no public port.
+
 The Coolify **application** called `lebon-grace-git` is a different resource that
 serves nothing public. Deploying it does exactly nothing to the shop.
 
