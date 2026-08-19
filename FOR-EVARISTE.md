@@ -996,7 +996,135 @@ merged. What is live, and verified live.
   discarded it — and it turned out to be closer to right than the official doc.
   Neither was authoritative. The running system was.
 
-## 18. Glossary
+## 18. What machines see, and the day the sitemap pointed nowhere
+
+Everything so far has been about what a person sees. This section is about the
+other audience: Google, and increasingly an assistant answering "where can I buy
+a personalised puzzle in the UAE". They read different things from the same page.
+
+### 18.1 The sitemap had been lying to every crawler
+
+Found while auditing something else entirely. Every URL in the live sitemap read:
+
+```
+<loc>https://build-time-placeholder.invalid</loc>
+```
+
+All 48 of them, and `robots.txt` pointed crawlers at a sitemap on that same dead
+host. The sitemaps protocol **drops cross-host entries**, so Google could
+discover nothing through it.
+
+The cause is worth understanding because it will happen again. `getAppUrl()`
+reads `APP_URL` at call time, which is correct. But Next **prerenders**
+`robots.ts` and `sitemap.ts` during `next build`, and at build time those
+variables do not reliably reach the builder, so the function fell through to its
+placeholder default. That value was then frozen into a static file.
+
+The fix is one line in each:
+
+```ts
+export const dynamic = "force-dynamic";
+```
+
+That removes the build-time dependency altogether rather than chasing the right
+variable into the image. Both files are tiny and fetched by crawlers, not
+customers, so there is nothing worth caching.
+
+**The check that proves it:** the build output lists them as dynamic rather than
+static. Not the source, the build output.
+
+The general lesson: **anything that reads configuration must be evaluated where
+that configuration exists.** Two HTTP 200s hid this for days. A page returning
+200 tells you the server answered, not that it answered correctly.
+
+### 18.2 An escape that escaped nothing
+
+The product page emitted its JSON-LD with a replace of `<` against a
+single-backslash `u003c` literal. In TypeScript source that literal **is** the
+character `<`. So the call replaced `<` with `<`. An identity operation, wearing
+the costume of a security fix, under a comment claiming `JSON.stringify` handled
+the closing-tag sequence. It does not escape `<` at all.
+
+Doubling the backslash emits the six literal characters into the JSON string.
+Any parser decodes them back to `<`, so nothing changes for a reader, but
+`</script>` can no longer appear in the markup and close the tag early.
+
+The payload is our own catalogue rather than user input, so this was unlikely to
+ever be reached. It was fixed anyway, because **a comment claiming a protection
+that does not exist is worse than no comment**: it stops the next reader
+checking.
+
+The guard added for it is deliberately **behavioural**. It runs the transform
+against a hostile string and asserts `</script>` cannot appear, rather than
+grepping for the right characters, because the bug read as correct in review.
+Proved it fails by reverting to the buggy literal.
+
+A smaller lesson from the same hour: the guard initially failed on the *fixed*
+file, because the explanatory comment I wrote **quoted the buggy call verbatim**
+and the source check found it there. If a test scans source, the prose in that
+source is part of the input.
+
+### 18.3 Delivery cost is half of what a buyer compares
+
+The price was machine-readable. The delivery was not.
+
+AED 20 flat, free over AED 150, existed only as prose on the cart and in the
+FAQ. A shopping surface or an assistant could quote the AED 15 and had nothing
+to say about what it costs to receive it, which is most of the decision on a
+low-value item.
+
+Now two `OfferShippingDetails` entries, because the free tier is conditional on
+order value and `eligibleTransactionVolume` is how that condition is expressed.
+The numbers are **imported from `lib/delivery`**, the same module checkout
+charges from, so the structured data cannot drift from what is actually billed.
+Returns are declared at 7 days, which is what `/terms` and the FAQ both say.
+
+`material` and `audience` emit only when the catalogue holds them. An absent
+field is honest; a guessed one is a claim the shop cannot stand behind.
+
+### 18.4 The phone number that is deliberately missing
+
+Site-wide `Organization` and `WebSite` markup now sits in the root layout, so
+search engines and assistants have a publisher behind the per-product facts, and
+a declared search endpoint.
+
+It has **no `telephone` property**, and that omission is the interesting part.
+
+`lib/contact.ts` keeps the number out of the served HTML and hands it over only
+through a rate-limited endpoint. The number is not in this repository at all,
+because the repository is public. Adding `telephone` to `Organization` would
+publish it on every page of the site and undo that arrangement completely.
+
+It is exactly the sort of change that reads as an improvement. "More complete
+structured data" is a good instinct that would, here, have quietly defeated a
+deliberate protection. The layout carries a comment saying so, so the next
+person does not helpfully add it.
+
+A security hook also blocked the first attempt at that file, for using React's
+raw-HTML escape hatch. That is the documented way to emit JSON-LD in the App
+Router and the product page already does it, so the guard was firing on the
+right pattern for the wrong reason. It still did its job, and the change went in
+only after you confirmed. Prefer a noisy guard to a silent one.
+
+### 18.5 Where the shop actually stands for agents
+
+Researched against primary sources rather than blog summaries:
+
+- **Discoverable, not transactable.** An assistant can read a product page and
+  describe it. It cannot check stock, price delivery, or place an order without
+  driving a browser.
+- **Nothing is ineligible.** Every Google-*required* field was already present
+  before this work; all the gaps closed above sit in the recommended tier.
+- **The agentic commerce options are mostly closed to you.** Stripe's agentic
+  suite excludes AE. OpenAI Instant Checkout is approved-partners-only. Google
+  UCP is a US/CA/AU waitlist. MCP is not a sales channel: no ratified discovery,
+  no payments spec, and Anthropic's directory policy bars transacting connectors.
+- **So the practical surface in 2026 is a Merchant Center feed plus complete
+  structured data.** UAE and AED are supported there. That is the whole list.
+
+Full working in `docs/RESEARCH-agentic-commerce-2026-08-19.md`.
+
+## 19. Glossary
 
 | Term | Plain words |
 |---|---|
@@ -1019,3 +1147,8 @@ merged. What is live, and verified live.
 | **`BUILD_ENV`** | The blob of `NEXT_PUBLIC_*` values passed at image build time. They are inlined into the browser bundle, so building without them silently breaks Stripe, Sentry and Umami in the browser. |
 | **Public Development URL** | R2's `pub-<id>.r2.dev` hostname. Off by default: a bucket can hold your files and still answer 401 to everyone. |
 | **Compose placeholder** | `VAR: ${VAR}` in a Coolify compose file. A hardcoded value reaches the container but cannot be edited; only the placeholder form becomes a managed variable. |
+| **JSON-LD** | Structured data in a script tag. How a page states its price, stock and delivery in a form a machine reads without guessing from the layout. |
+| **force-dynamic** | Tells Next to render a route per request rather than freezing it at build. Required for anything reading runtime configuration. |
+| **`@graph`** | A JSON-LD array letting one script tag declare several linked things, here the Organization and the WebSite. |
+| **`sameAs`** | The official profiles of an organisation elsewhere. Ties the shop to the accounts it posts from. |
+| **eligibleTransactionVolume** | How schema.org expresses a conditional offer, used here for free delivery over AED 150. |
