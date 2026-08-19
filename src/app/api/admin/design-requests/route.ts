@@ -5,6 +5,7 @@ import {
   setStatus,
   clearArtwork,
   getByReference,
+  OPERATOR_SETTABLE_STATUSES,
   type DesignRequestStatus,
 } from "@/lib/design-requests";
 import { deleteArtwork } from "@/lib/artwork-storage";
@@ -57,7 +58,9 @@ export async function GET(request: NextRequest) {
   );
 }
 
-const ALLOWED: DesignRequestStatus[] = ["discussing", "approved", "declined"];
+// Shared with the admin panel so the buttons on screen and the statuses this
+// route accepts cannot drift apart. See the comment on the constant.
+const ALLOWED: readonly DesignRequestStatus[] = OPERATOR_SETTABLE_STATUSES;
 
 /**
  * Move a request along, or decline it.

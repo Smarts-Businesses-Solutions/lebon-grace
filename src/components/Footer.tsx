@@ -1,4 +1,5 @@
 import Link from "next/link";
+import ContactInfo from "./ContactInfo";
 
 const quickLinks = [
   { href: "/shop", label: "Shop All" },
@@ -8,6 +9,10 @@ const quickLinks = [
   { href: "/shop?category=Animals+%26+Nature", label: "Animals & Nature" },
   { href: "/shop?category=Vehicles+%26+Making", label: "Vehicles & Making" },
   { href: "/shop?category=3D+%26+Architecture", label: "3D & Architecture" },
+  // Spelled out here rather than shortened to "Custom" as in the header: a
+  // footer is where people look when they did not find what they wanted, and
+  // "a photo or a logo" is the thing they were looking for.
+  { href: "/custom", label: "Photo & Logo Engraving" },
   // Clearance lives here rather than in the main navigation: it is stock being
   // emptied, not part of the made-to-order range.
   // Removed 2026-08-09 with the listing itself (A-16). The category is hidden
@@ -75,13 +80,20 @@ export default function Footer() {
                 </svg>
               </a>
             </div>
-            <div className="mt-4 flex items-center gap-3 text-offwhite/70 text-sm">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
-              </svg>
-              <span className="select-none">+971 58 ••• ••30</span>
-              <span className="text-offwhite/70/40">|</span>
-              <span>WhatsApp available</span>
+            {/*
+              * This was a hand-written teaser, "+971 58 ••• ••30", and it was
+              * WRONG: the shop's number changed to +971 52 839 9804 and the
+              * mask kept advertising the old one's first and last digits. Four
+              * real digits is not enough for a visitor to dial and is plenty
+              * for a scraper to correlate, so the teaser was costing accuracy
+              * to buy nothing.
+              *
+              * ContactInfo fetches the number on click from
+              * /api/contact/reveal, where it lives in one place. There is now
+              * no copy of it in this file to go stale.
+              */}
+            <div className="mt-4 text-offwhite/70">
+              <ContactInfo />
             </div>
           </div>
 

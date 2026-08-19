@@ -13,6 +13,9 @@ const navLinks = [
   { href: "/shop?category=Alphabet+%26+Literacy", label: "Alphabet" },
   { href: "/shop?category=Numbers+%26+Counting", label: "Numbers" },
   { href: "/shop?category=Shapes+%26+Montessori", label: "Montessori" },
+  // The one thing no competitor in this market offers. It was reachable only by
+  // typing the URL, which is a strange place to keep the differentiator.
+  { href: "/custom", label: "Custom" },
   { href: "/about", label: "About" },
 ];
 

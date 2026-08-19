@@ -32,7 +32,14 @@ const row = {
   created_at: "2026-08-19T00:00:00Z",
 } as Record<string, unknown>;
 
-vi.mock("@/lib/design-requests", () => ({
+/*
+ * The store functions are mocked; OPERATOR_SETTABLE_STATUSES is NOT. That list
+ * is the thing the route validates against and the admin panel builds its
+ * buttons from, so a mocked copy would assert only that the mock agrees with
+ * itself. importOriginal keeps the real constant in place.
+ */
+vi.mock("@/lib/design-requests", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/design-requests")>()),
   listOpenRequests: async () => [row],
   getByReference: async (r: string) => (r === "LG-ABC234" ? row : null),
   setStatus: async (...a: unknown[]) => void statused(...a),

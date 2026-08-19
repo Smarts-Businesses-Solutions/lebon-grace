@@ -5,6 +5,7 @@ import ProductImage from "@/components/ProductImage";
 import Link from "next/link";
 import { statusLabel } from "@/lib/order-status";
 import OperationsDashboard from "@/components/OperationsDashboard";
+import DesignQueue from "@/components/DesignQueue";
 import { SETTABLE_STATUSES, notifiesCustomer, type OrderStatus } from "@/lib/order-status";
 
 const CATEGORIES = [
@@ -70,7 +71,20 @@ interface Order { id: string; stripe_session_id?: string; customer_name: string;
   // from the deposit/COD era, but nothing reads them: Stripe collects the full
   // amount. Left out of the type so they cannot quietly come back into the UI.
   status: string; delivery_method?: string; tracking_number?: string; courier_name?: string; created_at: string; }
-type TabType = "dashboard" | "products" | "orders" | "analytics";
+type TabType = "dashboard" | "products" | "orders" | "designs" | "analytics";
+
+/*
+ * "designs" needs a label of its own. The others capitalise cleanly from their
+ * key; "Designs" alone would read as artwork files sitting somewhere, not as a
+ * queue of customers waiting on a reply.
+ */
+const TAB_LABEL: Record<TabType, string> = {
+  dashboard: "Dashboard",
+  products: "Products",
+  orders: "Orders",
+  designs: "Design requests",
+  analytics: "Analytics",
+};
 
 export default function AdminPage() {
   const [password, setPassword] = useState("");
@@ -308,10 +322,10 @@ export default function AdminPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
         {/* Tabs */}
         <div className="flex gap-1 mb-6 bg-bone rounded-xl p-1 border border-rule w-fit shadow-sm">
-          {(["dashboard", "products", "orders", "analytics"] as const).map((tab) => (
+          {(["dashboard", "products", "orders", "designs", "analytics"] as const).map((tab) => (
             <button key={tab} onClick={() => setActiveTab(tab)}
               className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === tab ? "bg-ink text-bone shadow-sm" : "text-ink-soft hover:text-ink hover:bg-paper"}`}>
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              {TAB_LABEL[tab]}
             </button>
           ))}
         </div>
@@ -512,6 +526,16 @@ export default function AdminPage() {
         )}
 
         {/* ANALYTICS */}
+
+        {/*
+          * DESIGN REQUESTS — the conversation before the order.
+          *
+          * Mounted only when the tab is open, not hidden with CSS. This panel
+          * fetches names, e-mail addresses and phone numbers, and there is no
+          * reason to pull that into the page while the operator is looking at
+          * the product list.
+          */}
+        {activeTab === "designs" && <DesignQueue />}
 
         {/* ANALYTICS — Product Analytics */}
         {activeTab === "analytics" && (

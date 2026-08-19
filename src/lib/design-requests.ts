@@ -20,6 +20,23 @@ export type DesignRequestStatus =
   | "declined"
   | "expired";
 
+/**
+ * The only statuses an operator may set by hand.
+ *
+ * "submitted" is where a row starts, "ordered" is written by the order path and
+ * "expired" by the sweep. Letting the admin write those makes the status mean
+ * whatever was last clicked.
+ *
+ * Exported so the API route and the admin panel read the SAME list. The orders
+ * side of this codebase learned that the hard way: ORDER_STATUSES in the admin
+ * page was a verbatim copy of the settable list, correct only by attention, and
+ * `cancelled` went missing from the dropdown for months while having full email
+ * and WhatsApp copy behind it. One list, imported twice.
+ */
+export const OPERATOR_SETTABLE_STATUSES = ["discussing", "approved", "declined"] as const;
+
+export type OperatorSettableStatus = (typeof OPERATOR_SETTABLE_STATUSES)[number];
+
 /** A row as PostgREST returns it. Nullability mirrors the database. */
 export interface DesignRequestRow {
   id: string;
