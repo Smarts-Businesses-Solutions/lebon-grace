@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getProductBySlug } from "@/lib/products";
 import { getAppUrl } from "@/lib/app-url";
+import { UAE_DELIVERY, FREE_DELIVERY_OVER } from "@/lib/delivery";
 import ProductDetailClient from "./ProductDetailClient";
 
 /**
@@ -126,17 +127,75 @@ export default async function ProductPage({
       availability: "https://schema.org/InStock",
       // Made to order, so this is a promise about lead time, not stock.
       itemCondition: "https://schema.org/NewCondition",
+      /*
+       * Delivery cost, machine readable.
+       *
+       * AED 20 flat, free over AED 150, existed only as prose on the cart and
+       * in the FAQ. A shopping surface or an assistant could read the price but
+       * not the delivery, which is half of what a buyer compares. Two entries,
+       * because the free tier is conditional on order value and
+       * eligibleTransactionVolume is how that condition is expressed.
+       *
+       * The numbers come from lib/delivery, the same module checkout charges
+       * from, so the structured data cannot drift from what is billed.
+       */
+      shippingDetails: [
+        {
+          "@type": "OfferShippingDetails",
+          shippingDestination: { "@type": "DefinedRegion", addressCountry: "AE" },
+          shippingRate: { "@type": "MonetaryAmount", value: UAE_DELIVERY, currency: "AED" },
+        },
+        {
+          "@type": "OfferShippingDetails",
+          shippingDestination: { "@type": "DefinedRegion", addressCountry: "AE" },
+          shippingRate: { "@type": "MonetaryAmount", value: 0, currency: "AED" },
+          eligibleTransactionVolume: {
+            "@type": "PriceSpecification",
+            minPrice: FREE_DELIVERY_OVER,
+            priceCurrency: "AED",
+          },
+        },
+      ],
+      // 7 days is what /terms and the FAQ both state. Change it in all three or
+      // this becomes a promise the shop does not keep.
+      hasMerchantReturnPolicy: {
+        "@type": "MerchantReturnPolicy",
+        applicableCountry: "AE",
+        returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+        merchantReturnDays: 7,
+        returnMethod: "https://schema.org/ReturnByMail",
+      },
     },
+    // Emitted only when the catalogue actually holds them. An absent field is
+    // honest; a guessed one is a claim the shop cannot stand behind.
+    material: product.details?.material,
+    audience: product.details?.age
+      ? { "@type": "PeopleAudience", suggestedMinAge: 3, suggestedMaxAge: 6 }
+      : undefined,
   };
 
   return (
     <>
       <script
         type="application/ld+json"
-        // Next requires this for JSON-LD. The payload is our own catalogue
-        // data, not user input, and JSON.stringify escapes the closing tag
-        // sequence that would otherwise let a description break out.
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\u003c") }}
+        /*
+         * The escape is real now. It was not before.
+         *
+         * This replaced < with a single-backslash u003c escape -- which in TypeScript
+         * source IS the character < itself, so the call replaced < with <. An identity
+         * operation wearing the costume of an escape, under a comment claiming
+         * JSON.stringify handled it. JSON.stringify does not escape <.
+         *
+         * The doubled backslash emits the six literal characters \u003c into
+         * the JSON string. Any parser decodes them back to <, so the meaning is
+         * unchanged, but </script> can no longer appear in the markup and close
+         * the tag early.
+         *
+         * The payload is our own catalogue rather than user input, so this was
+         * unlikely to be reached. A comment claiming a protection that does not
+         * exist is worse than no comment: it stops the next reader checking.
+         */
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
       />
       <ProductDetailClient />
     </>
