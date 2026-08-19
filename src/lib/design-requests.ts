@@ -36,6 +36,7 @@ export interface DesignRequestRow {
   order_id: string | null;
   expires_at: string;
   operator_note: string | null;
+  submitter_ip: string | null;
   [key: string]: unknown;
 }
 
@@ -67,6 +68,12 @@ export interface NewDesignRequest {
   customerEmail: string;
   customerPhone?: string | null;
   brief: string;
+  /**
+   * The address that submitted this. Personal data, stored for one narrow
+   * purpose: bounding how many requests one source can file. See
+   * design-request-throttle.ts and migration 0013. Cleared with the artwork.
+   */
+  submitterIp?: string | null;
 }
 
 /**
@@ -91,6 +98,7 @@ export async function createDesignRequest(input: NewDesignRequest): Promise<Desi
         customer_email: input.customerEmail,
         customer_phone: input.customerPhone ?? null,
         brief: input.brief,
+        submitter_ip: input.submitterIp ?? null,
       })
       .select()
       .single();
@@ -209,7 +217,15 @@ export async function findExpiredArtwork(limit = 200): Promise<DesignRequestRow[
 export async function clearArtwork(id: string, status: DesignRequestStatus = "expired"): Promise<void> {
   const { error } = await db()
     .from("design_requests")
-    .update({ artwork_key: null, artwork_type: null, artwork_bytes: null, status })
+    .update({
+      artwork_key: null,
+      artwork_type: null,
+      artwork_bytes: null,
+      // The address goes with the photograph. It was kept to bound submissions,
+      // and once the artwork is gone there is nothing left to bound.
+      submitter_ip: null,
+      status,
+    })
     .eq("id", id);
 
   if (error) throw new Error(`clearing artwork failed: ${error.message}`);
