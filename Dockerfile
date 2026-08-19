@@ -95,6 +95,21 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 # Belt-and-braces: Next's tracer sometimes omits @swc/helpers.
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@swc/helpers ./node_modules/@swc/helpers
 
+# The artwork expiry sweep, so a timer on the host can `docker exec` it.
+#
+# It lives in the image rather than on the host because of where the
+# CREDENTIALS are. Deleting a customer's photograph needs the service role key
+# and the R2 secret; this container already holds both, and cx53 has no node
+# runtime, so any host-side alternative means installing node AND writing those
+# two secrets into a second file on the same box. That buys nothing and adds a
+# place to leak from.
+#
+# aws4fetch is copied explicitly: Next's tracer only follows what the app
+# imports at runtime, and nothing the server renders touches R2, so the module
+# is absent from the standalone bundle.
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/aws4fetch ./node_modules/aws4fetch
+COPY --chown=nextjs:nodejs scripts/sweep-expired-artwork.mjs ./scripts/
+
 # ISR writes here. A volume is mounted over it by apps/app.yml so the cache
 # survives restarts; without that, every restart discards every regenerated page.
 RUN mkdir -p .next/cache && chown -R nextjs:nodejs .next

@@ -33,17 +33,32 @@ import { AwsClient } from "aws4fetch";
 const DRY = process.argv.includes("--dry");
 
 /*
- * Read configuration the same way the other scripts do. supabase.local is the
- * operator's store and lives outside the repo, which is public.
+ * Configuration, from the process environment first and a credential file
+ * second.
+ *
+ * The environment has to win. This runs on a schedule on cx53, where the
+ * credentials already exist — they are in the shop container's environment on
+ * that same host — and copying them into a second file on the same box would
+ * add a place to leak from without adding anything. On the workstation there is
+ * no such environment, so it falls back to supabase.local, which is where this
+ * project's keys live and is outside the repo because the repo is public.
+ *
+ * LG_CRED_STORE overrides the file location, matching setup-admin-users.mjs.
  */
-const SECRETS = "C:/Users/user/Desktop/aprojects/supabase.local";
-const env = Object.fromEntries(
-  fs
-    .readFileSync(SECRETS, "utf8")
-    .split(/\r?\n/)
-    .filter((l) => l.includes("=") && !l.trimStart().startsWith("#"))
-    .map((l) => [l.slice(0, l.indexOf("=")).trim(), l.slice(l.indexOf("=") + 1).trim()]),
-);
+const SECRETS =
+  process.env.LG_CRED_STORE || "C:/Users/user/Desktop/aprojects/supabase.local";
+
+const fromFile = fs.existsSync(SECRETS)
+  ? Object.fromEntries(
+      fs
+        .readFileSync(SECRETS, "utf8")
+        .split(/\r?\n/)
+        .filter((l) => l.includes("=") && !l.trimStart().startsWith("#"))
+        .map((l) => [l.slice(0, l.indexOf("=")).trim(), l.slice(l.indexOf("=") + 1).trim()]),
+    )
+  : {};
+
+const env = { ...fromFile, ...process.env };
 
 /*
  * The keys for THIS project are stored under an LG_SELFHOSTED_ prefix, because
