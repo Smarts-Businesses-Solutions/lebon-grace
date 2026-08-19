@@ -59,6 +59,7 @@ const PUBLIC_API = new Set([
   "/api/checkout", //               creates a Stripe session
   "/api/contact", //                enquiry form
   "/api/contact/reveal", //         phone/WhatsApp, kept out of page source
+  "/api/custom", //                 custom design request, artwork before any order
   "/api/newsletter", //             subscribe
   "/api/newsletter/unsubscribe", // the privacy policy promises this works
   "/api/newsletter/confirm", //      the double opt-in link, opened from an inbox (NS-01)
