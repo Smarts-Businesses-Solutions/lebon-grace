@@ -1,6 +1,6 @@
 # Lebon Grace — Technical Decisions Log
 
-**Last Updated:** 2026-08-09 (D-008 … D-012 added — the remediation and Coolify decisions)
+**Last Updated:** 2026-08-19 (D-019 added — closing the CJ dropshipping tasks)
 
 Lightweight ADRs. One per non-obvious choice. The test for inclusion is whether
 the rejected option was genuinely tempting — if the alternative was obviously
@@ -495,3 +495,35 @@ as unattributed, so shipping this signed nobody out.
 body. It comes from the signed cookie via `adminActor(request)`, because a body
 the caller controls could name anyone — and an audit trail that names the wrong
 person is worse than one that names nobody, since it gets believed.
+
+## D-019 — Close the two CJ dropshipping tasks rather than carry them
+
+**Context.** Two items sat open in the queue for weeks: "Add proven/blue-chip
+products to the shop" and "Build CJ product intelligence layer". Both were
+written when Lebon Grace resold 515 items from CJdropshipping.
+
+**Decision.** Both are closed as no longer applicable, 2026-08-19.
+
+`PIVOT-STRATEGY.md` records the change and says it plainly: the dropshipping
+business no longer exists. The evidence in the tree agrees. No product in
+`products.generated.ts` carries a `cjPid`; the field survives only as an
+optional property on a type. `/api/variants` reads local variants from the
+store. There is no CJ credential in the container's environment and nothing
+calls a CJ endpoint.
+
+"Blue-chip products" was a sourcing concept: pick SKUs with proven sales on a
+supplier's platform. It has no translation into a workshop that cuts every
+piece to order. There is no catalogue to pick from, and the thing that would
+replace it — deciding which designs to draw next — is a different job needing a
+different brief, not this one renamed.
+
+**Rejected: leave them pending.** Tempting, because closing someone else's task
+is presumptuous and both have plausible-sounding titles. But an item that
+cannot be started is not a backlog entry, it is a permanent piece of noise at
+the top of the queue, and it makes every reading of that queue slightly less
+truthful. Recording why is the part that matters; if the reasoning is wrong,
+this paragraph is the thing to argue with.
+
+**Consequence.** If a supplier relationship ever returns, `cjPid` and `cjPrice`
+on the product type are the vestigial hooks, and this decision is the note
+saying they were left deliberately rather than missed.
