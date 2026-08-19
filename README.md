@@ -1,6 +1,6 @@
 # Lebon Grace
 
-Hand-made laser-cut wooden puzzles, made to order in Dubai and sold to UAE
+Hand-made laser-cut MDF puzzles, made to order in Sharjah and sold to UAE
 consumers. Next.js 16 storefront with live Stripe payments, a self-hosted
 Postgres behind it, and a workshop console that tells the maker what to cut.
 
@@ -10,7 +10,7 @@ Postgres behind it, and a workshop console that tells the maker what to cut.
 
 | If you want to | Read |
 |---|---|
-| Understand the whole system | [FOR-EVARISTE.md](FOR-EVARISTE.md) — the guided tour, 15 sections |
+| Understand the whole system | [FOR-EVARISTE.md](FOR-EVARISTE.md) — the guided tour, 20 sections |
 | Deploy or roll back | [DEPLOYMENT-GUIDE.md](DEPLOYMENT-GUIDE.md) |
 | Find an operational document | [OPERATIONS.md](OPERATIONS.md) |
 | Know why something is the way it is | [DECISIONS.md](DECISIONS.md) |

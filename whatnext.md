@@ -113,9 +113,13 @@ apps. See [DECISIONS.md](DECISIONS.md) D-001.
 
 ---
 
-## TASK A (gated — YOUR hPanel click): Reboot-proof via Hostinger Managed Node.js App
+## TASK A: Reboot-proof via Hostinger Managed Node.js App — DEAD, 2026-08-19
 
-**Status:** DRAFTED + verified; needs your 1 click. Cannot be done by assistant — `from-archive` API is Cloudflare-blocked from assistant IP (proven), and no other API path exists. hPanel UI is the only route.
+> **Do not do this.** The shop left Hostinger in July. It runs in a container
+> on cx53 under Coolify, which restarts it on boot, so the problem this task
+> solved no longer exists. Kept so the queue still shows what was once asked.
+
+**Status (historic):** DRAFTED + verified; needed 1 click. Cannot be done by assistant — `from-archive` API is Cloudflare-blocked from assistant IP (proven), and no other API path exists. hPanel UI is the only route.
 
 **Why:** Current deploy uses PHP proxy + self-heal (survives routine crashes + first-visit-after-reboot). A full server reboot needs the Managed App to own the process.
 
@@ -157,9 +161,12 @@ Keep `server.js` + `.next/` + `public/` + `.data/` in `public_html/shop/`.
 
 ---
 
-## TASK B (gated — YOUR hPanel click): Hostinger FTP support ticket
+## TASK B: Hostinger FTP support ticket — DEAD, 2026-08-19
 
-**Status:** DRAFTED; needs your 1 click. Cannot be auto-submitted — no ticket API in Hostinger spec (the `reach` endpoints are email-marketing, not support). Per standing rule, no external actions without explicit approval.
+> **Do not submit this.** The account it concerns is no longer used to serve
+> anything. Kept as the record of why FTP deployment was abandoned.
+
+**Status (historic):** DRAFTED; needed 1 click. Cannot be auto-submitted — no ticket API in Hostinger spec (the `reach` endpoints are email-marketing, not support). Per standing rule, no external actions without explicit approval.
 
 **hPanel steps:** Help → New ticket → paste below → submit.
 
