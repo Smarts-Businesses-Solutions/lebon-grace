@@ -93,6 +93,9 @@ const PUBLIC_API = new Set([
 const ADMIN_API = new Set([
   "/api/admin/subscribers", // a list of people's email addresses
   "/api/metrics", //           order counts and revenue
+  "/api/admin/design-requests", //         names, emails, phones, and pointers to
+  //                                       photographs customers sent, often of children
+  "/api/admin/design-requests/artwork", // mints a 60s signed URL to one photograph
 ]);
 
 export function proxy(request: NextRequest) {
