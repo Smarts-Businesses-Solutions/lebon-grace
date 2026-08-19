@@ -30,12 +30,23 @@ describe("generateReference", () => {
     }
   });
 
-  it("does not repeat, which is what the unique index is protecting", () => {
-    // 31^6 is about 887 million, so 5000 draws colliding would mean the
-    // generator is not random rather than that we were unlucky.
+  it("collides only at the rate randomness predicts, which the retry absorbs", () => {
+    /*
+     * This asserted 5000 distinct out of 5000 and was FLAKY, failing roughly
+     * once in seventy runs. 31^6 is about 887 million, so by the birthday bound
+     * 5000 draws collide about 1.4% of the time. That is the generator being
+     * random, not broken, and a test that fails on correct behaviour teaches
+     * people to rerun the suite until it passes.
+     *
+     * Perfect uniqueness was never the property worth asserting anyway. The
+     * unique index is the guarantee and createDesignRequest retries on 23505.
+     * What matters here is that the output is spread, not that it never repeats:
+     * a generator returning one constant would fail this, and so would one with
+     * a badly truncated range.
+     */
     const seen = new Set<string>();
     for (let i = 0; i < 5000; i++) seen.add(generateReference());
-    expect(seen.size).toBe(5000);
+    expect(seen.size).toBeGreaterThan(4990);
   });
 
   it("uses the full alphabet rather than a lazy subset", () => {
