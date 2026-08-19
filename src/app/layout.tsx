@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Fraunces, Karla } from "next/font/google";
 import { CartProvider } from "@/lib/cart-context";
 import StorefrontChrome from "@/components/StorefrontChrome";
@@ -62,6 +62,21 @@ export const metadata: Metadata = {
     shortcut: "/favicon.ico",
     apple: "/apple-touch-icon.png",
   },
+  /*
+   * iOS ignores the web app manifest for installation. Adding to the home
+   * screen from Safari reads these instead, so without them the shop installs
+   * as a browser bookmark with a screenshot for an icon rather than as an app.
+   *
+   * statusBarStyle "default" rather than "black-translucent": translucent makes
+   * the page render UNDER the status bar, so the header's top row sits beneath
+   * the clock. Fixing that means a safe-area inset on the header, which is a
+   * layout change this is not.
+   */
+  appleWebApp: {
+    capable: true,
+    title: "Lebon Grace",
+    statusBarStyle: "default",
+  },
   keywords: [
     "wooden puzzles",
     "Montessori toys",
@@ -81,6 +96,27 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_AE",
   },
+};
+
+/**
+ * Separate from `metadata` because Next requires it there.
+ *
+ * themeColor and viewport used to live on the metadata object and were moved in
+ * Next 14; leaving them there does not fail the build, it prints a warning and
+ * DROPS them, so the tag never reaches the page. That is the failure mode worth
+ * naming: the code looks right and the browser gets nothing.
+ *
+ * Two colours rather than one. The theme colour paints the browser and the
+ * standalone window's chrome, so in dark mode the ink reads as part of the
+ * system UI, while in light mode a dark bar under a bone page looks like a
+ * rendering fault. Matching each scheme to the page behind it is the only way
+ * the seam disappears.
+ */
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fdfbf7" },
+    { media: "(prefers-color-scheme: dark)", color: "#23201c" },
+  ],
 };
 
 /*
