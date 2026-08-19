@@ -1294,7 +1294,90 @@ replaces only this app's container, and refuses to claim success unless the live
 site serves back the exact `dpl` it just built. Read §17 for why every one of
 those steps is there.
 
-## 20. Glossary
+## 20. Two rules that only became true when a test enforced them
+
+Both of these were already written down. Neither was actually happening.
+
+### "Wooden" was doing work it had not earned
+
+The title, the OpenGraph card and the homepage headline all said **Wooden
+puzzles**. Everything is cut from 3mm MDF, which is a wood-based panel rather
+than solid timber. The product page had always disclosed the material; the front
+door had not, and a search result or a shared link IS the front door.
+
+That matters more than tidiness. UAE consumer regulation treats a description as
+deceptive when it creates a misleading impression about the **composition** of a
+good, and the penalties attached to it are not small. To a parent choosing a toy,
+"wooden" reads as solid wood.
+
+The fix was deliberately not a find-and-replace. **"wood filler" stays**, because
+that is the name of a real product a customer would buy, and renaming someone
+else's product to suit our house style would be falsifying it. The `MAT_MAP`
+filter entries stay too, because they match legacy supplier data and no reader
+ever sees them. Two other things went: "sustainably manufactured" and "recycled
+wood fibers" are claims about the specific board we buy that nobody here has
+substantiated, where "made from wood fibre" is true of the material by
+definition and needs no certificate behind it.
+
+### The em dash rule was decoration until it was a test
+
+"No em dashes in anything a reader sees" is one of your standing instructions. It
+was being broken in **67 places**, including live customer emails, the cart
+recovery mail and checkout error messages.
+
+The interesting part is why writing it down had not been enough. In a sibling
+project the identical rule lived in three documents and was enforced in two
+peripheral scripts, and two thousand pages shipped with em dashes anyway,
+because the page generators never called the checker. **A rule enforced anywhere
+other than the exit is decoration.**
+
+So it is `src/lib/copy-rules.ts` now, and it runs in the same suite as
+everything else. It walks the TypeScript syntax tree rather than grepping, which
+is what lets it honour the rule's own exemption for comments and docstrings
+exactly: a file full of prose explaining the dash rule would trip any regex.
+`/admin` and `console.*` are out of scope, being operator tooling by the rule's
+own terms.
+
+Each of the 67 was a decision, not a substitution:
+
+| Shape | Fix | Example |
+|---|---|---|
+| A range, where the dash means "to" | hyphen, or the word | `2-3 days`, `9:00 AM to 6:00 PM` |
+| Separator before a price | comma | `New order #A1B2, AED 15` |
+| Clause break inside a sentence | comma, or two sentences | `Almost there. Check your inbox` |
+| Heading joining a label to a subject | colon | `Keep It Beautiful: MDF Care Guide` |
+
+### A guard that was quietest exactly where it mattered
+
+The same lesson caught me while writing the docs guard. Its first version listed
+the working directory looking for documents still giving Hostinger instructions.
+But `HOSTINGER_*.md` and `SESSION_RESUME.md` are in `.gitignore`: they exist on
+your machine and in no clone. A directory listing therefore checks a different
+set of files on every machine, and the **fewest of all in CI**, where a fresh
+clone has none of them. It reads tracked files now, so it tests the repository
+rather than one computer.
+
+`SESSION_RESUME.md` was the one worth catching. It opened with "Read this FIRST
+in any new session" and then described a Hostinger app, a JSON file store and a
+PHP proxy, none of which had existed for six weeks. A previous cleanup had
+bannered two of the nine files that needed it, which is the same shape as the
+copy rule: the fix reaches whatever someone happened to open.
+
+### What closed, and why that is written down too
+
+Two items had sat in the queue since the dropshipping era: "Add proven/blue-chip
+products" and "Build CJ product intelligence layer". Both are closed, and
+`DECISIONS.md` D-019 is the reason rather than a silent status change.
+
+The evidence settled it: no product carries a `cjPid`, `/api/variants` reads
+local variants, and there is no CJ credential anywhere in the container.
+"Blue-chip products" was a sourcing idea, pick SKUs with proven sales on a
+supplier's platform, and it has no translation into a workshop that cuts every
+piece to order. An item nobody can start is not a backlog entry; it is permanent
+noise at the top of a queue, and it makes every reading of that queue slightly
+less truthful.
+
+## 21. Glossary
 
 | Term | Plain words |
 |---|---|
@@ -1328,3 +1411,7 @@ those steps is there.
 | **Signed URL** | A time-limited link to a private object. It is a bearer credential: whoever holds the string can fetch the file with no login. |
 | **Fails open** | A guard that lets traffic through when it cannot do its job. The submission throttle fails open, so a database blip does not close the front door. |
 | **`process.exitCode`** | Setting the exit status instead of calling `process.exit()`, so the event loop drains first. Prevents a finished script aborting on an open socket. |
+
+| **MDF** | Medium-density fibreboard. A wood-based panel pressed from wood fibre, not solid timber. Everything the shop cuts is 3mm MDF. |
+| **Exit gate** | A rule enforced at the one place every path goes through, rather than in each writer. The difference between a rule that holds and one that is merely written down. |
+| **Vacuous pass** | A test that loops over an empty list and reports green having checked nothing. Every loop-based assertion here asserts non-empty first. |
