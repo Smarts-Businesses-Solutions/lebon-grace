@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import Analytics from "@/components/Analytics";
 import "./globals.css";
+import { getAppUrl } from "@/lib/app-url";
 
 /**
  * Fraunces for display, Karla for text.
@@ -82,6 +83,58 @@ export const metadata: Metadata = {
   },
 };
 
+/*
+ * Site-wide identity, emitted once on every page.
+ *
+ * Product pages already carry Product and Offer markup, but nothing tied the
+ * shop together: no Organization to hang the brand, logo, email and social
+ * profiles on, and no WebSite to declare the search endpoint. Search engines
+ * and assistants had per-product facts and no publisher behind them.
+ *
+ * The @id values are stable URIs, so product markup and anything added later
+ * can reference these nodes rather than restating them.
+ *
+ * NO TELEPHONE, ON PURPOSE. lib/contact.ts keeps the number out of the served
+ * HTML and hands it over only through a rate-limited endpoint; it is not in
+ * this repo at all. Publishing it here would defeat that on every page, and it
+ * is exactly the sort of "more complete structured data" edit that looks like
+ * an improvement.
+ */
+function siteJsonLd(base: string) {
+  const org = {
+    "@type": "Organization",
+    "@id": base + "/#organization",
+    name: "Lebon Grace",
+    url: base,
+    logo: base + "/logo.png",
+    email: "care@lebon-grace.com",
+    // The accounts the shop actually posts from, verified live 2026-08-14.
+    sameAs: ["https://x.com/Evarist69967733", "https://www.tiktok.com/@evabon1"],
+    areaServed: { "@type": "Country", name: "United Arab Emirates" },
+  };
+
+  const site = {
+    "@type": "WebSite",
+    "@id": base + "/#website",
+    name: "Lebon Grace",
+    url: base,
+    inLanguage: "en",
+    publisher: { "@id": base + "/#organization" },
+    // Matches SearchBar.tsx, which pushes /shop?search=<query>. If that route
+    // moves, move this with it or the declaration becomes a dead promise.
+    potentialAction: {
+      "@type": "SearchAction",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: base + "/shop?search={search_term_string}",
+      },
+      "query-input": "required name=search_term_string",
+    },
+  };
+
+  return { "@context": "https://schema.org", "@graph": [org, site] };
+}
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -90,6 +143,14 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${display.variable} ${text.variable}`}>
       <body className="min-h-screen flex flex-col bg-offwhite text-dark antialiased">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            // Same escaping as the product page. A single-backslash literal
+            // here would be the character < itself and escape nothing.
+            __html: JSON.stringify(siteJsonLd(getAppUrl())).replace(/</g, "\\u003c"),
+          }}
+        />
           <CartProvider>
             <StorefrontChrome><Header /></StorefrontChrome>
             <main className="flex-1">{children}</main>
