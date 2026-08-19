@@ -9,7 +9,7 @@ import FAQClient from "./FAQClient";
  * proper metadata, the same way /track and /account already do.
  */
 export const metadata: Metadata = {
-  title: "FAQ — Delivery, Returns and Engraving | Lebon Grace",
+  title: "FAQ: Delivery, Returns and Engraving | Lebon Grace",
   description:
     "Answers on made-to-order lead times, free collection in the UAE, delivery costs, free name engraving, puzzle sizes and our 7 day replacement.",
 };

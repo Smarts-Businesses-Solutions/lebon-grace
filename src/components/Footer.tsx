@@ -44,7 +44,7 @@ export default function Footer() {
               LEBON GRACE
             </span>
             <p className="mt-4 text-offwhite/70 text-sm leading-relaxed max-w-xs">
-              Wooden puzzles for children, cut and finished by hand in our
+              Puzzles for children, cut from MDF and finished by hand in our
               workshop. Made to order, with a name engraved free.
             </p>
             {/* The Instagram icon that used to sit here linked to "#", so it looked

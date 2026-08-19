@@ -83,7 +83,7 @@ export default function SafetyNotice({ age }: { age?: string }) {
         </svg>
         <div>
           <p className="text-xs font-semibold text-ink">
-            Choking hazard — contains small parts
+            Choking hazard: contains small parts
           </p>
           {soldForUnderThrees ? (
             <p className="text-[11px] text-ink-soft/80 leading-relaxed mt-0.5">

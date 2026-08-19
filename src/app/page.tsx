@@ -171,7 +171,7 @@ export default function HomePage() {
                 className="mt-5 text-[2.75rem] sm:text-6xl lg:text-[4.2rem] font-semibold rise"
                 style={{ animationDelay: "160ms", fontVariationSettings: '"SOFT" 45, "WONK" 1, "opsz" 120' }}
               >
-                Wooden puzzles,
+                Puzzles for children,
                 <span className="block italic text-sand-dark">made one at a time.</span>
               </h1>
 
@@ -238,7 +238,7 @@ export default function HomePage() {
               <div className="absolute -bottom-7 left-4 sm:left-8 bg-bone px-7 py-5 lift rise" style={{ animationDelay: "420ms" }}>
                 <p className="eyebrow">Every puzzle</p>
                 <p className="font-heading text-3xl mt-1">AED 15</p>
-                <p className="text-xs text-ink-muted mt-1">Name engraved free · ready in 2–3 days</p>
+                <p className="text-xs text-ink-muted mt-1">Name engraved free · ready in 2-3 days</p>
               </div>
             </div>
           </div>
@@ -413,7 +413,7 @@ export default function HomePage() {
                */
               <div className="border-t border-sage pt-5">
                 <p className="font-heading text-lg text-sage">
-                  Almost there — check your inbox and click the link to confirm.
+                  Almost there. Check your inbox and click the link to confirm.
                 </p>
                 <p className="text-ink-soft/80 text-sm mt-2 leading-relaxed">
                   We only write when there is workshop news, never on a schedule.

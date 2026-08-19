@@ -34,10 +34,10 @@ export async function generateMetadata({
   // Descriptions are written for a person deciding whether to click, so the
   // product's own copy comes first and the shop's promise second.
   const description = (product.description || "").trim().slice(0, 180) ||
-    `${product.name} — hand-made wooden puzzle, made to order in the UAE.`;
+    `${product.name}, hand-made MDF puzzle, made to order in the UAE.`;
 
   return {
-    title: `${product.name} — AED ${product.price} | Lebon Grace`,
+    title: `${product.name}, AED ${product.price} | Lebon Grace`,
     description,
     alternates: { canonical: url },
     // An unlisted product is deliberately invisible: already absent from the
@@ -45,7 +45,7 @@ export async function generateMetadata({
     // the internal test item would end up in Google.
     ...(product.unlisted ? { robots: { index: false, follow: false } } : {}),
     openGraph: {
-      title: `${product.name} — AED ${product.price}`,
+      title: `${product.name}, AED ${product.price}`,
       description,
       url,
       type: "website",
@@ -53,7 +53,7 @@ export async function generateMetadata({
     },
     twitter: {
       card: "summary_large_image",
-      title: `${product.name} — AED ${product.price}`,
+      title: `${product.name}, AED ${product.price}`,
       description,
       images: image ? [image] : [],
     },

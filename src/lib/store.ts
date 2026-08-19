@@ -35,7 +35,7 @@ export function db(): SupabaseClient {
   if (_client) return _client;
   if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
     throw new Error(
-      "[store] Supabase not configured — set SUPABASE_URL (or NEXT_PUBLIC_SUPABASE_URL) and SUPABASE_SERVICE_ROLE_KEY"
+      "[store] Supabase not configured: set SUPABASE_URL (or NEXT_PUBLIC_SUPABASE_URL) and SUPABASE_SERVICE_ROLE_KEY"
     );
   }
   _client = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {

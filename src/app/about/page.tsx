@@ -4,9 +4,9 @@ export const metadata = {
   // The description was still selling the dropship catalogue: "Affordable
   // workspace, travel, and home accessories." That is the line Google showed
   // under a link to a children's puzzle workshop.
-  title: "About — Lebon Grace",
+  title: "About | Lebon Grace",
   description:
-    "A small UAE workshop making wooden puzzles for children. Cut, sanded and finished by hand, made to order, with a name engraved free.",
+    "A small UAE workshop making puzzles for children. Cut from MDF, sanded and finished by hand, made to order, with a name engraved free.",
 };
 
 export default function AboutPage() {
@@ -27,9 +27,9 @@ export default function AboutPage() {
           <h2 className="font-heading text-2xl lg:text-3xl font-semibold tracking-tight mb-6">Our Story</h2>
           <div className="space-y-4 text-charcoal text-sm leading-relaxed">
             <p>
-              Lebon Grace started with a laser cutter and a simple thought: a wooden toy that teaches a child their letters should not cost a hundred dirhams, and it should not be made on the other side of the world either. So we draw them, cut them and sand them here, one order at a time.</p>
+              Lebon Grace started with a laser cutter and a simple thought: a toy that teaches a child their letters should not cost a hundred dirhams, and it should not be made on the other side of the world either. So we draw them, cut them and sand them here, one order at a time.</p>
             <p>
-              We are a small workshop in the UAE making wooden puzzles for children. Everything here is drawn as a cutting file, cut from MDF on our own laser, sanded by hand and checked before it goes out. Nothing is bought in and relabelled, and nothing sits in a warehouse waiting for someone to want it. Your puzzle does not exist until you order it, which is why it takes two or three days and why we can put your child’s name on it for nothing.
+              We are a small workshop in the UAE making puzzles for children. Everything here is drawn as a cutting file, cut from MDF on our own laser, sanded by hand and checked before it goes out. Nothing is bought in and relabelled, and nothing sits in a warehouse waiting for someone to want it. Your puzzle does not exist until you order it, which is why it takes two or three days and why we can put your child’s name on it for nothing.
             </p>
             <p>
               Our name reflects our approach. “Lebon” means good in French. “Grace” means doing it with style. Together: good things, done well, at fair prices.
@@ -41,7 +41,7 @@ export default function AboutPage() {
         <div className="bg-charcoal text-offwhite rounded-sm p-8 lg:p-12">
           <h2 className="font-heading text-2xl font-semibold tracking-tight mb-4">Our Mission</h2>
           <p className="text-paper/90 text-sm leading-relaxed">
-            To make toys that are worth keeping, at a price that does not make you think twice. A wooden alphabet board should not cost a hundred dirhams, and it should not fall apart either. Every puzzle we make is AED 15, with the name engraving included.
+            To make toys that are worth keeping, at a price that does not make you think twice. An alphabet board should not cost a hundred dirhams, and it should not fall apart either. Every puzzle we make is AED 15, with the name engraving included.
           </p>
         </div>
 
@@ -57,7 +57,7 @@ export default function AboutPage() {
               </div>
               <h3 className="font-heading text-lg font-semibold tracking-tight">Honest Pricing</h3>
               <p className="mt-3 text-paper/90 text-sm leading-relaxed">
-                There is no middleman because there is no supplier. Every piece is drawn, cut, sanded and finished here, so you pay for the wood and the work, nothing else.
+                There is no middleman because there is no supplier. Every piece is drawn, cut, sanded and finished here, so you pay for the board and the work, nothing else.
               </p>
             </div>
             <div className="text-center">

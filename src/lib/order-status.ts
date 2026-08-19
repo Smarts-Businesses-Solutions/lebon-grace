@@ -105,14 +105,14 @@ export const STATUS_PRESENTATION = {
     tone: "neutral",
     terminalTitle: "Refund complete",
     terminalBody:
-      "Your payment has been refunded. It usually reaches your card in 5 to 10 working days, and may show as a pending transaction first. If anything looks wrong, message us — we would rather hear from you directly.",
+      "Your payment has been refunded. It usually reaches your card in 5 to 10 working days, and may show as a pending transaction first. If anything looks wrong, message us. We would rather hear from you directly.",
   },
   cancelled: {
     step: null,
     tone: "negative",
     terminalTitle: "Order cancelled",
     terminalBody:
-      "This order was cancelled and nothing has been charged. If you meant to order something else, start whenever you are ready — or message us and we will help.",
+      "This order was cancelled and nothing has been charged. If you meant to order something else, start whenever you are ready, or message us and we will help.",
   },
   failed: {
     step: null,

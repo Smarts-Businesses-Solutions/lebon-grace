@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
 
   const itemList = resolved
     .slice(0, 5)
-    .map((i) => `• ${esc(i.name)} (x${i.qty}) — AED ${(i.price * i.qty).toFixed(2)}`)
+    .map((i) => `• ${esc(i.name)} (x${i.qty}), AED ${(i.price * i.qty).toFixed(2)}`)
     .join("\n");
 
   /*
@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
       ${resolved.length > 5 ? `<p style="font-size:12px;color:#999;margin-top:8px;">+ ${resolved.length - 5} more items</p>` : ""}
       <hr style="border:none;border-top:1px solid #eee;margin:12px 0;" />
       <p style="font-size:16px;font-weight:600;color:#2D2D2D;">Cart Total: AED ${total.toFixed(2)}</p>
-      <p style="font-size:13px;color:#666;">Made to order — cut for you once your order is placed.</p>
+      <p style="font-size:13px;color:#666;">Made to order, cut for you once your order is placed.</p>
     </div>
     <div style="text-align:center;margin:32px 0;">
       <a href="https://shop.lebon-grace.com/cart" style="display:inline-block;padding:14px 32px;background:#16A34A;color:white;text-decoration:none;border-radius:8px;font-size:14px;font-weight:600;">Complete Your Order</a>
@@ -154,7 +154,7 @@ export async function POST(request: NextRequest) {
     // Marketing-class mail, so it carries one-click unsubscribe. Order
     // confirmations deliberately do not.
     headers: unsubscribeHeaders(email),
-    subject: "You left items in your cart! 🛒 — Lebon Grace",
+    subject: "You left items in your cart! 🛒 | Lebon Grace",
     html,
   });
 

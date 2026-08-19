@@ -27,8 +27,8 @@ const sortOptions = [
   { value: "featured", label: "Featured" },
   { value: "price-low", label: "Price: Low to High" },
   { value: "price-high", label: "Price: High to Low" },
-  { value: "name-az", label: "Name: A–Z" },
-  { value: "name-za", label: "Name: Z–A" },
+  { value: "name-az", label: "Name: A-Z" },
+  { value: "name-za", label: "Name: Z-A" },
 ];
 
 /* ─── Star Rating ─── */
@@ -210,7 +210,7 @@ function ShopContent() {
   filters.materials.forEach((m) => activeChips.push({ label: m, onRemove: () => toggleArrayFilter("materials", m) }));
   if (filters.priceMin > 0 || filters.priceMax < Infinity) {
     const tier = PRICE_TIERS.find((t) => t.min === filters.priceMin && t.max === filters.priceMax);
-    activeChips.push({ label: tier?.label || `AED ${filters.priceMin}–${filters.priceMax}`, onRemove: () => { updateFilter("priceMin", 0); updateFilter("priceMax", Infinity); } });
+    activeChips.push({ label: tier?.label || `AED ${filters.priceMin} to ${filters.priceMax}`, onRemove: () => { updateFilter("priceMin", 0); updateFilter("priceMax", Infinity); } });
   }
 
   /* ─── Filter Sidebar Content (shared between desktop and mobile) ─── */
@@ -384,7 +384,7 @@ function ShopContent() {
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2 lg:justify-end">
-              {["Free collection", "Made to order", "Ready in 2–3 days"].map((t) => (
+              {["Free collection", "Made to order", "Ready in 2-3 days"].map((t) => (
                 <span key={t} className="text-xs tracking-wide text-ink-soft border-t border-ink pt-2">{t}</span>
               ))}
             </div>

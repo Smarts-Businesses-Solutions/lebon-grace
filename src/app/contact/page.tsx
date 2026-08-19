@@ -7,7 +7,7 @@ import ContactClient from "./ContactClient";
  * the generic site title.
  */
 export const metadata: Metadata = {
-  title: "Contact Us — Lebon Grace",
+  title: "Contact Us | Lebon Grace",
   description:
     "Questions about an order, a custom design or international delivery? Send us a message, or reach the workshop on WhatsApp.",
 };

@@ -131,7 +131,7 @@ export default function ProductDetailPage() {
     const cartItem = {
       ...rawProduct!,
       ...(selectedCjVariant ? {
-        name: rawProduct!.name + " — " + selectedCjVariant.name,
+        name: rawProduct!.name + ", " + selectedCjVariant.name,
         imageUrl: selectedCjVariant.image || product.imageUrl,
         price: selectedCjVariant.price || product.price,
       } : {}),
@@ -481,7 +481,7 @@ export default function ProductDetailPage() {
             {[
               "Free collection, or AED 20 UAE delivery (free over AED 150)",
               "Secure payment via Stripe",
-              "Ships within 2–3 business days",
+              "Ships within 2-3 business days",
               "WhatsApp support, number shown on the contact page",
             ].map((text) => (
               <p key={text} className="text-xs text-ink-soft/85 leading-relaxed py-2.5 border-b border-rule">
@@ -610,7 +610,7 @@ export default function ProductDetailPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[
                 { step: "1", icon: "✏️", title: "Design", desc: "Each shape is carefully designed in CAD software with precise measurements and clean lines." },
-                { step: "2", icon: "🔥", title: "Laser Cut", desc: "Our CO2 laser cutter traces the design on 3mm MDF sheet with pinpoint accuracy — 0.1mm tolerance." },
+                { step: "2", icon: "🔥", title: "Laser Cut", desc: "Our CO2 laser cutter traces the design on 3mm MDF sheet with pinpoint accuracy, 0.1mm tolerance." },
                 { step: "3", icon: "🪵", title: "Sand & Prep", desc: "Every piece is hand-sanded to remove any rough edges and ensure a smooth, splinter-free finish." },
                 { step: "4", icon: "🎨", title: "Paint & Finish", desc: "Select items are painted or sealed. Raw MDF pieces are ready for you to customize at home." },
                 { step: "5", icon: "✅", title: "Quality Check", desc: "Each piece is inspected for precision, smoothness, and consistency before packaging." },
@@ -631,7 +631,7 @@ export default function ProductDetailPage() {
             <div className="p-4 bg-[#23201C]/5 rounded-xl border border-[#A8874D]/10">
               <h5 className="text-sm font-semibold text-[#A8874D] mb-1">🌿 Our Material</h5>
               <p className="text-xs text-gray-600 leading-relaxed">
-                We use premium 3mm MDF (Medium-Density Fiberboard) — a sustainably manufactured wood product made from recycled wood fibers. MDF is chosen for its consistent density, smooth surface, and excellent laser-cutting properties.
+                We use premium 3mm MDF (Medium-Density Fiberboard), a wood-based panel made from wood fibre. MDF is chosen for its consistent density, smooth surface, and excellent laser-cutting properties.
               </p>
             </div>
           </div>
@@ -641,7 +641,7 @@ export default function ProductDetailPage() {
         {isMDF && activeTab === "customization" && (
           <div className="max-w-3xl space-y-8">
             <div>
-              <h4 className="text-base font-semibold text-gray-800 mb-3">Make It Yours — Custom MDF Options</h4>
+              <h4 className="text-base font-semibold text-gray-800 mb-3">Make It Yours: Custom MDF Options</h4>
               <p className="text-sm text-gray-600 leading-relaxed">
                 Every piece we sell can be customized, or we can create entirely new designs from scratch. Our laser cutter can handle virtually any 2D shape you can imagine.
               </p>
@@ -649,12 +649,12 @@ export default function ProductDetailPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[
-                { icon: "📐", title: "Custom Size", desc: "Need a specific dimension? We can cut any shape to your exact size requirements — from 3cm to 60cm." },
+                { icon: "📐", title: "Custom Size", desc: "Need a specific dimension? We can cut any shape to your exact size requirements, from 3cm to 60cm." },
                 { icon: "🎨", title: "Paint & Color", desc: "Choose from our range of acrylic paints or request a specific RAL/Pantone color. We can also do gradient finishes." },
                 { icon: "✍️", title: "Engraving & Text", desc: "Add names, dates, logos, or any text via laser engraving. Perfect for personalized gifts and business branding." },
-                { icon: "🧩", title: "Custom Shapes", desc: "Send us a design (DXF, SVG, or even a sketch) and we’ll laser cut it. Logos, silhouettes, patterns — you name it." },
+                { icon: "🧩", title: "Custom Shapes", desc: "Send us a design (DXF, SVG, or even a sketch) and we’ll laser cut it. Logos, silhouettes, patterns, you name it." },
                 { icon: "🏠", title: "Wall Art Sets", desc: "Multi-piece wall art arrangements designed to fit your specific wall dimensions and color scheme." },
-                { icon: "🎁", title: "Gift Sets & Bundles", desc: "Curated sets of MDF cutouts, puzzles, or decor pieces — gift-wrapped and ready to give." },
+                { icon: "🎁", title: "Gift Sets & Bundles", desc: "Curated sets of MDF cutouts, puzzles, or decor pieces, gift-wrapped and ready to give." },
               ].map((item, i) => (
                 <div key={i} className="p-4 bg-gray-50 rounded-xl">
                   <h5 className="text-sm font-semibold text-gray-800">{item.icon} {item.title}</h5>
@@ -692,9 +692,9 @@ export default function ProductDetailPage() {
         {isMDF && activeTab === "care-guide" && (
           <div className="max-w-3xl space-y-8">
             <div>
-              <h4 className="text-base font-semibold text-gray-800 mb-3">Keep It Beautiful — MDF Care Guide</h4>
+              <h4 className="text-base font-semibold text-gray-800 mb-3">Keep It Beautiful: MDF Care Guide</h4>
               <p className="text-sm text-gray-600 leading-relaxed">
-                MDF is a durable and versatile material, but it does require a little care to keep it looking its best — especially in the UAE climate.
+                MDF is a durable and versatile material, but it does require a little care to keep it looking its best, especially in the UAE climate.
               </p>
             </div>
 
@@ -703,7 +703,7 @@ export default function ProductDetailPage() {
                 { icon: "☀️", title: "Avoid Direct Sunlight", desc: "Prolonged UV exposure can cause MDF to dry out and crack. Display away from direct sun or use UV-filtering window treatments." },
                 { icon: "💧", title: "Keep It Dry", desc: "MDF absorbs moisture. Keep pieces away from water, humid bathrooms, and outdoor use unless sealed. Wipe spills immediately." },
                 { icon: "🎨", title: "Painting & Sealing", desc: "For unpainted MDF: apply 2 coats of acrylic primer, then 2 coats of acrylic paint. Seal with clear matte or gloss varnish for durability." },
-                { icon: "🧹", title: "Cleaning", desc: "Dust with a soft dry cloth or microfiber duster. For deeper cleaning, use a slightly damp cloth — never soaking wet. Avoid chemical cleaners." },
+                { icon: "🧹", title: "Cleaning", desc: "Dust with a soft dry cloth or microfiber duster. For deeper cleaning, use a slightly damp cloth, never soaking wet. Avoid chemical cleaners." },
                 { icon: "🔧", title: "Touch-Ups", desc: "Small scratches can be filled with wood filler and repainted. Keep leftover paint for touch-ups. We can also send matching paint on request." },
                 { icon: "🏠", title: "Best Placement", desc: "MDF performs best in climate-controlled indoor spaces. Bedrooms, living rooms, offices, and covered patios are ideal locations." },
               ].map((item, i) => (

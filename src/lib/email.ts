@@ -207,7 +207,7 @@ const TEMPLATES: Record<
   { subject: (id: string) => string; title: string; color: string; message: (o: EmailOrder) => string }
 > = {
   confirmation: {
-    subject: (id) => `Order Confirmed #${id} — Lebon Grace`,
+    subject: (id) => `Order Confirmed #${id} | Lebon Grace`,
     title: "Order Confirmed!",
     color: "#16A34A",
     message: () => "Thank you for your order. We're preparing your items now.",
@@ -253,7 +253,7 @@ const TEMPLATES: Record<
       `${getAppUrl()}/review?order=${encodeURIComponent(o.id)}`,
   },
   cancelled: {
-    subject: (id) => `Order #${id} cancelled — Lebon Grace`,
+    subject: (id) => `Order #${id} cancelled | Lebon Grace`,
     title: "Order Cancelled",
     color: "#DC2626",
     message: () =>
@@ -264,11 +264,11 @@ const TEMPLATES: Record<
     // Deliberately does not repeat the "all sales are final" line from
     // `cancelled` — a refund has already been issued, so quoting the no-refunds
     // policy back at the customer reads as a contradiction.
-    subject: (id) => `Refund issued for order #${id} — Lebon Grace`,
+    subject: (id) => `Refund issued for order #${id} | Lebon Grace`,
     title: "Refund Issued",
     color: "#6B7280",
     message: (o) =>
-      `We have refunded ${formatPrice(o.total)} for this order. Refunds usually reach your account within 5–10 working days, depending on your bank. If it has not arrived by then, reply to this email and we will chase it.`,
+      `We have refunded ${formatPrice(o.total)} for this order. Refunds usually reach your account within 5-10 working days, depending on your bank. If it has not arrived by then, reply to this email and we will chase it.`,
   },
 };
 
@@ -502,11 +502,11 @@ export async function sendOperatorOrderAlert(
         .map(
           (i) =>
             `<li>${i.quantity} x ${esc(i.product_name)}${
-              i.personalisation ? ` — <strong>engrave: ${esc(String(i.personalisation))}</strong>` : ""
+              i.personalisation ? `, <strong>engrave: ${esc(String(i.personalisation))}</strong>` : ""
             }</li>`
         )
         .join("")
-    : "<li><strong>No line items recorded</strong> — check the Stripe session before cutting anything.</li>";
+    : "<li><strong>No line items recorded</strong>, check the Stripe session before cutting anything.</li>";
 
   /*
    * A way to actually reach the customer.
@@ -543,7 +543,7 @@ export async function sendOperatorOrderAlert(
     : null;
 
   const html = `
-    <p><strong>New order #${esc(short)}</strong> — AED ${order.total}</p>
+    <p><strong>New order #${esc(short)}</strong>, AED ${order.total}</p>
     <ul>${lines}</ul>
     <p>${esc(order.customer_name || "")}${order.customer_phone ? ` · ${esc(order.customer_phone)}` : ""}</p>
     <p>${order.delivery_method === "delivery" ? "Delivery" : "Collection"} · made to order, 2 to 3 working days</p>
@@ -555,7 +555,7 @@ export async function sendOperatorOrderAlert(
           )} on WhatsApp</a></p>` +
           (waConfigured
             ? ""
-            : `<p style="font-size:12px;color:#666;">Automatic WhatsApp is <strong>not configured</strong>, so nothing was sent to the customer — message them yourself with the button above. To turn it on, set <code>WHATSAPP_ACCESS_TOKEN</code> and <code>WHATSAPP_PHONE_NUMBER_ID</code>.</p>`)
+            : `<p style="font-size:12px;color:#666;">Automatic WhatsApp is <strong>not configured</strong>, so nothing was sent to the customer. Message them yourself with the button above. To turn it on, set <code>WHATSAPP_ACCESS_TOKEN</code> and <code>WHATSAPP_PHONE_NUMBER_ID</code>.</p>`)
         : `<p style="font-size:12px;color:#666;">No phone number on this order, so there is no WhatsApp link.</p>`
     }
   `;
@@ -568,7 +568,7 @@ export async function sendOperatorOrderAlert(
   return deliver(`operator-alert:${short}`, {
     from: fromAddress(),
     to,
-    subject: `New order #${short} — AED ${order.total}${engraved.length ? " (engraved)" : ""}`,
+    subject: `New order #${short}, AED ${order.total}${engraved.length ? " (engraved)" : ""}`,
     html,
   });
 }

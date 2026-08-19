@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         error:
-          "Please enter the mobile number you want us to reach you on — it is also how you look up your order later.",
+          "Please enter the mobile number you want us to reach you on. It is also how you look up your order later.",
       },
       { status: 400 }
     );

@@ -67,7 +67,7 @@ export default function ContactClient() {
         </div>
         <h1 className="mt-6 text-3xl font-semibold tracking-tight">Message Sent</h1>
         <p className="mt-4 text-gray-500 text-sm max-w-md mx-auto">
-          Thank you for reaching out. We typically respond within 24 hours during business days (Monday–Saturday).
+          Thank you for reaching out. We typically respond within 24 hours during business days (Monday to Saturday).
         </p>
         <Link href="/" className="mt-8 inline-flex items-center px-6 py-3 bg-[#23201C] text-white text-sm font-semibold rounded-lg hover:bg-[#A8874D] transition-colors">
           Back to Home
@@ -215,7 +215,7 @@ export default function ContactClient() {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-900">Business Hours</p>
-                    <p className="text-sm text-gray-500">Monday – Saturday<br />9:00 AM – 6:00 PM (GST)</p>
+                    <p className="text-sm text-gray-500">Monday to Saturday<br />9:00 AM to 6:00 PM (GST)</p>
                   </div>
                 </div>
               </div>

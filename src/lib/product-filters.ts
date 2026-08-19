@@ -138,8 +138,8 @@ export const BRANDS = Array.from(new Set(enrichedProducts.map((p) => p.brand).fi
 // products, which makes a stale entry invisible rather than broken.
 export const PRICE_TIERS = [
   { label: "Under AED 5", min: 0, max: 5 },
-  { label: "AED 5 – 10", min: 5, max: 10 },
-  { label: "AED 10 – 20", min: 10, max: 20 },
+  { label: "AED 5 to 10", min: 5, max: 10 },
+  { label: "AED 10 to 20", min: 10, max: 20 },
   { label: "AED 20+", min: 20, max: Infinity },
 ];
 

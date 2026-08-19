@@ -160,7 +160,7 @@ export default function AccountClient() {
             </button>
 
             <p className="text-center text-ink-soft text-xs mt-4">
-              No account needed — just use the email and phone from your order.
+              No account needed. Just use the email and phone from your order.
             </p>
           </form>
         </div>

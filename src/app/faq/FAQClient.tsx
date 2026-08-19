@@ -32,7 +32,7 @@ const faqs = [
   },
   {
     question: "Can I change or cancel my order?",
-    answer: "Contact us as soon as you can. If we have not started cutting your piece we will cancel it and refund you in full. Once the wood is cut, or a name engraved, we cannot cancel it. Please double check the spelling of any personalisation before you pay, because we engrave exactly what you give us.",
+    answer: "Contact us as soon as you can. If we have not started cutting your piece we will cancel it and refund you in full. Once the MDF is cut, or a name engraved, we cannot cancel it. Please double check the spelling of any personalisation before you pay, because we engrave exactly what you give us.",
   },
   {
     question: "Can I pick up my order instead of delivery?",

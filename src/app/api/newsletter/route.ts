@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
       to: [email.trim()],
       subject: "Confirm your Lebon Grace subscription",
       html:
-        `<p>Someone — hopefully you — asked for occasional news from Lebon Grace.</p>` +
+        `<p>Someone, hopefully you, asked for occasional news from Lebon Grace.</p>` +
         `<p><a href="${url}">Confirm your subscription</a></p>` +
         `<p style="color:#666;font-size:13px;">If it was not you, ignore this message. ` +
         `Nothing will be sent to this address unless the link above is used.</p>`,

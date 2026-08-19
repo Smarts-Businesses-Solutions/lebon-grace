@@ -39,9 +39,9 @@ const text = Karla({
 });
 
 export const metadata: Metadata = {
-  title: "Lebon Grace — Wooden Puzzles, Made to Order in the UAE",
+  title: "Lebon Grace | MDF Puzzles for Children, Made to Order in the UAE",
   description:
-    "Wooden alphabet, number and Montessori puzzles for children, cut and finished by hand in our UAE workshop. Made to order, free name engraving, free collection.",
+    "Alphabet, number and Montessori puzzles for children, cut from 3mm MDF and finished by hand in our UAE workshop. Made to order, free name engraving, free collection.",
   // src/app/favicon.ico used to sit alongside these. It was the stock Vercel
   // triangle from create-next-app, never replaced. Next's file convention gave
   // it rel="icon" sizes="256x256" type="image/x-icon", so browsers preferred it
@@ -78,21 +78,21 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
   },
   keywords: [
-    "wooden puzzles",
+    "MDF puzzles",
     "Montessori toys",
     "alphabet puzzle",
     "number puzzle",
     "educational toys",
-    "personalised wooden toys",
+    "personalised toys",
     "handmade toys UAE",
     "UAE",
     "Sharjah",
     "Dubai",
   ],
   openGraph: {
-    title: "Lebon Grace — Wooden Puzzles, Made to Order in the UAE",
+    title: "Lebon Grace | MDF Puzzles for Children, Made to Order in the UAE",
     description:
-      "Wooden alphabet, number and Montessori puzzles for children, cut and finished by hand in our UAE workshop. Free name engraving.",
+      "Alphabet, number and Montessori puzzles for children, cut from 3mm MDF and finished by hand in our UAE workshop. Free name engraving.",
     type: "website",
     locale: "en_AE",
   },

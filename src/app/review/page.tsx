@@ -94,7 +94,7 @@ function ReviewForm() {
       <div className="mx-auto max-w-xl">
         <h1 className="font-heading text-3xl text-ink">How did we do?</h1>
         <p className="mt-2 text-sm text-ink-soft">
-          Every review here comes from a delivered order — we do not write our own, and we do not
+          Every review here comes from a delivered order. We do not write our own, and we do not
           show a rating until a real customer leaves one.
         </p>
 
@@ -123,8 +123,8 @@ function ReviewForm() {
 
         {notDelivered && (
           <p className="mt-8 rounded-2xl border border-rule bg-bone p-6 text-sm text-ink-soft">
-            That order has not been delivered yet. Once it arrives we would love to hear what you think —
-            the link in your delivery email will bring you back here.
+            That order has not been delivered yet. Once it arrives we would love to hear what you think. The
+            link in your delivery email will bring you back here.
           </p>
         )}
 
@@ -138,7 +138,7 @@ function ReviewForm() {
           <div key={item.slug} className="mt-6 rounded-2xl border border-rule bg-bone p-6">
             <h2 className="text-sm font-semibold text-ink">{item.name}</h2>
             {done[item.slug] ? (
-              <p className="mt-3 text-sm text-ink-soft">Thank you — your review for this piece is saved.</p>
+              <p className="mt-3 text-sm text-ink-soft">Thank you. Your review for this piece is saved.</p>
             ) : (
               <>
                 <div className="mt-3">

@@ -53,7 +53,7 @@ function alertNoLineItems(orderId: string, sessionId: string, why: string): void
     `<p><strong>Order ${orderId} has been paid and there is nothing to cut.</strong></p>` +
       `<p>${esc(why)}.</p>` +
       `<p>Stripe session <code>${esc(sessionId)}</code>. Open it, read the line items, and add the ` +
-      `pieces to the order by hand — the workshop cannot see this order otherwise, and the ` +
+      `pieces to the order by hand. The workshop cannot see this order otherwise, and the ` +
       `customer is already waiting.</p>`
   );
 }
@@ -360,7 +360,7 @@ export async function POST(request: NextRequest) {
       // later hint that this happened. It has to be pushed, not left to be
       // found.
       notifyOperator(
-        `Refund with NO MATCHING ORDER — payment_intent ${pi || "MISSING"}`,
+        `Refund with NO MATCHING ORDER, payment_intent ${pi || "MISSING"}`,
         `<p><strong>A refund was issued for a payment this shop has no order for.</strong></p>` +
           `<p>payment_intent <code>${esc(pi || "MISSING")}</code>.</p>` +
           `<p>The customer has their money back and the shop does not know who they are. ` +
@@ -405,10 +405,10 @@ export async function POST(request: NextRequest) {
       const refunded = Number(charge.amount_refunded ?? 0) / 100;
       const charged = Number(charge.amount ?? 0) / 100;
       notifyOperator(
-        `Refund on order ${order.id} — AED ${refunded.toFixed(2)}`,
+        `Refund on order ${order.id}, AED ${refunded.toFixed(2)}`,
         `<p><strong>Order ${order.id} has been refunded.</strong></p>` +
           `<p>AED ${refunded.toFixed(2)} returned of AED ${charged.toFixed(2)} charged` +
-          `${refunded < charged ? " — this is a PARTIAL refund" : ""}.</p>` +
+          `${refunded < charged ? ", and this is a PARTIAL refund" : ""}.</p>` +
           `<p>Customer: ${esc(String(order.customer_name ?? "unknown"))} (${esc(String(order.customer_email ?? "no email"))}).</p>` +
           `<p>If this order is already cut or in progress, stop work on it.</p>`
       );

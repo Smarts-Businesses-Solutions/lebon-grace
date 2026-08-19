@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
   // (2) Delivered. Reviewing a piece that has not arrived is not a review.
   if (!REVIEWABLE_STATUSES.includes(String(order.status))) {
     return NextResponse.json(
-      { error: "This order has not been delivered yet — you can review it once it arrives." },
+      { error: "This order has not been delivered yet. You can review it once it arrives." },
       { status: 409 }
     );
   }

@@ -55,14 +55,14 @@ export default function CheckoutPage() {
     // number reaches the customer.
     if (!form.email.trim()) ne.email = "Email is required";
     else if (!isDeliverableEmail(form.email))
-      ne.email = "That email address will not receive your order confirmation — please check it";
+      ne.email = "That email address will not receive your order confirmation, please check it";
     // Counts DIGITS, via the same helper the server now uses. It counted
     // CHARACTERS (`form.phone.length < 10`), so "----------" passed — and a
     // stored phone that cannot be compared is an order the customer can never
     // reach, because /track and /account both check it.
     if (!form.phone.trim()) ne.phone = "Phone is required";
     else if (!isUsablePhone(form.phone))
-      ne.phone = "That number looks too short — it is also how you find your order later";
+      ne.phone = "That number looks too short. It is also how you find your order later";
     if (!form.firstName.trim()) ne.firstName = "Required";
     if (!form.lastName.trim()) ne.lastName = "Required";
     if (deliveryMethod === "delivery") {
@@ -149,7 +149,7 @@ export default function CheckoutPage() {
     console.error("Checkout could not be started:", reason ?? "network error");
     setErrors({
       submit:
-        "We could not start the payment just now. Nothing has been charged and your basket is safe — please try again, or contact us if it keeps happening.",
+        "We could not start the payment just now. Nothing has been charged and your basket is safe. Please try again, or contact us if it keeps happening.",
     });
     setSubmitting(false);
   }
@@ -339,7 +339,7 @@ export default function CheckoutPage() {
             <div className="mt-4 p-3 bg-offwhite rounded-sm">
               <p className="text-xs text-charcoal">
                 {deliveryMethod === "pickup"
-                  ? "Paid in full today. Free collection from our workshop — no delivery fee."
+                  ? "Paid in full today. Free collection from our workshop, no delivery fee."
                   : "Paid in full today. Nothing to pay on delivery."}
               </p>
             </div>

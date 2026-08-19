@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Terms of Service — Lebon Grace",
+  title: "Terms of Service | Lebon Grace",
   description: "Terms and conditions for shopping with Lebon Grace.",
 };
 
@@ -62,7 +62,7 @@ export default function TermsPage() {
         <div>
           <h2 className="font-heading text-xl font-semibold tracking-tight mb-3">6. Order Modifications and Cancellations</h2>
           <p className="text-charcoal text-sm leading-relaxed">
-            Because production starts soon after payment, please contact us as quickly as possible if you need to change or cancel an order. <strong>If we have not yet begun cutting your piece we will cancel it and refund you in full.</strong> Once the wood has been cut, or a name has been engraved, the item cannot be cancelled or refunded. If you have asked for personalisation, please check the spelling carefully at checkout: we engrave exactly what you give us.
+            Because production starts soon after payment, please contact us as quickly as possible if you need to change or cancel an order. <strong>If we have not yet begun cutting your piece we will cancel it and refund you in full.</strong> Once the MDF has been cut, or a name has been engraved, the item cannot be cancelled or refunded. If you have asked for personalisation, please check the spelling carefully at checkout: we engrave exactly what you give us.
           </p>
         </div>
 

@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Privacy Policy — Lebon Grace",
+  title: "Privacy Policy | Lebon Grace",
   description: "Privacy policy for Lebon Grace. How we handle your data.",
 };
 
