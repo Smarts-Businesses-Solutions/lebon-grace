@@ -50,6 +50,10 @@ const NEGATIVE_BY_DESIGN = new Set([
   "CODEBASE_AUDIT.md", // the audit that IDENTIFIED the stale Hostinger docs as a problem
   "PROGRESS.md", // "the move off Vercel/Hostinger onto the Hetzner estate"
   "whatnext.md", // its Hostinger blocks each carry their own dead/superseded marker
+  // Section 20 recounts SESSION_RESUME.md pointing at a Hostinger app that had
+  // not existed for six weeks. Teaching that the platform is dead is the
+  // opposite of instructing someone to deploy to it.
+  "FOR-EVARISTE.md",
 ]);
 
 /*
