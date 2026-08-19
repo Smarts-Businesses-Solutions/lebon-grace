@@ -1243,6 +1243,48 @@ was costing accuracy to buy nothing. It is now the `ContactInfo` reveal, which
 fetches the number from the one place it lives. There is no copy left in that
 file to go stale.
 
+### The sweep runs at 03:17, and we watched it delete something
+
+The 90 day promise on `/custom` is only worth what runs it. The sweep ships
+inside the runtime image and a systemd timer on cx53 `docker exec`s it daily.
+
+The image is where it lives because of where the CREDENTIALS are. Deleting a
+photograph needs the service role key and the R2 secret; the container already
+holds both, and cx53 has no node runtime, so every host-side alternative meant
+installing node *and* writing those two secrets into a second file on the same
+box. Both operations would have added a place to leak from and bought nothing.
+
+Two things nearly shipped broken. `aws4fetch` is absent from the standalone
+bundle, because Next only traces what the app imports at runtime and nothing
+the server renders touches R2 — the sweep would have died on a missing import
+at 03:00, silently. And the timer script exits 0 when the container is simply
+not running: a deploy in progress is not a privacy incident, and a unit that
+goes red every time you ship is a unit people stop reading.
+
+It was proved the same way as everything else here: seed a row past its expiry
+with a real object in the bucket, run `systemctl start`, then check the object
+is gone from R2 and the row kept its brief but lost the key, the type, the size
+and the address. `journalctl -u lebon-grace-artwork-sweep` is the record.
+
+### The credentials were not in production
+
+Worth reading twice, because the site looked completely fine.
+
+`/custom` deployed, the page rendered, the form posted, the tests passed. But
+the container had no `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`,
+`R2_ACCOUNT_ID` or `LEBON_GRACE_R2_ARTWORK_BUCKET`. The first real customer to
+send a photograph would have got a 500 *after* their row was written, with no
+artwork and no e-mail to you.
+
+Nothing that reads HTML could have caught it. What caught it was listing the
+environment variable NAMES in the running container and noticing four that
+should have been there were not. What now proves it works is a smoke test that
+posts an actual PNG at production and checks four things: the route answered
+200, the row points at an object, the stored type is JPEG — so the re-encode
+really ran rather than the bytes passing through — and an unauthenticated
+request to the bucket does not get the photograph. It deletes the row and the
+object afterwards.
+
 ### Deploying is one command now
 
 `./scripts/deploy-cx53.sh`. It builds from **origin/main on GitHub**, not from
