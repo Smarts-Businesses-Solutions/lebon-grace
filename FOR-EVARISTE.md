@@ -1,6 +1,6 @@
 # Lebon Grace — Technical Guide for Evariste
 
-**Last updated:** 2026-08-09 · Written to the standard in `.claude/skills/teacher/SKILL.md`.
+**Last updated:** 2026-08-19 · Written to the standard in `.claude/skills/teacher/SKILL.md`.
 
 ---
 
@@ -100,10 +100,14 @@ src/
     cart-context.tsx       # cart + delivery choice, persisted to localStorage
     email.ts               # templates; an unmapped status sends NOTHING on purpose
     admin-auth.ts          # HMAC session cookie; `role === "admin"` is the model
-    rate-limit.ts          # DB-backed, survives a deploy
+    rate-limit.ts          # IN-MEMORY, resets on deploy. login-throttle.ts is the DB-backed one
+    artwork.ts             # re-encodes an upload into a JPEG we made ourselves
+    design-requests.ts     # the photo/logo conversation (section 19)
 supabase/migrations/       # forward-only SQL, numbered
 tests/e2e/                 # Playwright: navigation, money-path, failure-modes, mobile, a11y
 scripts/verify-deploy.mjs  # proves a deploy actually reached production
+scripts/deploy-cx53.sh     # build origin/main on cx53, swap the container, verify
+scripts/sweep-expired-artwork.mjs  # deletes customer artwork past its 90 days
 ```
 
 **If you want to change X, go here:**
@@ -1124,7 +1128,131 @@ Researched against primary sources rather than blog summaries:
 
 Full working in `docs/RESEARCH-agentic-commerce-2026-08-19.md`.
 
-## 19. Glossary
+## 19. The photograph problem — 2026-08-19
+
+You asked for a photo and logo path, and then said the thing that decided the
+whole design:
+
+> "a discussion needs to happen with the customer ahead in order to agree on the
+> design and when it is final and approved then we do the work."
+
+That one sentence rules out the obvious build. The obvious build is an upload
+box at checkout, next to the name field. It is obvious because the name field
+works that way: someone types "Layla", we cut "Layla", done. A photograph is not
+like that. It has to be looked at, cropped, sometimes redrawn, sometimes refused
+because it will not survive being burned into a 3mm board. If we take the money
+first we end up with one of two bad outcomes: cutting something the customer
+never approved, or holding a paid order hostage while we argue about it.
+
+So the flow is **quote and approve BEFORE the order exists**. There is no file
+upload anywhere in the checkout. There is a separate page, `/custom`, where
+someone sends a picture and a description, and a separate table holding that
+conversation. Only when the design is agreed does a normal AED 15 order get
+placed, the same as any other puzzle. The price never changes — you were clear
+about that too. Photo and logo are further personalisation on the existing
+catalogue, not a second product, so there is no quote, no payment link and no
+second price anywhere in the schema.
+
+### What actually got built
+
+| Piece | File | What it is for |
+|---|---|---|
+| The table | `supabase/migrations/0012_design_requests.sql` | The conversation. Holds a *pointer* to the image, never the image. |
+| The address column | `supabase/migrations/0013_design_requests_submitter_ip.sql` | So the throttle has something to count. |
+| The sanitiser | `src/lib/artwork.ts` | Turns whatever arrived into a plain JPEG we made ourselves. |
+| Private storage | `src/lib/artwork-storage.ts` | A separate R2 bucket that answers 401 to the public. |
+| The store | `src/lib/design-requests.ts` | Reference generation, reads, writes. |
+| The throttle | `src/lib/design-request-throttle.ts` | 3 an hour, 8 a day, per address. |
+| The public route | `src/app/api/custom/route.ts` | Eight steps, in an order that matters. |
+| The page | `src/app/custom/page.tsx` + `CustomClient.tsx` | Where a customer starts. |
+| The operator's queue | `src/components/DesignQueue.tsx` | A tab in `/admin`. |
+| The admin API | `src/app/api/admin/design-requests/` | Listing, status changes, and the artwork viewer. |
+| The sweep | `scripts/sweep-expired-artwork.mjs` | Deletes photographs that have outlived their purpose. |
+
+### Four ideas worth carrying to other projects
+
+**Re-encoding is the guarantee, not sniffing.** A file that starts with the
+right magic bytes can still be a payload. Checking the first few bytes tells you
+what a file *claims* to be. The only reliable move is to decode the image and
+write a new one from the pixels, which is what `sharp(...).jpeg()` does here —
+anything hidden in the original does not survive the round trip. SVG is refused
+outright, because SVG is a document that can contain script, not a picture.
+
+**Store the pointer, not the thing.** Postgres is not a blob store. The table
+holds an R2 object key; the bucket holds the bytes. The operator's queue query
+stays fast because it is reading text, and a database backup does not quietly
+become a megabyte-per-row archive of other people's children.
+
+**Delete storage first, then the row.** This one is genuinely counterintuitive.
+If you clear the database pointer first and the storage delete then fails, you
+have an object in the bucket that *no row references* — so no future sweep can
+ever find it. That is how a private bucket silently fills with photographs
+nobody can account for. The other order fails safe: if the delete throws, the
+row still points at a real object and the next run retries. The same order is
+used when the operator declines a request, and there is a test that asserts the
+sequence, not just the outcome.
+
+**A signed URL is a password.** The operator's viewer mints a URL that lives for
+sixty seconds. Anyone holding that string can fetch the photograph with no login
+at all. So it is fetched one row at a time rather than embedded in the queue
+listing — a list response would mint a working key for every open request at
+once and leave them in browser history and in any screenshot of the queue. It is
+rendered into an `<img>` rather than opened in a tab, because a navigation
+writes the URL into history and an image load does not. And `next/image` is
+deliberately *not* used: the optimiser caches by URL on disk, which would put a
+copy of the photograph outside the private bucket the entire design rests on.
+
+### Two things that cost real time
+
+**The credentials had a different name.** The sweep died on
+`SUPABASE_SERVICE_ROLE_KEY missing`. The shared secrets file holds a dozen
+Supabase instances for different projects, and this project's keys are prefixed
+`LG_SELFHOSTED_`. An unprefixed name does not say which database it opens, which
+is exactly why the prefix exists. Every credential is now checked at the top of
+the script, including the R2 ones a `--dry` run never touches, because a dry run
+that passes and a real run that dies halfway is the worst possible split — the
+dry run is the thing that tells you it is safe to schedule.
+
+**`process.exit()` can abort a script that already succeeded.** The sweep
+finished its work and then died with a C-level libuv assertion on Windows. The
+cause is a known Node bug: calling `exit()` while the HTTP client still holds a
+socket. A timer would have read that as a failed sweep and alerted on a run that
+worked perfectly. The fix is `process.exitCode = n`, which lets the event loop
+drain and the process end on its own. The commonly published workaround is to
+sleep 100ms before exiting; draining is the same fix without a magic number.
+
+### And the test that could not have failed
+
+The first sweep run reported "0 requests with artwork past expiry" against an
+empty table, and it would have reported exactly that if the query had the wrong
+column name, the wrong operator, or the wrong table. **An absence proves nothing
+unless you show the thing could have been present.** So there is now a proof
+that seeds a row past its expiry with a real object in the bucket, checks the
+object is readable, runs the dry sweep and asserts it *lists* the row and
+*leaves the object alone*, runs the real sweep, and then checks the photograph
+is gone from R2 and the row kept its brief but lost the key, the type, the size
+and the address. It cleans up after itself either way.
+
+### A stale mask, found by accident
+
+While adding the `/custom` link to the footer, the phone line read
+`+971 58 ••• ••30`. The shop's number changed to +971 52 839 9804 and the mask
+kept advertising the old one's first and last digits. Four real digits are not
+enough for a customer to dial and are plenty for a scraper to correlate, so it
+was costing accuracy to buy nothing. It is now the `ContactInfo` reveal, which
+fetches the number from the one place it lives. There is no copy left in that
+file to go stale.
+
+### Deploying is one command now
+
+`./scripts/deploy-cx53.sh`. It builds from **origin/main on GitHub**, not from
+your working tree, so what ships is exactly the commit that was pushed and the
+image can always be traced to a SHA. It tags a rollback before overwriting,
+replaces only this app's container, and refuses to claim success unless the live
+site serves back the exact `dpl` it just built. Read §17 for why every one of
+those steps is there.
+
+## 20. Glossary
 
 | Term | Plain words |
 |---|---|
@@ -1152,3 +1280,9 @@ Full working in `docs/RESEARCH-agentic-commerce-2026-08-19.md`.
 | **`@graph`** | A JSON-LD array letting one script tag declare several linked things, here the Organization and the WebSite. |
 | **`sameAs`** | The official profiles of an organisation elsewhere. Ties the shop to the accounts it posts from. |
 | **eligibleTransactionVolume** | How schema.org expresses a conditional offer, used here for free delivery over AED 150. |
+| **Design request** | The conversation before a photo or logo order exists. Its own table, its own reference, no money involved. |
+| **`LG-` reference** | The short handle a customer quotes on WhatsApp, e.g. `LG-K7M2PQ`. No 0/O or 1/I/L, because it gets read aloud and typed on a phone. |
+| **Re-encoding** | Decoding an uploaded image and writing a fresh one from the pixels. The only reliable way to strip whatever was hidden in the original. |
+| **Signed URL** | A time-limited link to a private object. It is a bearer credential: whoever holds the string can fetch the file with no login. |
+| **Fails open** | A guard that lets traffic through when it cannot do its job. The submission throttle fails open, so a database blip does not close the front door. |
+| **`process.exitCode`** | Setting the exit status instead of calling `process.exit()`, so the event loop drains first. Prevents a finished script aborting on an open socket. |
