@@ -98,24 +98,47 @@ const nextConfig: NextConfig = {
    */
   async redirects() {
     const CAMPAIGN = "launch-2026";
-    // channel code -> [utm_source, utm_content]
-    // utm_content separates two placements on the same platform; the main
-    // YouTube upload and the Short are different posts of different films.
-    const CHANNELS: Record<string, [string, string]> = {
+
+    /*
+     * channel code -> [utm_source, utm_content, utm_campaign?]
+     *
+     * utm_content separates two placements on the same platform; the main
+     * YouTube upload and the Short are different posts of different films.
+     *
+     * The third slot overrides the campaign, and exists for one real
+     * distinction: a POST belongs to the campaign that produced it, but a
+     * PROFILE LINK outlives every campaign. It sits in a bio until someone
+     * edits it. Tagging that `launch-2026` means that a year from now, profile
+     * traffic still reports as launch traffic and the number is quietly wrong.
+     */
+    const CHANNELS: Record<string, [string, string] | [string, string, string]> = {
       yt: ["youtube", "main-upload"],
       yts: ["youtube", "shorts"],
       li: ["linkedin", "post"],
       x: ["x", "post"],
+      /*
+       * The X profile bio. Separate from `x` on purpose: X wraps every link in
+       * t.co and the referrer arrives BLANK, so the UTM tags are not a nicety
+       * here, they are the only thing that makes the click attributable at all.
+       * Sharing `x` between a post and the bio would merge the two placements
+       * that utm_content exists to keep apart.
+       *
+       * Left as its own code rather than retagging `tt` and `ig`, which are
+       * also bio links still carrying the launch campaign. Those have clicks
+       * behind them already, and changing a live link's campaign splits its
+       * history across two names. Worth fixing deliberately, not in passing.
+       */
+      xb: ["x", "bio", "profile"],
       tt: ["tiktok", "bio"],
       ig: ["instagram", "bio"],
       fb: ["facebook", "post"],
     };
 
-    return Object.entries(CHANNELS).map(([code, [source, content]]) => ({
+    return Object.entries(CHANNELS).map(([code, [source, content, campaign]]) => ({
       source: `/go/${code}`,
       destination:
         `/?utm_source=${source}&utm_medium=social` +
-        `&utm_campaign=${CAMPAIGN}&utm_content=${content}`,
+        `&utm_campaign=${campaign ?? CAMPAIGN}&utm_content=${content}`,
       permanent: false,
     }));
   },
