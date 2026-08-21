@@ -77,18 +77,34 @@ OLD=$(docker inspect "$NAME" --format '{{.Id}}' | cut -c1-12)
 # Tag the CURRENT image before overwriting the tag, so there is something to go
 # back to. Doing this after the retag would preserve the new image twice.
 #
-# Tagged from the RUNNING CONTAINER'S image id, not from `lebon-grace:cx53`.
-# A tag is a label anything can remove: Coolify's periodic docker cleanup
-# pruned every lebon-grace tag on this host while the container carried on
-# serving from the now-untagged image, and this line then aborted the deploy
-# with "No such image: lebon-grace:cx53". The image a container is running
-# cannot be pruned while it runs, so `.Image` is the one reference that is
-# always there, and it is also precisely the thing you would want to roll back
-# to.
+# BEST EFFORT, and it must never abort the deploy.
+#
+# This tagged `lebon-grace:cx53` and died with "No such image" while the site
+# was serving perfectly: Coolify's periodic cleanup had removed every
+# lebon-grace image on the host. Retagging from the container's own image id
+# does not save it either -- Docker will delete an image out from under a
+# running container, which then survives on layers it holds open while
+# `docker image inspect` on that same id returns nothing. That state is real
+# and it is what this host is in.
+#
+# So: try, warn loudly, carry on. An aborting rollback step means one cleanup
+# permanently blocks deployment, which is a worse failure than shipping without
+# a local rollback tag.
+#
+# THE ACTUAL ROLLBACK PATH IS GIT. This script builds from origin/main, so
+# going back is `git revert` (or reset to a known-good SHA), push, run this
+# again. Every past build is reproducible from its commit, and the DEPLOYMENT_ID
+# stamped into the image records which commit produced it. The tag below is a
+# convenience for an instant swap, never the safety mechanism.
 CURRENT_IMAGE=$(docker inspect "$NAME" --format '{{.Image}}')
 ROLLBACK="lebon-grace:rollback-$(date +%Y%m%dT%H%M%SZ)"
-docker tag "$CURRENT_IMAGE" "$ROLLBACK"
-echo "  rollback  $ROLLBACK  (from $(echo "$CURRENT_IMAGE" | cut -c8-19))"
+if docker tag "$CURRENT_IMAGE" "$ROLLBACK" 2>/dev/null; then
+  echo "  rollback  $ROLLBACK"
+else
+  echo "  rollback  NONE -- the running image is not in the image store."
+  echo "            Cleanup removed it; the container is alive on held layers."
+  echo "            To go back, redeploy an earlier commit. Continuing."
+fi
 
 docker tag lebon-grace:pending lebon-grace:cx53
 cd "/data/coolify/services/$SVC"
