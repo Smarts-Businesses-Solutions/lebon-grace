@@ -76,9 +76,19 @@ OLD=$(docker inspect "$NAME" --format '{{.Id}}' | cut -c1-12)
 
 # Tag the CURRENT image before overwriting the tag, so there is something to go
 # back to. Doing this after the retag would preserve the new image twice.
+#
+# Tagged from the RUNNING CONTAINER'S image id, not from `lebon-grace:cx53`.
+# A tag is a label anything can remove: Coolify's periodic docker cleanup
+# pruned every lebon-grace tag on this host while the container carried on
+# serving from the now-untagged image, and this line then aborted the deploy
+# with "No such image: lebon-grace:cx53". The image a container is running
+# cannot be pruned while it runs, so `.Image` is the one reference that is
+# always there, and it is also precisely the thing you would want to roll back
+# to.
+CURRENT_IMAGE=$(docker inspect "$NAME" --format '{{.Image}}')
 ROLLBACK="lebon-grace:rollback-$(date +%Y%m%dT%H%M%SZ)"
-docker tag lebon-grace:cx53 "$ROLLBACK"
-echo "  rollback  $ROLLBACK"
+docker tag "$CURRENT_IMAGE" "$ROLLBACK"
+echo "  rollback  $ROLLBACK  (from $(echo "$CURRENT_IMAGE" | cut -c8-19))"
 
 docker tag lebon-grace:pending lebon-grace:cx53
 cd "/data/coolify/services/$SVC"
