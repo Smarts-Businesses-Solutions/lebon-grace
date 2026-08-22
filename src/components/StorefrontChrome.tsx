@@ -17,8 +17,18 @@ import { usePathname } from "next/navigation";
  * Children are passed through rather than imported here, so Footer stays a
  * server component and is not dragged into the client bundle by this file.
  */
+/*
+ * /links joins /admin for a different reason.
+ *
+ * It is the single URL a social bio points at, and its whole job is to be four
+ * obvious choices on a phone in one screen. Wrapping that in the shop's
+ * header, search bar, cart icon and full footer turns it back into the shop
+ * with extra steps, which is the thing the page exists to avoid.
+ */
+const NO_CHROME = ["/admin", "/links"];
+
 export default function StorefrontChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  if (pathname?.startsWith("/admin")) return null;
+  if (NO_CHROME.some((p) => pathname?.startsWith(p))) return null;
   return <>{children}</>;
 }
