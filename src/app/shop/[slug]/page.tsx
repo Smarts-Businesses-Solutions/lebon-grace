@@ -115,6 +115,7 @@ export default async function ProductPage({
   }
 
   const base = getAppUrl();
+  const url = `${base}/shop/${product.slug}`;
   const image = product.imageUrl?.startsWith("http")
     ? product.imageUrl
     : `${base}${product.imageUrl || ""}`;
@@ -185,6 +186,55 @@ export default async function ProductPage({
       : undefined,
   };
 
+  /**
+   * Where this page sits, stated rather than inferred.
+   *
+   * Without it a result reads `shop.lebon-grace.com › shop › abc-jigsaw-board`,
+   * a URL wearing a trail. With it Google shows
+   * `Lebon Grace › Shop › Alphabet & Literacy`, which says what kind of thing
+   * this is before anyone clicks, and lets an assistant answer "what category
+   * is this in" without guessing from the path.
+   *
+   * The category item points at the same query the header and footer links use,
+   * `/shop?category=<encoded>`. A breadcrumb naming a URL that 404s is worse
+   * than no breadcrumb: it is a claim about the site's shape that the site
+   * contradicts.
+   *
+   * `item` is omitted on the last entry, which is the current page. That is
+   * what schema.org asks for, and a self-referential link is the commonest way
+   * this markup gets flagged.
+   */
+  const breadcrumbs = {
+    "@type": "BreadcrumbList",
+    "@id": `${url}#breadcrumb`,
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Lebon Grace", item: base },
+      { "@type": "ListItem", position: 2, name: "Shop", item: `${base}/shop` },
+      ...(product.category
+        ? [
+            {
+              "@type": "ListItem",
+              position: 3,
+              name: product.category,
+              item: `${base}/shop?category=${encodeURIComponent(product.category)}`,
+            },
+          ]
+        : []),
+      { "@type": "ListItem", position: product.category ? 4 : 3, name: product.name },
+    ],
+  };
+
+  /*
+   * Both nodes in one @graph, the same shape layout.tsx uses for Organization
+   * and WebSite. One script tag rather than two: a parser reads either, but a
+   * graph makes the relationship explicit and keeps the page's structured data
+   * in one place to audit.
+   */
+  const graph = {
+    "@context": "https://schema.org",
+    "@graph": [{ ...jsonLd, "@context": undefined }, breadcrumbs],
+  };
+
   return (
     <>
       <script
@@ -206,7 +256,7 @@ export default async function ProductPage({
          * unlikely to be reached. A comment claiming a protection that does not
          * exist is worse than no comment: it stops the next reader checking.
          */
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(graph).replace(/</g, "\\u003c") }}
       />
       <ProductDetailClient />
     </>
