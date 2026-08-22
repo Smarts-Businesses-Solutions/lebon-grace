@@ -27,9 +27,20 @@ export async function generateMetadata({
 
   const base = getAppUrl();
   const url = `${base}/shop/${product.slug}`;
-  const image = product.imageUrl?.startsWith("http")
-    ? product.imageUrl
-    : `${base}${product.imageUrl || ""}`;
+  /*
+   * The generated card, not the product photograph.
+   *
+   * This pointed at product.imageUrl, which is correct-looking and produced no
+   * preview at all: those photographs run to a 3.4 MB median and 6.2 MB at the
+   * top, and WhatsApp refuses to build a large preview above roughly 600 KB.
+   * scripts/generate-og-images.mjs writes a 1200x630 card per slug, measured
+   * against that limit before it is accepted, and page.test.ts fails if a
+   * product has no card.
+   *
+   * Absolute, because getAppUrl is the only thing here that knows the host and
+   * WhatsApp will not resolve a relative og:image.
+   */
+  const image = `${base}/og/${product.slug}.jpg`;
 
   // Descriptions are written for a person deciding whether to click, so the
   // product's own copy comes first and the shop's promise second.
@@ -49,13 +60,13 @@ export async function generateMetadata({
       description,
       url,
       type: "website",
-      images: image ? [{ url: image, alt: product.name }] : [],
+      images: [{ url: image, width: 1200, height: 630, alt: product.name }],
     },
     twitter: {
       card: "summary_large_image",
       title: `${product.name}, AED ${product.price}`,
       description,
-      images: image ? [image] : [],
+      images: [image],
     },
   };
 }

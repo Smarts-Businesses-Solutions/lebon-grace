@@ -89,12 +89,42 @@ export const metadata: Metadata = {
     "Sharjah",
     "Dubai",
   ],
+  /*
+   * The site-wide social card, inherited by every page that does not set its
+   * own. Product pages override it with their own generated card.
+   *
+   * There was no image here at all, so /, /shop, /custom, /about, /faq and
+   * /links each shared as a bare blue string with no picture. Those are the
+   * URLs anyone actually sends: nobody pastes a deep product link into a family
+   * group, they paste the shop.
+   *
+   * Absolute, via getAppUrl, because WhatsApp will not resolve a relative
+   * og:image and there is no metadataBase set on this app. The dimensions are
+   * declared so a client can reserve the space before the image arrives.
+   */
   openGraph: {
     title: "Lebon Grace | MDF Puzzles for Children, Made to Order in the UAE",
     description:
       "Alphabet, number and Montessori puzzles for children, cut from 3mm MDF and finished by hand in our UAE workshop. Free name engraving.",
     type: "website",
     locale: "en_AE",
+    url: getAppUrl(),
+    siteName: "Lebon Grace",
+    images: [
+      {
+        url: `${getAppUrl()}/og/default.jpg`,
+        width: 1200,
+        height: 630,
+        alt: "A hand-cut MDF alphabet puzzle by Lebon Grace",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Lebon Grace | MDF Puzzles for Children, Made to Order in the UAE",
+    description:
+      "Alphabet, number and Montessori puzzles for children, cut from 3mm MDF and finished by hand in our UAE workshop. Free name engraving.",
+    images: [`${getAppUrl()}/og/default.jpg`],
   },
 };
 
