@@ -3,6 +3,7 @@ import { subscribers } from "@/lib/store";
 import { rateLimit } from "@/lib/rate-limit";
 import { isDeliverableEmail } from "@/lib/email-address";
 import { readUnsubscribeToken } from "@/lib/unsubscribe-token";
+import { suppressRecovery } from "@/lib/cart-recovery-guard";
 
 
 /**
@@ -33,7 +34,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid unsubscribe link" }, { status: 400 });
     }
     try {
-      await subscribers.remove(addr);
+      /*
+       * BOTH, not just the newsletter.
+       *
+       * This link also appears in the cart recovery e-mail, which goes to
+       * people who typed an address at checkout and never subscribed to
+       * anything. Removing a newsletter row they were never in succeeded and
+       * did nothing, so the next abandoned cart mailed them again. Unsubscribe
+       * means stop sending, not stop sending one of the two kinds.
+       */
+      await Promise.all([subscribers.remove(addr), suppressRecovery(addr)]);
     } catch (err) {
       console.error("[unsubscribe:one-click] failed to remove", err);
       // 200 anyway: a mail provider that sees an error may retry or, worse,
@@ -53,7 +63,8 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    await subscribers.remove(email);
+    // Same reasoning as the one-click branch above.
+    await Promise.all([subscribers.remove(email), suppressRecovery(email)]);
   } catch (err) {
     console.error("unsubscribe failed", err);
     return NextResponse.json({ error: "Could not process that. Please try again." }, { status: 500 });

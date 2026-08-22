@@ -87,6 +87,50 @@ export async function mayRecover(email: string): Promise<RecoveryDecision> {
   }
 }
 
+/**
+ * Never send cart recovery to this address again.
+ *
+ * THIS FUNCTION DID NOT EXIST, and its absence made the unsubscribe button in
+ * the cart recovery e-mail incapable of working. `suppressed` was read by
+ * mayRecover above and written by nothing, anywhere in the codebase. The column
+ * shipped, the guard consulted it, and no code path could ever set it, so the
+ * check could only ever return false. A guard that has never gone red is either
+ * unnecessary or broken, and this one was broken.
+ *
+ * What that meant in practice: cart recovery is promotional mail sent to people
+ * who typed an address at checkout and did not buy. They never asked for it. It
+ * carries a one-click unsubscribe, Gmail and Yahoo show the native Unsubscribe
+ * button beside the sender, someone presses it, and the next abandoned cart
+ * mails them again. email.ts warns in its own comments that a button which does
+ * nothing teaches recipients to press "report spam" instead, and complaints are
+ * what actually damage a sending domain.
+ *
+ * Upsert rather than update: the address may never have been sent to, and an
+ * unsubscribe from someone with no row must still be recorded. That is the
+ * whole point of honouring it before rather than after the first send.
+ */
+export async function suppressRecovery(email: string): Promise<void> {
+  const hash = hashRecipient(email);
+  try {
+    const { error } = await db().from("cart_recovery_sends").upsert(
+      {
+        recipient_hash: hash,
+        suppressed: true,
+        // Not a send. Left at its default for a new row and untouched for an
+        // existing one, so send_count stays a count of messages actually sent.
+      },
+      { onConflict: "recipient_hash" },
+    );
+    if (error) console.error(`[cart-recovery] could not suppress: ${error.message}`);
+  } catch (err) {
+    // Swallowed, like the rest of this module. The caller is an unsubscribe
+    // endpoint that must answer 200 to a mail provider whatever happens here:
+    // a provider seeing an error may retry, or decide the header is unreliable
+    // and stop showing the button at all.
+    console.error("[cart-recovery] could not suppress:", err);
+  }
+}
+
 /** Record a send, so the next request for this address is refused. */
 export async function recordRecoverySend(email: string): Promise<void> {
   const hash = hashRecipient(email);
